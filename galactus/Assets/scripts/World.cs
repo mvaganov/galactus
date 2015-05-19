@@ -1,0 +1,21 @@
+﻿using UnityEngine;
+using System.Collections;
+
+public class World : MonoBehaviour {
+
+	// Use this for initialization
+	void Start () {
+	
+	}
+	
+	// Update is called once per frame
+	void Update () {
+	
+	}
+
+	public ParticleSystem attackParticle;
+
+	void OnTriggerExit(Collider other) {
+		Debug.LogError(other.gameObject+" left!");
+	}
+}
