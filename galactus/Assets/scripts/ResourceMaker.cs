@@ -66,7 +66,7 @@ public class ResourceMaker : MonoBehaviour {
 		resourceNodeHarvest.Emit((int)(v * 10));
 	}
 
-	public bool Suppressed(Vector3 testLoc, float suppressionRange) {
+	public bool IsBlocked(Vector3 testLoc, float suppressionRange) {
 		foreach(Suppression s in suppression) {
 			float dist = (testLoc - s.position).magnitude;
 			if(dist < suppressionRange) return true;
@@ -82,7 +82,7 @@ public class ResourceMaker : MonoBehaviour {
 		do {
 			loc = Random.onUnitSphere;
 			loc *= Random.Range(0, sc.radius);
-			supressed = Suppressed(loc, resourceSettings.suppressionRange);
+			supressed = IsBlocked(loc, resourceSettings.suppressionRange);
 			iterations++;
 			if(iterations > 10) break;
 		} while(supressed);

@@ -1,0 +1,9 @@
+
+400 mutliplayer
+800 visible score/mass
+700 names
+1000 consuming players
+	900 respawn when the die
+600 options
+	toggle mass view
+

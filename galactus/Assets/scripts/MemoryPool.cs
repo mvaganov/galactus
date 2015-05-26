@@ -32,6 +32,8 @@ public class MemoryPool<T> where T : class {
 	public DelegateCommission commission;
 	public DelegateDecommission decommission;
 
+	public List<T> GetAllObjects() { return allObjects; }
+
 	/// <summary>
 	/// Example usage:
 	/// <para>memPool.Setup(
