@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class PlayerMaker : MonoBehaviour {
 
-	MemoryPool<GameObject> players;
+	public MemoryPool<GameObject> players;
 	MemoryPool<GameObject> userplayers;
 
 	public PlayerForce[] player_prefab;
@@ -30,7 +30,10 @@ public class PlayerMaker : MonoBehaviour {
 		players.Setup(
 			() => {
 				int randomIndex = Random.Range(0, player_prefab.Length);
-				return Instantiate(player_prefab[randomIndex].gameObject);
+				GameObject original = player_prefab[randomIndex].gameObject;
+				GameObject go = Instantiate(original);
+				go.name = original.name + " " + activePlayers;
+				return go;
 			},
 			(obj) => { obj.SetActive(true); activePlayers++; },
 			(obj) => { obj.SetActive(false); activePlayers--; },

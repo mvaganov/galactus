@@ -28,15 +28,15 @@ public class ResourceMaker : MonoBehaviour {
 	SphereCollider sc;
 
 	[System.Serializable]
-	public class ResourceSettings {
-		public int maxActiveResources = 100;
-		public float resourceCreationDelay = 1;
+	public class Settings {
+		public int maxActive = 100;
+		public float creationDelay = 1;
 		public float suppressionDuration = 30;
 		public float suppressionRange = 10;
 		public float minValue = 1, maxValue = 10;
 	}
 
-	public ResourceSettings resourceSettings = new ResourceSettings();
+	public Settings resourceSettings = new Settings();
 
 	float timer = 0;
 	int activeResources = 0;
@@ -100,15 +100,15 @@ public class ResourceMaker : MonoBehaviour {
 	}
 
 	void Update () {
-		if(timer < resourceSettings.resourceCreationDelay) {
+		if(timer < resourceSettings.creationDelay) {
 			timer += Time.deltaTime;
 		}
-		if(timer >= resourceSettings.resourceCreationDelay) {
-			if(activeResources < resourceSettings.maxActiveResources) {
+		if(timer >= resourceSettings.creationDelay) {
+			if(activeResources < resourceSettings.maxActive) {
 				CreateRandomResourceNode();
-				timer -= resourceSettings.resourceCreationDelay;
+				timer -= resourceSettings.creationDelay;
 			} else {
-				timer = resourceSettings.resourceCreationDelay;
+				timer = resourceSettings.creationDelay;
 			}
 		}
 	}
