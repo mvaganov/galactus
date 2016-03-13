@@ -10,7 +10,7 @@ public class ResourceMaker : MonoBehaviour {
 	public ParticleSystem resourceNodeHarvest;
 	public ParticleSystem resourceSuppressVisual;
 
-	struct Suppression {
+    struct Suppression {
 		public Vector3 position;
 		public float expiration;
 		public Suppression(Vector3 position, float expiration) { this.position = position; this.expiration = expiration; }
@@ -24,8 +24,6 @@ public class ResourceMaker : MonoBehaviour {
 		resourceSuppressVisual.Emit(5);
 		suppression.Enqueue(new Suppression(loc, Time.time + resourceSettings.suppressionDuration));
 	}
-
-	SphereCollider sc;
 
 	[System.Serializable]
 	public class Settings {
@@ -42,17 +40,27 @@ public class ResourceMaker : MonoBehaviour {
 	int activeResources = 0;
 
 	void Start() {
-		sc = GetComponent<SphereCollider>();
 		resourceNodes = new MemoryPool<GameObject>();
 		resourceNodes.Setup(
 			() => Instantiate(resourceNode_prefab.gameObject),
 			(obj) => { obj.SetActive(true); activeResources++; },
-			(obj) => { 
-				obj.SetActive(false);
+			(obj) => {
+                Rigidbody rb = obj.GetComponent<Rigidbody>();
+                if (rb) { rb.velocity = Vector3.zero; }
+                Seeker s = obj.GetComponent<Seeker>();
+                if (s) Destroy(s);
+                obj.SetActive(false);
 				activeResources--;
 				AddSuppression(obj.transform.position);
-				Harvest(obj.GetComponent<ResourceNode>());
-			},
+                ResourceNode n = obj.GetComponent<ResourceNode>();
+                Harvest(n);
+                if (n.creator)
+                {
+                    ReleaseEnergy ss = n.creator.GetComponent<ReleaseEnergy>();
+                    if(ss) ss.ReduceOrbitCount(1);
+                }
+                n.creator = null;
+            },
 			(obj) => Object.Destroy(obj)
 		);
 	}
@@ -75,25 +83,31 @@ public class ResourceMaker : MonoBehaviour {
 	}
 
 	public ResourceNode CreateRandomResourceNode() {
-		ResourceNode rn = resourceNodes.Alloc().GetComponent<ResourceNode>();
 		Vector3 loc = Vector3.zero;
 		bool supressed = false;
 		int iterations = 0;
 		do {
-			loc = Random.onUnitSphere;
-			loc *= Random.Range(0, sc.radius);
+            loc = World.GetRandomLocation();
 			supressed = IsBlocked(loc, resourceSettings.suppressionRange);
 			iterations++;
 			if(iterations > 10) break;
 		} while(supressed);
-		rn.SetColor(new Color(Random.Range(0, 1.0f), Random.Range(0, 1.0f), Random.Range(0, 1.0f)));
-		rn.transform.position = loc;
-		rn.SetValue(Random.Range(resourceSettings.minValue, resourceSettings.maxValue));
-		rn.transform.parent = transform;
-		return rn;
+        return CreateResourceNode(loc,
+            Random.Range(resourceSettings.minValue, resourceSettings.maxValue),
+            new Color(Random.Range(0, 1.0f), Random.Range(0, 1.0f), Random.Range(0, 1.0f)));
 	}
 
-	void FixedUpdate() {
+    public ResourceNode CreateResourceNode(Vector3 loc, float value, Color color)
+    {
+        ResourceNode rn = resourceNodes.Alloc().GetComponent<ResourceNode>();
+        rn.SetColor(color);
+        rn.transform.position = loc;
+        rn.SetValue(value);
+        rn.transform.parent = transform;
+        return rn;
+    }
+
+    void FixedUpdate() {
 		while(suppression.Count > 0 && suppression.Peek().expiration < Time.time) {
 			suppression.Dequeue();
 		}

@@ -9,14 +9,20 @@ public class PlayerForce : MonoBehaviour {
 	public bool playerControlled = true;
 	public bool showDebugLines = false;
 	GameObject line_velocity, line_acceleration;
+    [Tooltip("What transform to use with WASD controls (default to self if null)")]
+    public Transform orientation;
 	void Start () {
 		rb = GetComponent<Rigidbody>();
 		rb.freezeRotation = true;
-	}
+        if (!orientation) orientation = transform;
+
+    }
 	float stuckTimer = -1;
 	Vector3 stuckPosition;
+
+    public float fore = 1, side;
+
 	void Update () {
-		float fore = 1, side = 0;
 		if(playerControlled) {
 			fore = Input.GetAxis("Vertical");
 			side = Input.GetAxis("Horizontal");
@@ -37,10 +43,10 @@ public class PlayerForce : MonoBehaviour {
 		}
 		Vector3 accel = Vector3.zero;
 		if(fore != 0) {
-			accel += transform.forward * fore * accelerationForce;
+			accel += orientation.forward * fore * accelerationForce;
 		}
 		if(side != 0) {
-			accel += transform.right * side * accelerationForce;
+			accel += orientation.right * side * accelerationForce;
 		}
 		float speed = rb.velocity.magnitude;
 		Vector3 direction = rb.velocity / speed;
@@ -58,12 +64,16 @@ public class PlayerForce : MonoBehaviour {
 		float speedChange = Vector3.Dot(accel, rb.velocity);
 		// if we are slowing down, OR we aren't going our max speed
 		if(accel != Vector3.zero) {
+            float currentMaxSpeed = maxSpeed / rb.mass;
 			// if we're going too fast, and trying to go faster
-			if(speed >= maxSpeed && speedChange > 0) {
+			if(speed >= currentMaxSpeed && speedChange > 0) {
 				// reduce our acceleration force in our current speed direction
 				float overSpeed = Vector3.Dot(direction, accel);
 				accel -= direction * overSpeed;
-			}
+			} else
+            {
+                accel /= rb.mass;
+            }
 			rb.velocity += accel * Time.deltaTime;
 		}
 		if(showDebugLines) {
