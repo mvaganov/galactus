@@ -47,7 +47,7 @@ public class ResourceEater : MonoBehaviour {
     {
         score = 0;
         SetSize(1);
-        SetMass(1);
+		SetMass(1 / World.MASS_MODIFIER);
     }
 
     public void SetColor(Color color)

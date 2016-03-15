@@ -6,7 +6,7 @@ public class World : MonoBehaviour {
     private static World instance;
     public static World GetInstance() { return instance; }
 
-    public static float SIZE_MODIFIER = 0.25f;
+    public static float SIZE_MODIFIER = 1;
     public static float MASS_MODIFIER = 0.25f;
 
     public ResourceMaker spawner;

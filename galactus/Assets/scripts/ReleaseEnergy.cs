@@ -67,7 +67,7 @@ public class ReleaseEnergy : MonoBehaviour {
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            float amnt = eat.radius * eat.radius;
+			float amnt = eat.mass / (countReleasesPerSprint * 2);
             if (amnt < 1) amnt = 1;
             Eject(false, amnt);
         }
