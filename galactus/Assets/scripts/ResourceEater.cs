@@ -3,6 +3,9 @@ using System.Collections;
 
 public class ResourceEater : MonoBehaviour {
 
+    // TODO release all energy on death using energy release code, which has very cool graphics, instead of weird 'attack' logic
+    // TODO interpolate scale when increasing in size
+
     public Color color = Color.white;
 	public float score = 0;
 	public GameObject playerObject;

@@ -71,7 +71,7 @@ public class ResourceMaker : MonoBehaviour {
 		resourceNodeHarvest.startColor = rn.GetColor();
 		resourceNodeHarvest.startSize = v;
 		resourceNodeHarvest.startSpeed = v;
-		resourceNodeHarvest.Emit((int)(v * 10));
+		resourceNodeHarvest.Emit((int)(Mathf.Sqrt(v) * 10));
 	}
 
 	public bool IsBlocked(Vector3 testLoc, float suppressionRange) {
