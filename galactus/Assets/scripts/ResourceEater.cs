@@ -40,8 +40,9 @@ public class ResourceEater : MonoBehaviour {
 		GetComponent<SphereCollider>().isTrigger = true;
         halo = FindComponent<ParticleSystem>(false, true);
         SetColor(color);
-        resetValues();
-	}
+        SetSize(this.size);
+        SetMass(this.mass);
+    }
 
     public void resetValues()
     {
@@ -66,6 +67,11 @@ public class ResourceEater : MonoBehaviour {
     {
         this.mass = n;
         float s = Mathf.Sqrt(n) * World.SIZE_MODIFIER;
+        if(playerObject == null)
+        {
+            PlayerForce pf = FindComponent<PlayerForce>(true, false);
+            playerObject = pf.gameObject;
+        }
         playerObject.transform.localScale = new Vector3(s, s, s);
         playerObject.GetComponent<Rigidbody>().mass = Mathf.Sqrt(this.mass) * World.MASS_MODIFIER;
     }
@@ -111,7 +117,8 @@ public class ResourceEater : MonoBehaviour {
 			if(distance < transform.lossyScale.x) {
 				AddValue(e.mass);
                 //e.AddValue(-e.mass);
-                e.resetValues();
+                e.mass = 0;
+                e.transform.parent.GetComponent<MouseLook>().enabled = false;
                 MemoryPoolItem.Destroy(e.playerObject.gameObject);
             }
         }

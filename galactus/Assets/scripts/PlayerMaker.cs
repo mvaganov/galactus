@@ -35,8 +35,30 @@ public class PlayerMaker : MonoBehaviour {
 				go.name = original.name + " " + activePlayers;
 				return go;
 			},
-			(obj) => { obj.SetActive(true); activePlayers++; },
-			(obj) => { obj.SetActive(false); activePlayers--; },
+			(obj) => {
+                obj.SetActive(true); activePlayers++;
+                ResourceEater re = null;
+                for (int i = 0; re == null && i < obj.transform.childCount; ++i)
+                {
+                    re = obj.transform.GetChild(i).GetComponent<ResourceEater>();
+                }
+                re.resetValues();
+                obj.GetComponent<MouseLook>().enabled = true;
+            },
+			(obj) => {
+                PlayerForce pf = obj.GetComponent<PlayerForce>();
+                pf.GetComponent<Rigidbody>().velocity = Vector3.zero;
+                TimeMS.CallbackWithDuration(3000, (progress) => {
+                    if (progress == 1)
+                    {
+                        obj.SetActive(false); activePlayers--;
+                    }
+                    else
+                    {
+                        obj.transform.localScale = obj.transform.localScale * (1 - progress);
+                    }
+                });
+            },
 			(obj) => Object.Destroy(obj)
 		);
 	}

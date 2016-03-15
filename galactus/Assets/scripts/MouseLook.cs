@@ -64,6 +64,14 @@ public class MouseLook : MonoBehaviour {
                 }
                 if (target)
                 {
+                    //Lines.Make(ref view, Color.yellow, transform.position, target.transform.position, .1f, .1f);
+                    //Vector3 steerForce = Steering.Arrive(transform.position, rb.velocity, ml.maxSpeed, ml.accelerationForce, target.transform.position);
+                    Vector3 steerForce = Steering.Seek(transform.position, rb.velocity, ml.maxSpeed, target.transform.position);
+                    transform.LookAt(transform.position + steerForce);
+                    move = Vector2.zero;
+                    move.x += Random.Range(-2, 2);
+                    move.y += Random.Range(-2, 2);
+                    /*
                     Vector3 delta = target.transform.position - transform.position;
                     float distInFront = Vector3.Dot(delta, transform.forward);
                     move.y = Vector3.Dot(delta, transform.up);
@@ -74,19 +82,17 @@ public class MouseLook : MonoBehaviour {
 //                    Lines.Make(ref up, Color.green, p, p + transform.up * move.y, .1f, .1f);
                     p += transform.up * move.y;
 //                    Lines.Make(ref rgt, Color.red, p, p + transform.right * move.x, .1f, .1f);
-                    Lines.Make(ref view, Color.yellow, transform.position, target.transform.position, .1f, .1f);
 
                     //move *= Time.deltaTime;
                     float dist = move.magnitude;
                     if (distInFront < Mathf.Abs(move.x) || distInFront < Mathf.Abs(move.y)) {
                         ml.fore = 0;
                     }
-                    move.x += Random.Range(-xSensitivity, xSensitivity);
-                    move.y += Random.Range(-ySensitivity, ySensitivity);
                     move /= dist;
                     move *= 10 * Time.deltaTime;
                     //                    move.x *= xSensitivity;
                     //                    move.y *= ySensitivity;
+                    */
                 }
                 break;
 		}
