@@ -56,7 +56,7 @@ public class ResourceMaker : MonoBehaviour {
                 Harvest(n);
                 if (n.creator)
                 {
-                    ReleaseEnergy ss = n.creator.GetComponent<ReleaseEnergy>();
+                    ResourceEater ss = n.creator.GetComponent<ResourceEater>();
                     if(ss) ss.ReduceOrbitCount(1);
                 }
                 n.creator = null;

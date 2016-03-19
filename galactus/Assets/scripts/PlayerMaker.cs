@@ -14,6 +14,12 @@ public class PlayerMaker : MonoBehaviour {
 
 	SphereCollider sc;
 
+    public string[] nameFragments =
+    {
+        "butt","poop","troll","lol","noob","dude","swag","super","haxor","guy","my","ur","red","black","lady","leet"
+    };
+    public string RandomName() { return nameFragments[Random.Range(0, nameFragments.Length)] + nameFragments[Random.Range(0, nameFragments.Length)]; }
+
 	[System.Serializable]
 	public class Settings {
 		public int maxActive = 10;
@@ -33,6 +39,8 @@ public class PlayerMaker : MonoBehaviour {
 				GameObject original = player_prefab[randomIndex].gameObject;
 				GameObject go = Instantiate(original);
 				go.name = original.name + " " + activePlayers;
+                ResourceEater re = go.transform.GetChild(0).GetComponent<ResourceEater>();
+                re.name = RandomName();
 				return go;
 			},
 			(obj) => {

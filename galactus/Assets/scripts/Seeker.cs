@@ -6,8 +6,6 @@ public class Seeker : MonoBehaviour {
     public Transform target;
     public float maxSpeed = 10;
     public float maxAcceleration = 5;
-    [Tooltip("from 0 (no wobble) to 1 (no coherence)")]
-    public float randomWobble = 0.025f;
     Rigidbody rb;
 
     public void Setup(Transform t, float speed, float accel)

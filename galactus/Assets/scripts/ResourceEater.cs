@@ -3,7 +3,6 @@ using System.Collections;
 
 public class ResourceEater : MonoBehaviour {
 
-    // TODO release all energy on death using energy release code, which has very cool graphics, instead of weird 'attack' logic
     // TODO interpolate scale when increasing in size
 
     public Color color = Color.white;
@@ -118,12 +117,67 @@ public class ResourceEater : MonoBehaviour {
 		if(e.mass >= 0 && e.mass< (mass * 0.85f)) {
 			float distance = Vector3.Distance(e.transform.position, transform.position);
 			if(distance < transform.lossyScale.x) {
-				AddValue(e.mass);
+                //AddValue(e.mass);
+                e.Eject(false, e.mass, transform); // TODO make the ejection more explosive... like, prevent immidiate absorption, or blast out at high speed away from the player slightly...
                 //e.AddValue(-e.mass);
-                e.mass = 0;
                 e.transform.parent.GetComponent<MouseLook>().enabled = false;
                 MemoryPoolItem.Destroy(e.playerObject.gameObject);
             }
         }
 	}
+
+    public static int countReleasesPerSprint = 5;
+    public static float minimumTransientEnergySeconds = 10;
+    public static float secondsIncreasePerRelease = 1;
+
+    int numReleases;
+
+    public void Eject(bool forward, float amount, Transform target)
+    {
+        Vector3 dir = transform.forward;
+        float amountPerPacket = amount / countReleasesPerSprint;
+        for (int i = 0; i < countReleasesPerSprint; ++i)
+        {
+            TimeMS.TimerCallback(i * 100, () => {
+                if (!forward) dir = Random.onUnitSphere;
+                if (mass >= amountPerPacket && EjectOne(dir, amountPerPacket, target))
+                    ChangeMass(-amountPerPacket);
+            });
+        }
+    }
+
+    bool EjectOne(Vector3 direction, float size, Transform target)
+    {
+        PlayerForce pf = FindComponent<PlayerForce>(true, false);
+        Quaternion r = pf.transform.rotation;
+        r.SetLookRotation(direction);
+        World w = World.GetInstance();
+        TrailRenderer mommaTrail = FindComponent<TrailRenderer>(false, true);
+        ResourceNode n = w.spawner.CreateResourceNode(transform.position + Random.insideUnitSphere * radius, size, color);
+        Rigidbody rb = n.gameObject.GetComponent<Rigidbody>();
+        if (!rb) { rb = n.gameObject.AddComponent<Rigidbody>(); }
+        TrailRenderer tr = n.gameObject.GetComponent<TrailRenderer>();
+        tr.material = mommaTrail.material;
+        tr.startWidth = radius * 0.0625f;
+        tr.endWidth = 0;
+        tr.time = 0.125f;
+        Seeker s = n.gameObject.AddComponent<Seeker>();
+        s.Setup(target, pf.maxSpeed * 2.5f, pf.maxSpeed * 8);
+        rb.velocity = n.transform.forward * pf.maxSpeed;
+        n.creator = gameObject;
+        int msDelay = (int)(minimumTransientEnergySeconds * 1000 + (numReleases * secondsIncreasePerRelease * 1000));
+        print(msDelay);
+        TimeMS.TimerCallback(msDelay, () => {
+            if (n.creator) // FIXME make a better way to determine if this energy particle thing was already resolved...
+            {
+                ReduceOrbitCount(1);
+            }
+            n.creator = null;
+        });
+        numReleases++;
+        return true;
+    }
+
+    public void ReduceOrbitCount(int n) { numReleases -= n; print(numReleases); }
+
 }
