@@ -118,7 +118,7 @@ public class ResourceEater : MonoBehaviour {
 			float distance = Vector3.Distance(e.transform.position, transform.position);
 			if(distance < transform.lossyScale.x) {
                 //AddValue(e.mass);
-                e.Eject(false, e.mass, transform); // TODO make the ejection more explosive... like, prevent immidiate absorption, or blast out at high speed away from the player slightly...
+                e.Eject(false, e.mass, transform, 1);
                 //e.AddValue(-e.mass);
                 e.transform.parent.GetComponent<MouseLook>().enabled = false;
                 MemoryPoolItem.Destroy(e.playerObject.gameObject);
@@ -132,7 +132,7 @@ public class ResourceEater : MonoBehaviour {
 
     int numReleases;
 
-    public void Eject(bool forward, float amount, Transform target)
+    public void Eject(bool forward, float amount, Transform target, float edibleDelay)
     {
         Vector3 dir = transform.forward;
         float amountPerPacket = amount / countReleasesPerSprint;
@@ -140,13 +140,13 @@ public class ResourceEater : MonoBehaviour {
         {
             TimeMS.TimerCallback(i * 100, () => {
                 if (!forward) dir = Random.onUnitSphere;
-                if (mass >= amountPerPacket && EjectOne(dir, amountPerPacket, target))
+                if (mass >= amountPerPacket && EjectOne(dir, amountPerPacket, target, edibleDelay))
                     ChangeMass(-amountPerPacket);
             });
         }
     }
 
-    bool EjectOne(Vector3 direction, float size, Transform target)
+    bool EjectOne(Vector3 direction, float size, Transform target, float edibleDelay)
     {
         PlayerForce pf = FindComponent<PlayerForce>(true, false);
         Quaternion r = pf.transform.rotation;
@@ -166,7 +166,7 @@ public class ResourceEater : MonoBehaviour {
         rb.velocity = n.transform.forward * pf.maxSpeed;
         n.creator = gameObject;
         int msDelay = (int)(minimumTransientEnergySeconds * 1000 + (numReleases * secondsIncreasePerRelease * 1000));
-        print(msDelay);
+        //print(msDelay);
         TimeMS.TimerCallback(msDelay, () => {
             if (n.creator) // FIXME make a better way to determine if this energy particle thing was already resolved...
             {
@@ -175,9 +175,14 @@ public class ResourceEater : MonoBehaviour {
             n.creator = null;
         });
         numReleases++;
+        if(edibleDelay > 0)
+        {
+            n.SetEdible(false);
+            TimeMS.TimerCallback((int)(edibleDelay * 1000), () => { n.SetEdible(true); });
+        }
         return true;
     }
 
-    public void ReduceOrbitCount(int n) { numReleases -= n; print(numReleases); }
+    public void ReduceOrbitCount(int n) { numReleases -= n; }
 
 }

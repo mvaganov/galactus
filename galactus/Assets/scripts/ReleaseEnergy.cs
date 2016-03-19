@@ -12,7 +12,7 @@ public class ReleaseEnergy : MonoBehaviour {
             ResourceEater eat = GetComponent<ResourceEater>();
 			float amnt = eat.mass / (ResourceEater.countReleasesPerSprint * 2);
             if (amnt < 1) amnt = 1;
-            eat.Eject(false, amnt, transform);
+            eat.Eject(false, amnt, transform, 0);
         }
     }
 }

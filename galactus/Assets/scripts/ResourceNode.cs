@@ -5,6 +5,8 @@ public class ResourceNode : MonoBehaviour {
 
 	public float value = 1;
 
+    public void SetEdible(bool edible) { this.enabled = edible; }
+
     public GameObject creator = null;
 
 	public float GetValue() { return value; }
@@ -30,6 +32,7 @@ public class ResourceNode : MonoBehaviour {
 	}
 
 	void OnTriggerStay(Collider c) {
+        if (!this.enabled) return;
 		ResourceEater re = c.gameObject.GetComponent<ResourceEater>();
 		if(re != null && re.gameObject != creator) {
 			re.AddValue(value);
