@@ -6,7 +6,7 @@ public class ResourceSensor : MonoBehaviour {
     public ResourceEater sensorOwner;
     public Transform lookTransform;
     public float range = 200;
-    public float sensorUpdateTime = 1.0f/32;
+    public float sensorUpdateTime = 1.0f/2;
     float sensorTimer = 0;
 
     public static Color bigr = new Color(.75f, 0, 0, .75f);
@@ -19,6 +19,14 @@ public class ResourceSensor : MonoBehaviour {
 //    List<GameObject> lines = new List<GameObject>();
 
     void Start () {
+	}
+
+	void LateUpdate(){
+		for (int i = 0; i < textEntries.Count; ++i) {
+			if (textEntries [i].activeInHierarchy) {
+				textEntries [i].transform.rotation = transform.rotation;
+			}
+		}
 	}
 	
 	void FixedUpdate () {
@@ -43,10 +51,11 @@ public class ResourceSensor : MonoBehaviour {
                 bool showThisOne = reat != null && reat.mass > 0;
                 if (showThisOne)
                 {
+					float d = Vector3.Distance(cam.transform.position, reat.transform.position);
                     if (textEntries.Count <= validOnes)
                     {
                         GameObject tentr = Instantiate(textPrefab) as GameObject;
-                        tentr.transform.SetParent(cam.transform);
+						tentr.transform.SetParent (reat.transform);//cam.transform);
                         textEntries.Add(tentr);
 //                        lines.Add(new GameObject());
                     }
@@ -55,8 +64,13 @@ public class ResourceSensor : MonoBehaviour {
 
                     Transform p = t.transform.parent;
                     t.transform.SetParent(null);
-                    t.transform.localScale = new Vector3(0.01f, 0.01f, 0.01f);
-                    t.transform.SetParent(p);
+					float s = 0.01f;
+					s *= d/2.0f;
+                    t.transform.localScale = new Vector3(s,s,s);
+					t.transform.rotation = lookTransform.rotation;
+                    //t.transform.SetParent(p);
+					t.transform.SetParent(c.transform);
+					t.transform.localPosition = Vector3.zero;
 
                     //for (int n = 0; n < validOnes; ++n) { t.text += "\n"; }
                     t.text = c.name+"\n"+((int)reat.mass);
@@ -73,11 +87,9 @@ public class ResourceSensor : MonoBehaviour {
                         t.color = peer;
                     }
 
-                    Vector3 v = cam.WorldToScreenPoint(c.gameObject.transform.position);
-                    Ray r = cam.ScreenPointToRay(v);
-                    float d = Vector3.Distance(cam.transform.position, reat.transform.position);
-                    t.transform.position = r.origin + r.direction * (d/50);
-                    t.transform.rotation = lookTransform.rotation;
+                    //Vector3 v = cam.WorldToScreenPoint(c.gameObject.transform.position);
+                    //Ray r = cam.ScreenPointToRay(v);
+                    //t.transform.position = r.origin + r.direction * (d/50);
                     t.gameObject.SetActive(true);
                     validOnes++;
                 }
