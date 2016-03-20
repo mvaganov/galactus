@@ -6,17 +6,16 @@ public class ResourceEater : MonoBehaviour {
     // TODO interpolate scale when increasing in size
 
     public Color color = Color.white;
-	public float score = 0;
 	public GameObject playerObject;
 	public World w;
-    public float size = 1, mass = 1, radius = 1;
+    public float effectsRadius = 1, mass = 1, scale = 1, targetScale = 1, scaleVelocity = 1;
 
 	//float currentAttackPower = 0;
 
 	//private static Vector3 one = new Vector3(.1f, .1f, .1f);
     public ParticleSystem halo;
 
-    public float GetRadius() { return radius; }
+    public float GetRadius() { return effectsRadius; }
 
     public COMPONENT FindComponent<COMPONENT>(bool parents, bool children) where COMPONENT : Component {
         COMPONENT c = null;
@@ -42,15 +41,29 @@ public class ResourceEater : MonoBehaviour {
 		GetComponent<SphereCollider>().isTrigger = true;
         halo = FindComponent<ParticleSystem>(false, true);
         SetColor(color);
-        SetSize(this.size);
+        SetEffectsSize(0);
         SetMass(this.mass);
+    }
+
+    void Update()
+    {
+        if (scale != targetScale)
+        {
+            float dir = targetScale - scale;
+            float s = (scaleVelocity * ((dir < 0) ? -1 : 1)) * Time.deltaTime;
+            scale += s;
+            if(scale > targetScale ^ dir < 0)
+            {
+                scale = targetScale;
+            }
+            playerObject.transform.localScale = new Vector3(scale, scale, scale);
+        }
     }
 
     public void resetValues()
     {
-        score = 0;
-        SetSize(1);
-		SetMass(1 / World.MASS_MODIFIER);
+        // division to undo the MASS_MODIFIER done every time mass is set.
+		SetMass(1);
     }
 
     public void SetColor(Color color)
@@ -68,42 +81,42 @@ public class ResourceEater : MonoBehaviour {
     public void SetMass(float n)
     {
         this.mass = n;
-        float s = Mathf.Sqrt(n) * World.SIZE_MODIFIER;
+        targetScale = Mathf.Sqrt(n) * World.SIZE_MODIFIER;
         if(playerObject == null)
         {
             PlayerForce pf = FindComponent<PlayerForce>(true, false);
             playerObject = pf.gameObject;
         }
-        playerObject.transform.localScale = new Vector3(s, s, s);
+        //print(n);
         playerObject.GetComponent<Rigidbody>().mass = Mathf.Sqrt(this.mass) * World.MASS_MODIFIER;
-    }
-
-    public void SetSize(float n)
-    {
-        this.size = n;
-        float s = Mathf.Sqrt(n) * World.SIZE_MODIFIER;
-        radius = s;
-        if (halo) halo.transform.localScale = new Vector3(s, s, s);
-        TrailRenderer trail = FindComponent<TrailRenderer>(false, true);
-        if (trail) trail.startWidth = s;
-    }
-
-    public void ChangeMass(float delta) { SetMass(this.mass + delta); }
-    public void ChangeSize(float delta) {
-        if (this.mass + delta > this.size)
+        if (this.effectsRadius < this.targetScale)
         {
-            SetSize(this.size + delta);
+            SetEffectsSize(this.targetScale);
+        }
+        if (mass <= 0)
+        {
+            MemoryPoolItem.Destroy(playerObject.gameObject);
+        }
+        if (targetScale < 0.1f)
+        {
+            playerObject.GetComponent<MouseLook>().enabled = false;
         }
     }
 
+    public void SetEffectsSize(float n)
+    {
+        effectsRadius = n;
+        if (halo) halo.transform.localScale = new Vector3(effectsRadius, effectsRadius, effectsRadius);
+        TrailRenderer trail = FindComponent<TrailRenderer>(false, true);
+        if (trail) trail.startWidth = effectsRadius;
+    }
+
+    public void ChangeMass(float delta) {
+        SetMass(this.mass + delta);
+    }
+
     public void AddValue(float v) {
-		score += v;
-		if(score <= 0) {
-			print(playerObject.name + " should be dead!");
-		} else {
-            ChangeSize(v);
-            ChangeMass(v);
-		}
+        ChangeMass(v);
     }
 
     void OnTriggerEnter(Collider c) {
@@ -112,16 +125,15 @@ public class ResourceEater : MonoBehaviour {
 
 	void Attack(ResourceEater e) {
 		if(e == null) { return; }
-		//print(playerObject.name + " attacks " + e.playerObject.name);
-		// TODO score * 0.9 could be in a variable called 'minimumEatableSize' or something
 		if(e.mass >= 0 && e.mass< (mass * 0.85f)) {
 			float distance = Vector3.Distance(e.transform.position, transform.position);
 			if(distance < transform.lossyScale.x) {
+                print(name + " attacks " + e.name);
                 //AddValue(e.mass);
                 e.Eject(false, e.mass, transform, 1);
                 //e.AddValue(-e.mass);
-                e.transform.parent.GetComponent<MouseLook>().enabled = false;
-                MemoryPoolItem.Destroy(e.playerObject.gameObject);
+                //e.transform.parent.GetComponent<MouseLook>().enabled = false;
+                //MemoryPoolItem.Destroy(e.playerObject.gameObject);
             }
         }
 	}
@@ -140,7 +152,8 @@ public class ResourceEater : MonoBehaviour {
         {
             TimeMS.TimerCallback(i * 100, () => {
                 if (!forward) dir = Random.onUnitSphere;
-                if (mass >= amountPerPacket && EjectOne(dir, amountPerPacket, target, edibleDelay))
+                if (EjectOne(dir, amountPerPacket, target, edibleDelay))
+                    if (mass <= amountPerPacket) amountPerPacket = mass;
                     ChangeMass(-amountPerPacket);
             });
         }
@@ -153,12 +166,12 @@ public class ResourceEater : MonoBehaviour {
         r.SetLookRotation(direction);
         World w = World.GetInstance();
         TrailRenderer mommaTrail = FindComponent<TrailRenderer>(false, true);
-        ResourceNode n = w.spawner.CreateResourceNode(transform.position + Random.insideUnitSphere * radius, size, color);
+        ResourceNode n = w.spawner.CreateResourceNode(transform.position + direction * effectsRadius, size, color);
         Rigidbody rb = n.gameObject.GetComponent<Rigidbody>();
         if (!rb) { rb = n.gameObject.AddComponent<Rigidbody>(); }
         TrailRenderer tr = n.gameObject.GetComponent<TrailRenderer>();
         tr.material = mommaTrail.material;
-        tr.startWidth = radius * 0.0625f;
+        tr.startWidth = effectsRadius * 0.0625f;
         tr.endWidth = 0;
         tr.time = 0.125f;
         Seeker s = n.gameObject.AddComponent<Seeker>();

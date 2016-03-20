@@ -65,8 +65,9 @@ public class PlayerForce : MonoBehaviour {
 		// if we are slowing down, OR we aren't going our max speed
 		if(accel != Vector3.zero) {
             float currentMaxSpeed = maxSpeed / rb.mass;
-			// if we're going too fast, and trying to go faster
-			if(speed >= currentMaxSpeed && speedChange > 0) {
+            if (currentMaxSpeed > World.SPEED_LIMIT) currentMaxSpeed = World.SPEED_LIMIT;
+            // if we're going too fast, and trying to go faster
+            if (speed >= currentMaxSpeed && speedChange > 0) {
 				// reduce our acceleration force in our current speed direction
 				float overSpeed = Vector3.Dot(direction, accel);
 				accel -= direction * overSpeed;

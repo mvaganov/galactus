@@ -8,6 +8,7 @@ public class World : MonoBehaviour {
 
     public static float SIZE_MODIFIER = 1;
     public static float MASS_MODIFIER = 0.25f;
+    public static float SPEED_LIMIT = 50;
 
     public ResourceMaker spawner;
     SphereCollider sc;
