@@ -4,21 +4,31 @@ using System.Collections.Generic;
 
 public class PlayerMaker : MonoBehaviour {
 
+    // TODO if there are no user controlled players, and there is a user controlled camera, create a player for that camera and set it up.
+
 	public MemoryPool<GameObject> players;
 	MemoryPool<GameObject> userplayers;
 
 	public PlayerForce[] player_prefab;
 	public PlayerForce userControlledPlayer_prefab;
 
-	int activePlayers = 0;
+	int activeAgents = 0;
 
 	SphereCollider sc;
 
-    public string[] nameFragments =
-    {
-        "butt","poop","troll","lol","noob","dude","swag","super","haxor","guy","my","ur","red","black","lady","leet"
-    };
-    public string RandomName() { return nameFragments[Random.Range(0, nameFragments.Length)] + nameFragments[Random.Range(0, nameFragments.Length)]; }
+    public string[] namePrefix = { "","","","","","","","the","mr.","mrs.","sir.","ms.","lady","my","ur" };
+    public string[] nameFragments = { "","butt","poop","troll","lol","noob","dude","swag","super","haxor","red","green","blue","lady","leet" };
+    public string[] nameSuffix = { "","","","","","","","ed","ly","dude","man","TheGreat","lady","guy" };
+    public string RandomName() {
+        string n = "";
+        do { n = namePrefix[Random.Range(0, namePrefix.Length)];
+            n += nameFragments[Random.Range(0, nameFragments.Length)];
+            if(Random.Range(0, 2) == 0)
+                n += nameFragments[Random.Range(0, nameFragments.Length)];
+            n += nameSuffix[Random.Range(0, nameSuffix.Length)];
+        } while (n.Length == 0);
+        return n;
+    }
 
 	[System.Serializable]
 	public class Settings {
@@ -38,34 +48,16 @@ public class PlayerMaker : MonoBehaviour {
 				int randomIndex = Random.Range(0, player_prefab.Length);
 				GameObject original = player_prefab[randomIndex].gameObject;
 				GameObject go = Instantiate(original);
-				go.name = original.name + " " + activePlayers;
+				go.name = original.name + " " + activeAgents;
                 ResourceEater re = go.transform.GetChild(0).GetComponent<ResourceEater>();
                 re.name = RandomName();
 				return go;
 			},
 			(obj) => {
-                obj.SetActive(true); activePlayers++;
-                ResourceEater re = null;
-                for (int i = 0; re == null && i < obj.transform.childCount; ++i)
-                {
-                    re = obj.transform.GetChild(i).GetComponent<ResourceEater>();
-                }
-                re.resetValues();
-                obj.GetComponent<MouseLook>().enabled = true;
+                obj.SetActive(true); activeAgents++;
             },
 			(obj) => {
-                PlayerForce pf = obj.GetComponent<PlayerForce>();
-                pf.GetComponent<Rigidbody>().velocity = Vector3.zero;
-                TimeMS.CallbackWithDuration(3000, (progress) => {
-                    if (progress == 1)
-                    {
-                        obj.SetActive(false); activePlayers--;
-                    }
-                    else
-                    {
-                        obj.transform.localScale = obj.transform.localScale * (1 - progress);
-                    }
-                });
+                obj.SetActive(false); activeAgents--;
             },
 			(obj) => Object.Destroy(obj)
 		);
@@ -102,7 +94,7 @@ public class PlayerMaker : MonoBehaviour {
 			timer += Time.deltaTime;
 		}
 		if(timer >= settings.creationDelay) {
-			if(activePlayers < settings.maxActive) {
+			if(activeAgents < settings.maxActive) {
 				CreateRandomPlayer();
 				timer -= settings.creationDelay;
 			} else {

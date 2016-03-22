@@ -14,8 +14,20 @@ public class ResourceNode : MonoBehaviour {
 	public void SetValue(float v) {
 		value = v;
 		GetComponent<SphereCollider>().radius = Mathf.Sqrt(v);
-		GetComponent<ParticleSystem>().startSize = Mathf.Sqrt(v);
-	}
+        //GetComponent<ParticleSystem>().startSize = Mathf.Sqrt(v);
+        RefreshSize();
+    }
+
+    public void RefreshSize()
+    {
+        Rigidbody rb = GetComponent<Rigidbody>();
+        bool moving = rb && rb.velocity != Vector3.zero;
+        if (moving) {
+            GetComponent<ParticleSystem>().startSize = Mathf.Sqrt(value);
+        } else {
+            GetComponent<ParticleSystem>().startSize = value;
+        }
+    }
 
 	public void SetColor(Color c) {
 		ParticleSystem ps = GetComponent<ParticleSystem>();
@@ -35,7 +47,7 @@ public class ResourceNode : MonoBehaviour {
         if (!this.enabled) return;
 		ResourceEater re = c.gameObject.GetComponent<ResourceEater>();
 		if(re != null && re.gameObject != creator) {
-			re.AddValue(value);
+			re.EatResource(value, GetColor());
             MemoryPoolItem.Destroy(gameObject);
         }
     }

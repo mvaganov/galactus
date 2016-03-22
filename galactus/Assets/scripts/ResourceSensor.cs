@@ -9,21 +9,19 @@ public class ResourceSensor : MonoBehaviour {
     public float sensorUpdateTime = 1.0f/2;
     float sensorTimer = 0;
 
-    public static Color bigr = new Color(.75f, 0, 0, .75f);
+    public static Color bigr = new Color(.25f, .25f, .25f, .75f);
     public static Color peer = new Color(.75f, .75f, .75f, .75f);
-    public static Color lowr = new Color(0, .75f, 0, .75f);
+    public static Color lowr = new Color(1, 1, 1, .75f);
 
     public GameObject textPrefab;
     public Camera cam;
     List<GameObject> textEntries = new List<GameObject>();
 //    List<GameObject> lines = new List<GameObject>();
 
-    void Start () {
-	}
-
 	void LateUpdate(){
-		for (int i = 0; i < textEntries.Count; ++i) {
-			if (textEntries [i].activeInHierarchy) {
+		for (int i = textEntries.Count-1; i >= 0; --i) {
+            if (!textEntries[i]) textEntries.RemoveAt(i);
+			else if (textEntries [i].activeInHierarchy) {
 				textEntries [i].transform.rotation = transform.rotation;
 			}
 		}
@@ -62,7 +60,7 @@ public class ResourceSensor : MonoBehaviour {
                     Collider c = hits[i].collider;
                     UnityEngine.UI.Text t = textEntries[validOnes].GetComponent<UnityEngine.UI.Text>();
 
-                    Transform p = t.transform.parent;
+                    //Transform p = t.transform.parent;
                     t.transform.SetParent(null);
 					float s = 0.01f;
 					s *= d/2.0f;

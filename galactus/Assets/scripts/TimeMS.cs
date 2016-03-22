@@ -147,6 +147,7 @@ public class TimeMS : MonoBehaviour
         long started = TimeMS.time;
         System.Threading.TimerCallback progressMethod = (self) => {
             float t = (float)(TimeMS.time - started) / msDuration;
+            if (t > 1) t = 1;
             lambdaProgress(t);
             if (t < 1)
             {

@@ -3,15 +3,12 @@ using System.Collections;
 
 public class TrackingVisual : MonoBehaviour {
 
-	SphereCollider sc;
-
 	GameObject lineX, lineY, lineZ, lineDelta, linePos, lineRLMove;
 
 	public Transform anchorOrigin, eye;
 
-	// Use this for initialization
 	void Start () {
-		sc = GetComponent<SphereCollider> ();
+		//sc = GetComponent<SphereCollider> ();
 		LineRenderer lr = Lines.MakeCircle (ref lineX, Color.red, Vector3.zero, Vector3.right, transform.localScale.x, transform.localScale.x * 0.005f);
 		lr.useWorldSpace = false;
 		lr.transform.parent = transform;

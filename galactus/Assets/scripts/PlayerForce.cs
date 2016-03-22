@@ -11,11 +11,35 @@ public class PlayerForce : MonoBehaviour {
 	GameObject line_velocity, line_acceleration;
     [Tooltip("What transform to use with WASD controls (default to self if null)")]
     public Transform orientation;
+
+    public ResourceEater GetResourceEater()
+    {
+        ResourceEater re = null;
+        for (int i = 0; re == null && i < transform.childCount; ++i)
+            re = transform.GetChild(i).GetComponent<ResourceEater>();
+        return re;
+    }
+
 	void Start () {
 		rb = GetComponent<Rigidbody>();
 		rb.freezeRotation = true;
         if (!orientation) orientation = transform;
-
+        if (playerControlled)
+        {
+            Debug.Log("watching for "+name+"'s destruction");
+            // remove the camera before destruction...
+            MemoryPoolRelease.Add(gameObject, (obj) => {
+                Debug.Log("I'm "+name+" and I'm Dead!");
+                for(int i = 0; i < transform.childCount; ++i)
+                {
+                    ThirdPersonCameraHelper cam = transform.GetChild(i).GetComponent<ThirdPersonCameraHelper>();
+                    if (cam)
+                    {
+                        cam.transform.SetParent(null);
+                    }
+                }
+            });
+        }
     }
 	float stuckTimer = -1;
 	Vector3 stuckPosition;

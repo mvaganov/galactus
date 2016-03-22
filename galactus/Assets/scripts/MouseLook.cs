@@ -28,7 +28,7 @@ public class MouseLook : MonoBehaviour {
                 timer -= Time.deltaTime;
                 PlayerForce ml = GetComponent<PlayerForce>();
                 Rigidbody rb = GetComponent<Rigidbody>();
-                float speed = rb.velocity.magnitude;
+                //float speed = rb.velocity.magnitude;
                 ml.fore = 1;
                 if (!target || timer <= 0)
                 {
