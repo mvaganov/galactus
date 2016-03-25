@@ -1,12 +1,17 @@
 ﻿using UnityEngine;
-using System.Collections;
 
-public class Seeker : MonoBehaviour {
+public class SimpleGravityForce : MonoBehaviour {
 
     public Transform target;
-    public float maxSpeed = 10;
-    public float maxAcceleration = 5;
+    float maxSpeed = 10;
+    float maxAcceleration = 5;
     Rigidbody rb;
+
+    public void SetTerminalVelocity(float speed) { maxSpeed = speed; }
+    public float GetTerminalVelocity() { return maxSpeed; }
+
+    public void SetForce(float acceleration) { maxAcceleration = acceleration; }
+    public float GetForce() { return maxAcceleration; }
 
     public void Setup(Transform t, float speed, float accel)
     {

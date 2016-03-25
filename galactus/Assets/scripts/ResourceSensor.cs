@@ -73,10 +73,10 @@ public class ResourceSensor : MonoBehaviour {
                     //for (int n = 0; n < validOnes; ++n) { t.text += "\n"; }
                     t.text = c.name+"\n"+((int)reat.mass);
 
-                    if (reat.mass * 0.85f > sensorOwner.mass)
+                    if (reat.mass * ResourceEater.minimumPreySize > sensorOwner.mass)
                     {
                         t.color = bigr;
-                    } else if(reat.mass < sensorOwner.mass * 0.85f)
+                    } else if(reat.mass < sensorOwner.mass * ResourceEater.minimumPreySize)
                     {
                         t.color = lowr;
                     }

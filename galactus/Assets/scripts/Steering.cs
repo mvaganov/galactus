@@ -19,22 +19,33 @@ public class Steering
 
     public static float CLOSE_ENOUGH = 1.0f / 256.0f;
     /// <summary>the direction that should be accelerated toward</summary>
-    /// <returns>The steering direction as a unit vector</returns>
+    /// <returns>acceleration force vector</returns>
     /// <param name="position">current position</param>
+    /// <param name="desiredLocation">desired location.</param>
     /// <param name="velocity">current velocity</param>
-    /// <param name="desiredSpeed">Desired speed, probably the max speed</param>
-    /// <param name="desiredLocation">Desired location.</param>
-    public static Vector3 Seek(Vector3 position, Vector3 velocity, float desiredSpeed, Vector3 desiredLocation)
+    /// <param name="desiredSpeed">desired speed, probably the max speed</param>
+    /// <param name="maxAcceleration">the maximum allowed acceleration</param>
+    /// <param name="deltaTime">time used to detect and compensate for over-acceleration</param>
+    public static Vector3 Seek(Vector3 position, Vector3 desiredLocation, Vector3 velocity, float desiredSpeed, float maxAcceleration, float deltaTime)
     {
         Vector3 delta = desiredLocation - position;
-        //float distance = delta.magnitude;
         Vector3 desiredVelocity = delta.normalized * desiredSpeed;
         Vector3 velocityDelta = desiredVelocity - velocity;
-        if (velocityDelta.sqrMagnitude < CLOSE_ENOUGH)
-        {
-            return Vector3.zero;
-        }
-        return velocityDelta.normalized;
+        float velocityDeltaDist = velocityDelta.magnitude;
+        if (velocityDeltaDist < maxAcceleration * deltaTime)
+            return velocityDelta * (1 / deltaTime);
+        return velocityDelta * maxAcceleration * (1 / velocityDeltaDist);
+    }
+
+    public static Vector3 Flee(Vector3 position, Vector3 fleeLocation, Vector3 velocity, float desiredSpeed, float maxAcceleration, float deltaTime)
+    {
+        Vector3 delta = fleeLocation - position;
+        Vector3 desiredVelocity = -delta.normalized * desiredSpeed;
+        Vector3 velocityDelta = desiredVelocity - velocity;
+        float velocityDeltaDist = velocityDelta.magnitude;
+        if (velocityDeltaDist < maxAcceleration * deltaTime)
+            return velocityDelta * (1 / deltaTime);
+        return velocityDelta * maxAcceleration * (1 / velocityDeltaDist);
     }
 
     //	public static Vector3 Seek(Vector3 target, Agent agent) {
@@ -50,24 +61,30 @@ public class Steering
     }
     /// <summary>Arrive the specified position, velocity, maxVelocity, maxSteering and targetLocation.</summary>
     /// <param name="position">Position.</param>
-    /// <param name="velocity">Velocity.</param>
-    /// <param name="maxVelocity">Max velocity.</param>
-    /// <param name="maxSteering">Max steering, how quickly direction can be changed (including stop)</param>
     /// <param name="targetLocation">Target location.</param>
-    public static Vector3 Arrive(Vector3 position, Vector3 velocity, float maxVelocity, float maxSteering, Vector3 targetLocation)
+    /// <param name="velocity">Velocity.</param>
+    /// <param name="maxSpeed">Max velocity magnitude</param>
+    /// <param name="maxSteering">Max steering is acceleration force: how quickly direction can be changed (including stop)</param>
+    public static Vector3 Arrive(Vector3 position, Vector3 targetLocation, Vector3 velocity, float maxSpeed, float maxSteering, float deltaTime)
     {
+        const float CLOSE_ENOUGH = 1.0f / 1024;
         Vector3 delta = targetLocation - position;
         float distanceFromTarget = delta.magnitude;
         float speed = velocity.magnitude;
+        float moveThisTime = speed * deltaTime;
+        float speedAdjustThisTime = maxSteering * deltaTime;
+        if(distanceFromTarget < CLOSE_ENOUGH && moveThisTime < speedAdjustThisTime)
+        {
+            return velocity * (-1.0f / deltaTime);
+        }
+        Vector3 deltaSoon = targetLocation - (position + (velocity * deltaTime));
+        float distanceFromTargetSoon = deltaSoon.magnitude;
         float brakeDistanceNeeded = (speed * speed) / (2 * maxSteering);
-        if (distanceFromTarget < CLOSE_ENOUGH)
+        float idealSpeed = maxSpeed;
+        if (distanceFromTargetSoon <= brakeDistanceNeeded)
         {
-            return Vector3.zero;
+            idealSpeed = speed - speedAdjustThisTime;
         }
-        if (distanceFromTarget <= brakeDistanceNeeded)
-        {
-            return -velocity; // stop!
-        }
-        return Seek(position, velocity, maxVelocity, targetLocation);
+        return Seek(position, targetLocation, velocity, idealSpeed, maxSteering, deltaTime);
     }
 }

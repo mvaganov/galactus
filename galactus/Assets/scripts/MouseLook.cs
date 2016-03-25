@@ -9,10 +9,38 @@ public class MouseLook : MonoBehaviour {
 
     public GameObject target;
     float timer = 0;
-    GameObject view;
+    GameObject view, viewS, viewE;
     GameObject targetCircle;
+    public bool flee = false;
 
     GameObject v, up, rgt;
+    GameObject specialAIBehavior;
+
+    private GameObject imaginaryGoal;
+
+    public void ClearTarget()
+    {
+        target = null;
+    }
+
+    public bool AisCloserThanB(GameObject A, GameObject B)
+    {
+        return Vector3.Distance(transform.position, A.transform.position) < Vector3.Distance(transform.position, B.transform.position);
+    }
+
+    public bool FollowThisTargetIfItsCloser(GameObject t)
+    {
+        // if there is no target, this one is it. de-facto.
+        if (!target) { target = t; return true; }
+        // if this newly found target is closer than the current target
+        else if (AisCloserThanB(t, target))
+        {
+            // target the newly found target
+            target = t;
+            return true;
+        }
+        return false;
+    }
 
     // TODO look up seek code from other projects...
 	void Update () {
@@ -29,44 +57,78 @@ public class MouseLook : MonoBehaviour {
                 PlayerForce ml = GetComponent<PlayerForce>();
                 Rigidbody rb = GetComponent<Rigidbody>();
                 //float speed = rb.velocity.magnitude;
+                ResourceEater thisRe = GetComponent<PlayerForce>().GetResourceEater();
                 ml.fore = 1;
                 if (!target || timer <= 0)
                 {
+                    if (target == imaginaryGoal) target = null;
                     Vector3 start = transform.position + transform.forward * 20;
                     Vector3 end = transform.forward * 100 + Random.insideUnitSphere * 100;
-//                    Lines.Make(ref view, Color.yellow, start, end, 20f, 20f);
-                    RaycastHit hit = new RaycastHit();
-                    if(Physics.CapsuleCast(start, end, 20, transform.forward, out hit))
+
+                    //Vector3 dir = (end - start).normalized;
+                    //Lines.Make(ref view, Color.yellow, start, end, 20f, 20f);
+                    //Lines.MakeCircle(ref viewS, Color.yellow, start, dir, 20f, 1f);
+                    //Lines.MakeCircle(ref viewE, Color.yellow, end, dir, 20f, 1f);
+
+                    //RaycastHit hit = new RaycastHit();
+                    RaycastHit[] hits = Physics.CapsuleCastAll(start, end, 20, transform.forward);
+                    if (hits != null && hits.Length > 0)//Physics.CapsuleCast(start, end, 20, transform.forward, out hit))
                     {
-                        ResourceNode n = hit.collider.gameObject.GetComponent<ResourceNode>();
-                        if (n)
+                        foreach (RaycastHit hit in hits)
                         {
-                            timer = 5;
-                            target = hit.collider.gameObject;
-//                            Lines.MakeCircle(ref targetCircle, Color.yellow, target.transform.position, 40, 1);
+                            ResourceNode n = hit.collider.GetComponent<ResourceNode>();
+                            if (n)
+                            {
+                                FollowThisTargetIfItsCloser(hit.collider.gameObject);
+                                timer = 1 + Random.Range(1.0f, 9.0f);
+                            }
+                            else
+                            {
+                                ResourceEater re = hit.collider.GetComponent<ResourceEater>();
+                                if (re && re != thisRe)
+                                {
+                                    if (re.GetMass() > thisRe.GetMass() * ResourceEater.minimumPreySize)
+                                    {
+                                        if (FollowThisTargetIfItsCloser(re.gameObject))
+                                        {
+                                            flee = true;
+                                            timer = Random.Range(0.25f, 2.0f);
+                                        }
+                                    } else if(re.GetMass() * ResourceEater.minimumPreySize < thisRe.GetMass())
+                                    {
+                                        FollowThisTargetIfItsCloser(re.gameObject);
+                                    }
+                                }
+                            }
+
                         }
                     }
-                    else
+                    if (target == null)
                     {
-                        timer = Random.Range(10.0f, 200.0f);
+                        if(imaginaryGoal == null)
+                        {
+                            imaginaryGoal = new GameObject();
+                        }
+                        timer = Random.Range(1.0f, 2.0f);
                         Vector3 randomLoc = World.GetRandomLocation();
-//                        Lines.MakeCircle(ref targetCircle, Color.yellow, randomLoc, 3, 1);
-//                        Lines.Make(ref view, Color.yellow, randomLoc, randomLoc, 0, 0);
-                        Vector3 delta = randomLoc - transform.position;
-                        move.y = Vector3.Dot(delta, transform.up);
-                        move.x = Vector3.Dot(delta, transform.right);
-                        move.x += Random.Range(-xSensitivity, xSensitivity);
-                        move.y += Random.Range(-ySensitivity, ySensitivity);
-                        float dist = move.magnitude;
-                        move /= dist;
-                        move *= 10 * Time.deltaTime;
+                        imaginaryGoal.transform.position = randomLoc;
+                        target = imaginaryGoal;
                     }
                 }
                 if (target)
                 {
-                    //Lines.Make(ref view, Color.yellow, transform.position, target.transform.position, .1f, .1f);
-                    //Vector3 steerForce = Steering.Arrive(transform.position, rb.velocity, ml.maxSpeed, ml.accelerationForce, target.transform.position);
-                    Vector3 steerForce = Steering.Seek(transform.position, rb.velocity, ml.maxSpeed, target.transform.position);
+                    //ResourceEater re = target.GetComponent<ResourceEater>();
+                    //if (re) Lines.Make(ref specialAIBehavior, flee?Color.yellow:Color.red, transform.position, re.transform.position, 0.1f, 0.1f);
+                    Vector3 steerForce = Vector3.zero;
+                    if (!flee)
+                    {
+                        //Lines.Make(ref view, Color.yellow, transform.position, target.transform.position, .1f, .1f);
+                        steerForce = Steering.Arrive(transform.position, target.transform.position, rb.velocity, ml.maxSpeed, ml.accelerationForce, Time.deltaTime);
+                        //Vector3 steerForce = Steering.Seek(transform.position, target.transform.position, rb.velocity, ml.maxSpeed, ml.accelerationForce, Time.deltaTime);
+                    } else
+                    {
+                        steerForce = Steering.Flee(transform.position, target.transform.position, rb.velocity, ml.maxSpeed, ml.accelerationForce, Time.deltaTime);
+                    }
                     transform.LookAt(transform.position + steerForce);
                     move = Vector2.zero;
                     move.x += Random.Range(-2, 2);

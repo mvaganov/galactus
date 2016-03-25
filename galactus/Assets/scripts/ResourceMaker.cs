@@ -47,7 +47,7 @@ public class ResourceMaker : MonoBehaviour {
 			(obj) => {
                 Rigidbody rb = obj.GetComponent<Rigidbody>();
                 if (rb) { rb.velocity = Vector3.zero; }
-                Seeker s = obj.GetComponent<Seeker>();
+                SimpleGravityForce s = obj.GetComponent<SimpleGravityForce>();
                 if (s) Destroy(s);
                 obj.SetActive(false);
 				activeResources--;

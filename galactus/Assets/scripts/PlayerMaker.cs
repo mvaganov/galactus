@@ -21,7 +21,8 @@ public class PlayerMaker : MonoBehaviour {
     public string[] nameSuffix = { "","","","","","","","ed","ly","dude","man","TheGreat","lady","guy" };
     public string RandomName() {
         string n = "";
-        do { n = namePrefix[Random.Range(0, namePrefix.Length)];
+        do {
+            n = namePrefix[Random.Range(0, namePrefix.Length)];
             n += nameFragments[Random.Range(0, nameFragments.Length)];
             if(Random.Range(0, 2) == 0)
                 n += nameFragments[Random.Range(0, nameFragments.Length)];

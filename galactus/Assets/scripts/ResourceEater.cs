@@ -13,6 +13,8 @@ public class ResourceEater : MonoBehaviour {
 	public World w;
     public float effectsRadius = 1, mass = 1, scale = 1, targetScale = 1, scaleVelocity = 1;
 
+    public const float minimumPreySize = 0.85f;
+
 	//float currentAttackPower = 0;
 
 	//private static Vector3 one = new Vector3(.1f, .1f, .1f);
@@ -122,6 +124,8 @@ public class ResourceEater : MonoBehaviour {
         }
     }
 
+    public float GetMass() { return this.mass; }
+
     public void Die()
     {
         if (this.enabled)
@@ -172,6 +176,7 @@ public class ResourceEater : MonoBehaviour {
     public void EatResource(float value, Color color)
     {
         AddValue(value);
+        playerObject.GetComponent<MouseLook>().ClearTarget();
         // TODO some kind of code that interpolates the preferred color... the more similar the color, the stronger the effect.
         this.preferredColor = color;
         //float colorWeight = value;// * value;
@@ -186,7 +191,7 @@ public class ResourceEater : MonoBehaviour {
 
 	void Attack(ResourceEater e) {
 		if(e == null) { return; }
-		if(e.mass >= 0 && e.mass< (mass * 0.85f)) {
+		if(e.mass >= 0 && e.mass< (mass * minimumPreySize)) {
 			float distance = Vector3.Distance(e.transform.position, transform.position);
 			if(distance < transform.lossyScale.x) {
                 print(name + " attacks " + e.name);
@@ -231,7 +236,7 @@ public class ResourceEater : MonoBehaviour {
         tr.startWidth = effectsRadius * 0.0625f;
         tr.endWidth = 0;
         tr.time = 0.125f;
-        Seeker s = n.gameObject.AddComponent<Seeker>();
+        SimpleGravityForce s = n.gameObject.AddComponent<SimpleGravityForce>();
         s.Setup(target, pf.maxSpeed * 2.5f, pf.maxSpeed * 8);
         rb.velocity = n.transform.forward * pf.maxSpeed;
         n.creator = gameObject;
