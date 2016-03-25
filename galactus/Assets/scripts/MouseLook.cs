@@ -71,7 +71,9 @@ public class MouseLook : MonoBehaviour {
                     //Lines.MakeCircle(ref viewE, Color.yellow, end, dir, 20f, 1f);
 
                     //RaycastHit hit = new RaycastHit();
-                    RaycastHit[] hits = Physics.CapsuleCastAll(start, end, 20, transform.forward);
+                    //RaycastHit[] hits = Physics.CapsuleCastAll(start, end, 20, transform.forward);
+                    Ray r = new Ray(transform.position, Random.onUnitSphere);
+                    RaycastHit[] hits = Physics.SphereCastAll(r, thisRe.GetRadius()+20, 100f);
                     if (hits != null && hits.Length > 0)//Physics.CapsuleCast(start, end, 20, transform.forward, out hit))
                     {
                         foreach (RaycastHit hit in hits)
@@ -79,8 +81,11 @@ public class MouseLook : MonoBehaviour {
                             ResourceNode n = hit.collider.GetComponent<ResourceNode>();
                             if (n)
                             {
-                                FollowThisTargetIfItsCloser(hit.collider.gameObject);
-                                timer = 1 + Random.Range(1.0f, 9.0f);
+                                if (FollowThisTargetIfItsCloser(hit.collider.gameObject))
+                                {
+                                    flee = false;
+                                }
+                                timer = Random.Range(1.0f, 2.0f);
                             }
                             else
                             {
@@ -96,7 +101,10 @@ public class MouseLook : MonoBehaviour {
                                         }
                                     } else if(re.GetMass() * ResourceEater.minimumPreySize < thisRe.GetMass())
                                     {
-                                        FollowThisTargetIfItsCloser(re.gameObject);
+                                        if (FollowThisTargetIfItsCloser(re.gameObject))
+                                        {
+                                            flee = false;
+                                        }
                                     }
                                 }
                             }
@@ -117,8 +125,8 @@ public class MouseLook : MonoBehaviour {
                 }
                 if (target)
                 {
-                    //ResourceEater re = target.GetComponent<ResourceEater>();
-                    //if (re) Lines.Make(ref specialAIBehavior, flee?Color.yellow:Color.red, transform.position, re.transform.position, 0.1f, 0.1f);
+                    ResourceEater re = target.GetComponent<ResourceEater>();
+                    if (re) Lines.Make(ref specialAIBehavior, flee?Color.yellow:Color.red, transform.position, re.transform.position, 0.1f, 0.1f);
                     Vector3 steerForce = Vector3.zero;
                     if (!flee)
                     {
