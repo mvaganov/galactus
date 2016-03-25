@@ -131,7 +131,7 @@ public class ResourceEater : MonoBehaviour {
         if (this.enabled)
         {
             this.enabled = false;
-            Debug.Log(name + " going dead");
+            //Debug.Log(name + " going dead");
             playerObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
             playerObject.GetComponent<MouseLook>().enabled = false;
             playerObject.GetComponent<PlayerForce>().enabled = false;
@@ -147,20 +147,26 @@ public class ResourceEater : MonoBehaviour {
                     playerObject.GetComponent<PlayerForce>().enabled = true;
                     this.enabled = true;
                     resetValues();
-                    Debug.Log("Destroying " + playerObject.name);
+                    //Debug.Log("Destroying " + playerObject.name);
                     MemoryPoolItem.Destroy(playerObject);
                 }
             });
         } else
         {
-            Debug.Log(name + " cannot die, not currently alive.");
+            //Debug.Log(name + " cannot die, not currently alive.");
         }
     }
 
     public void SetEffectsSize(float n)
     {
         effectsRadius = n;
-        if (halo) halo.transform.localScale = new Vector3(effectsRadius, effectsRadius, effectsRadius);
+        if (halo)
+        {
+            halo.Emit(1);
+            halo.startSize = effectsRadius;
+            halo.Emit(1);
+            halo.Play();
+        }
         TrailRenderer trail = FindComponent<TrailRenderer>(false, true);
         if (trail) trail.startWidth = effectsRadius;
     }
@@ -194,7 +200,7 @@ public class ResourceEater : MonoBehaviour {
 		if(e.mass >= 0 && e.mass< (mass * minimumPreySize)) {
 			float distance = Vector3.Distance(e.transform.position, transform.position);
 			if(distance < transform.lossyScale.x) {
-                print(name + " attacks " + e.name);
+                //print(name + " attacks " + e.name);
                 e.Eject(false, e.mass, transform, 1);
             }
         }

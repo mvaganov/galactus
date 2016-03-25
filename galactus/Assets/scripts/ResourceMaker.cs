@@ -45,13 +45,15 @@ public class ResourceMaker : MonoBehaviour {
 			() => Instantiate(resourceNode_prefab.gameObject),
 			(obj) => { obj.SetActive(true); activeResources++; },
 			(obj) => {
+                bool wasMoving = false;
                 Rigidbody rb = obj.GetComponent<Rigidbody>();
-                if (rb) { rb.velocity = Vector3.zero; }
+                if (rb) { wasMoving = rb.velocity != Vector3.zero; rb.velocity = Vector3.zero; }
                 SimpleGravityForce s = obj.GetComponent<SimpleGravityForce>();
                 if (s) Destroy(s);
                 obj.SetActive(false);
 				activeResources--;
-				AddSuppression(obj.transform.position);
+                if(!wasMoving)
+    				AddSuppression(obj.transform.position);
                 ResourceNode n = obj.GetComponent<ResourceNode>();
                 Harvest(n);
                 if (n.creator)

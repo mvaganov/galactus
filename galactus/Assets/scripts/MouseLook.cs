@@ -125,9 +125,10 @@ public class MouseLook : MonoBehaviour {
                 }
                 if (target)
                 {
-                    ResourceEater re = target.GetComponent<ResourceEater>();
-                    if (re) Lines.Make(ref specialAIBehavior, flee?Color.yellow:Color.red, transform.position, re.transform.position, 0.1f, 0.1f);
+                    //ResourceEater re = target.GetComponent<ResourceEater>();
+                    //if (re) Lines.Make(ref specialAIBehavior, flee?Color.yellow:Color.red, transform.position, re.transform.position, 0.1f, 0.1f);
                     Vector3 steerForce = Vector3.zero;
+
                     if (!flee)
                     {
                         //Lines.Make(ref view, Color.yellow, transform.position, target.transform.position, .1f, .1f);
