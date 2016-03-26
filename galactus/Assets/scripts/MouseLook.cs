@@ -61,8 +61,8 @@ public class MouseLook : MonoBehaviour {
                 if (!target || timer <= 0)
                 {
                     if (target == imaginaryGoal) target = null;
-                    Vector3 start = transform.position + transform.forward * 20;
-                    Vector3 end = transform.forward * 100 + Random.insideUnitSphere * 100;
+                    //Vector3 start = transform.position + transform.forward * 20;
+                    //Vector3 end = transform.forward * 100 + Random.insideUnitSphere * 100;
 
                     //Vector3 dir = (end - start).normalized;
                     //Lines.Make(ref view, Color.yellow, start, end, 20f, 20f);

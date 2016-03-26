@@ -14,18 +14,18 @@ public class Prediction : MonoBehaviour {
 			ResourceEater thisRe = pf.GetResourceEater ();
 			Rigidbody rb = pf.GetComponent<Rigidbody> ();
 			Vector3 predictedLocation = p.position;
-			float timing = 0, inc;
 			float speed = rb.velocity.magnitude;
 			int numPredictions = (int)(particles.Length  * speed / 50);//(int)(100 / thisRe.mass);
 			if(numPredictions < 1) numPredictions = 1;
 			if (numPredictions > particles.Length)
 				numPredictions = particles.Length;
 			//Vector3[] points = new Vector3[numPredictions];
-			float t = 0;
+			//float t = 0;
 			Vector3 v = rb.velocity;
 			float d;
 			float tMod = (float)(thisRe.mass / 2f);
-			for (int i = 0; i < numPredictions; ++i) {
+            predictedLocation += v * Time.deltaTime;
+            for (int i = 0; i < numPredictions; ++i) {
 				particles [i].position = predictedLocation;
 				particles [i].startSize = thisRe.effectsRadius;
 				particles [i].lifetime = 1;

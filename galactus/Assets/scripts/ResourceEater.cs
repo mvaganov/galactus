@@ -211,7 +211,7 @@ public class ResourceEater : MonoBehaviour {
 				e.Eject (false, e.mass, transform, 1);
 			}
 		} else {
-			print ("cannont eat "+e);
+			//print ("cannont eat "+e);
 			if(mass < (e.mass * minimumPreySize)) e.Attack (this);
 		}
 	}
@@ -230,15 +230,17 @@ public class ResourceEater : MonoBehaviour {
         {
             TimeMS.TimerCallback(i * 100, () => {
                 if (!forward) dir = Random.onUnitSphere;
-                if (EjectOne(dir, amountPerPacket, target, edibleDelay))
-                    if (mass <= amountPerPacket) amountPerPacket = mass;
-                    ChangeMass(-amountPerPacket);
+                EjectOne(dir, amountPerPacket, target, edibleDelay);
+
             });
         }
     }
 
     bool EjectOne(Vector3 direction, float size, Transform target, float edibleDelay)
     {
+        if (mass <= 0) return false;
+        if (mass <= size) size = mass;
+        ChangeMass(-size);
         PlayerForce pf = FindComponent<PlayerForce>(true, false);
         Quaternion r = pf.transform.rotation;
         r.SetLookRotation(direction);

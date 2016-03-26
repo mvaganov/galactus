@@ -33,7 +33,7 @@ public class ResourceSensor : MonoBehaviour {
         if(sensorTimer >= sensorUpdateTime)
         {
             sensorTimer = 0;
-			float rad = sensorOwner.effectsRadius + radiusExtra;
+			//float rad = sensorOwner.effectsRadius + radiusExtra;
 			Ray r = new Ray (cam.transform.position, cam.transform.forward);
 			RaycastHit[] hits = Physics.SphereCastAll(r, sensorOwner.effectsRadius + radiusExtra,
                 range+sensorOwner.effectsRadius);
