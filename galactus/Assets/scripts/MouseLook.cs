@@ -15,7 +15,6 @@ public class MouseLook : MonoBehaviour {
 
     GameObject v, up, rgt;
     GameObject specialAIBehavior;
-
     private GameObject imaginaryGoal;
 
     public void ClearTarget()
@@ -53,11 +52,11 @@ public class MouseLook : MonoBehaviour {
 			    move = new Vector2(Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f)) + WallAvoid();;
 			    break;
             case Controlled.getMostCenteredResource:
+				PlayerForce ml = GetComponent<PlayerForce>();
+				ResourceEater thisRe = ml.GetResourceEater();
+				Rigidbody rb = GetComponent<Rigidbody>();
                 timer -= Time.deltaTime;
-                PlayerForce ml = GetComponent<PlayerForce>();
-                Rigidbody rb = GetComponent<Rigidbody>();
                 //float speed = rb.velocity.magnitude;
-                ResourceEater thisRe = GetComponent<PlayerForce>().GetResourceEater();
                 ml.fore = 1;
                 if (!target || timer <= 0)
                 {

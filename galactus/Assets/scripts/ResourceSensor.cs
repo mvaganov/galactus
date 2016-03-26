@@ -5,13 +5,14 @@ using System.Collections.Generic;
 public class ResourceSensor : MonoBehaviour {
     public ResourceEater sensorOwner;
     public Transform lookTransform;
-    public float range = 200;
+    public float range = 500;
+	public float radiusExtra = 20;
     public float sensorUpdateTime = 1.0f/2;
     float sensorTimer = 0;
 
-    public static Color bigr = new Color(.25f, .25f, .25f, .75f);
-    public static Color peer = new Color(.75f, .75f, .75f, .75f);
-    public static Color lowr = new Color(1, 1, 1, .75f);
+    public static Color bigr = new Color(1, 0, 0, .75f);
+    public static Color peer = new Color(0, 0, 1, .75f);
+    public static Color lowr = new Color(0, 1, 0, .75f);
 
     public GameObject textPrefab;
     public Camera cam;
@@ -32,11 +33,10 @@ public class ResourceSensor : MonoBehaviour {
         if(sensorTimer >= sensorUpdateTime)
         {
             sensorTimer = 0;
-            float rad = sensorOwner.effectsRadius * 10;
-            RaycastHit[] hits = Physics.CapsuleCastAll(
-                cam.transform.position + cam.transform.forward * rad,
-                cam.transform.position + cam.transform.forward * range,
-                rad, lookTransform.forward);
+			float rad = sensorOwner.effectsRadius + radiusExtra;
+			Ray r = new Ray (cam.transform.position, cam.transform.forward);
+			RaycastHit[] hits = Physics.SphereCastAll(r, sensorOwner.effectsRadius + radiusExtra,
+                range+sensorOwner.effectsRadius);
             for(int i = 0; i < textEntries.Count; ++i)
             {
                 textEntries[i].SetActive(false);

@@ -2,20 +2,19 @@
 using System.Collections;
 
 public class ThirdPersonCameraHelper : MonoBehaviour {
-
-	public Transform firstPersonTransform;
 	public float distance = 10;
 	public Transform cameraTransform;
 
 
 	void Update () {
-        if (firstPersonTransform)
+		Transform t = transform.parent;
+		if (t)
         {
             var d = Input.GetAxis("Mouse ScrollWheel");
             if (d > 0f) { distance -= 0.125f; if (distance < 0) distance = 0; }
             else if (d < 0f) { distance += 0.125f; }
-            Vector3 delta = cameraTransform.forward.normalized * distance * firstPersonTransform.lossyScale.z;
-            transform.position = firstPersonTransform.position - delta;
+            Vector3 delta = cameraTransform.forward.normalized * distance * t.lossyScale.z;
+			transform.position = t.position - delta;
         }
 	}
 }

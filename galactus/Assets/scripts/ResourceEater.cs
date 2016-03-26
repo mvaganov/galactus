@@ -192,18 +192,28 @@ public class ResourceEater : MonoBehaviour {
     }
 
     void OnTriggerEnter(Collider c) {
-		Attack(c.gameObject.GetComponent<ResourceEater>());
+		ResourceEater e = c.gameObject.GetComponent<ResourceEater> ();
+		if (!e) {
+			PlayerForce pf = c.gameObject.GetComponent<PlayerForce> ();
+			if (pf) {
+				e = pf.GetResourceEater ();
+			}
+		}
+		Attack(e);
 	}
 
 	void Attack(ResourceEater e) {
-		if(e == null) { return; }
-		if(e.mass >= 0 && e.mass< (mass * minimumPreySize)) {
-			float distance = Vector3.Distance(e.transform.position, transform.position);
-			if(distance < transform.lossyScale.x) {
-                //print(name + " attacks " + e.name);
-                e.Eject(false, e.mass, transform, 1);
-            }
-        }
+		if(e == null || e == this) { return; }
+		if (e.mass >= 0 && e.mass < (mass * minimumPreySize)) {
+			float distance = Vector3.Distance (e.transform.position, transform.position);
+			if (distance < transform.lossyScale.x) {
+				//print(name + " attacks " + e.name);
+				e.Eject (false, e.mass, transform, 1);
+			}
+		} else {
+			print ("cannont eat "+e);
+			if(mass < (e.mass * minimumPreySize)) e.Attack (this);
+		}
 	}
 
     public static int countReleasesPerSprint = 5;
