@@ -13,6 +13,10 @@ public class World : MonoBehaviour {
     public ResourceMaker spawner;
     SphereCollider sc;
 
+    public static void ResetTrailRenderer(TrailRenderer tr) {
+        if (tr) { float oldTime = tr.time; tr.time = 0; TimeMS.TimerCallback(100, () => { tr.time = oldTime; }); }
+    }
+
 	// Use this for initialization
 	void Start () {
         sc = GetComponent<SphereCollider>();

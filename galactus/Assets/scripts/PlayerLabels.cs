@@ -25,8 +25,8 @@ public class PlayerLabels : MonoBehaviour {
 		if(mainCam == null) {
 			return;
 		}
-		if(players.players.GetAllObjects() != null) {
-			foreach(GameObject p in players.players.GetAllObjects()) {
+		if(players.agents.GetAllObjects() != null) {
+			foreach(GameObject p in players.agents.GetAllObjects()) {
 				GameObject label;
 				if(!playerLabels.TryGetValue(p, out label)) {
 					label = Instantiate(prefab_label);

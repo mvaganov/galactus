@@ -86,7 +86,7 @@ public class MemoryPool<T> where T : class {
 		int indexOfObject = allObjects.IndexOf(obj);
 #if FAIL_FAST
 		if(indexOfObject < 0) { throw new System.Exception("woah, this isn't one of mine..."); }
-		if(indexOfObject >= (allObjects.Count - freeObjectCount)) { throw new System.Exception("hey, you're freeing this twice..."); }
+		if(indexOfObject >= (allObjects.Count - freeObjectCount)) { throw new System.Exception("hey, you're freeing this twice..."+obj); }
 #endif
 		freeObjectCount++;
 		int beginningOfFreeList = allObjects.Count - freeObjectCount;

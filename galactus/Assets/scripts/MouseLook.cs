@@ -5,6 +5,7 @@ public class MouseLook : MonoBehaviour {
 	public float xSensitivity = 5, ySensitivity = 5;
 	public bool invertY = false;
 	public enum Controlled { player, randomWalk, wallAvoid, randomWalkWallAvoid, getMostCenteredResource }
+    // TODO remove, check MouseLook controlledByPlayer (or whatever)
 	public Controlled controlledBy = Controlled.player;
 
     public GameObject target;
@@ -15,7 +16,6 @@ public class MouseLook : MonoBehaviour {
 
     GameObject v, up, rgt;
     GameObject specialAIBehavior;
-    private GameObject imaginaryGoal;
 
     public void ClearTarget()
     {
@@ -60,7 +60,7 @@ public class MouseLook : MonoBehaviour {
                 ml.fore = 1;
                 if (!target || timer <= 0)
                 {
-                    if (target == imaginaryGoal) target = null;
+                    if (target == World.GetInstance()) target = null;
                     //Vector3 start = transform.position + transform.forward * 20;
                     //Vector3 end = transform.forward * 100 + Random.insideUnitSphere * 100;
 
@@ -112,14 +112,8 @@ public class MouseLook : MonoBehaviour {
                     }
                     if (target == null)
                     {
-                        if(imaginaryGoal == null)
-                        {
-                            imaginaryGoal = new GameObject();
-                        }
                         timer = Random.Range(1.0f, 2.0f);
-                        Vector3 randomLoc = World.GetRandomLocation();
-                        imaginaryGoal.transform.position = randomLoc;
-                        target = imaginaryGoal;
+                        target = World.GetInstance().gameObject;
                     }
                 }
                 if (target)

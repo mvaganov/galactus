@@ -27,16 +27,33 @@ public class ResourceSensor : MonoBehaviour {
 			}
 		}
 	}
-	
-	void FixedUpdate () {
+
+    public ResourceEater RefreshSensorOwner()
+    {
+        sensorOwner = null;
+        Transform t = transform;
+        PlayerForce pf = null;
+        do
+        {
+            pf = t.GetComponent<PlayerForce>();
+            t = t.parent;
+        } while (!pf && t);
+        if (pf)
+        {
+            sensorOwner = pf.GetResourceEater();
+        }
+        return sensorOwner;
+    }
+
+    void FixedUpdate () {
+        if(!sensorOwner) return;
         sensorTimer += Time.deltaTime;
         if(sensorTimer >= sensorUpdateTime)
         {
             sensorTimer = 0;
 			//float rad = sensorOwner.effectsRadius + radiusExtra;
 			Ray r = new Ray (cam.transform.position, cam.transform.forward);
-			RaycastHit[] hits = Physics.SphereCastAll(r, sensorOwner.effectsRadius + radiusExtra,
-                range+sensorOwner.effectsRadius);
+			RaycastHit[] hits = Physics.SphereCastAll(r, sensorOwner.effectsRadius + radiusExtra, range+sensorOwner.effectsRadius);
             for(int i = 0; i < textEntries.Count; ++i)
             {
                 textEntries[i].SetActive(false);

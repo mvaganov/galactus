@@ -6,20 +6,24 @@ public class PlayerMaker : MonoBehaviour {
 
     // TODO if there are no user controlled players, and there is a user controlled camera, create a player for that camera and set it up.
 
-	public MemoryPool<GameObject> players;
+    // TODO make this private?
+	public MemoryPool<GameObject> agents;
 	MemoryPool<GameObject> userplayers;
 
 	public PlayerForce[] player_prefab;
 	public PlayerForce userControlledPlayer_prefab;
+    [Tooltip("An object containing RespawningPlayer, and some kind of camera")]
+    public GameObject playerSoul_prefab;
+    public RespawningPlayer currentPlayerSoul;
 
 	int activeAgents = 0;
 
 	SphereCollider sc;
 
-    public string[] namePrefix = { "","","","","","","","the","mr.","mrs.","sir.","ms.","lady","my","ur" };
-    public string[] nameFragments = { "","butt","poop","troll","lol","noob","dude","swag","super","haxor","red","green","blue","lady","leet" };
-    public string[] nameSuffix = { "","","","","","","","ed","ly","dude","man","TheGreat","lady","guy" };
-    public string RandomName() {
+    public static string[] namePrefix = { "","","","","","","","the","mr.","mrs.","sir.","ms.","lady","my","ur" };
+    public static string[] nameFragments = { "","butt","poop","troll","lol","noob","dude","swag","super","haxor","red","green","blue","lady","leet" };
+    public static string[] nameSuffix = { "","","","","","","","ed","ly","dude","man","TheGreat","lady","guy" };
+    public static string RandomName() {
         string n = "";
         do {
             n = namePrefix[Random.Range(0, namePrefix.Length)];
@@ -40,67 +44,97 @@ public class PlayerMaker : MonoBehaviour {
 	float timer;
 
 	public Settings settings = new Settings();
+    private static int uID = 1;
 
 	void Start() {
 		sc = GetComponent<SphereCollider>();
-		players = new MemoryPool<GameObject>();
-		players.Setup(
+		agents = new MemoryPool<GameObject>();
+		agents.Setup(
 			() => {
 				int randomIndex = Random.Range(0, player_prefab.Length);
 				GameObject original = player_prefab[randomIndex].gameObject;
 				GameObject go = Instantiate(original);
-				go.name = original.name + " " + activeAgents;
-                ResourceEater re = go.transform.GetChild(0).GetComponent<ResourceEater>();
-                re.name = RandomName();
-				return go;
+				go.name = "Entity " + uID;
+                uID++;
+                return go;
 			},
 			(obj) => {
                 obj.SetActive(true); activeAgents++;
+                ResourceEater re = obj.transform.GetChild(0).GetComponent<ResourceEater>();
+                re.name = RandomName();
             },
 			(obj) => {
                 obj.SetActive(false); activeAgents--;
             },
 			(obj) => Object.Destroy(obj)
 		);
-	}
+        userplayers = new MemoryPool<GameObject>();
+        userplayers.Setup(
+            () => {
+                GameObject original = userControlledPlayer_prefab.gameObject;
+                GameObject go = Instantiate(original);
+                go.name = "User Entity " + uID;
+                uID++;
+                return go;
+            },
+            (obj) => {
+                obj.SetActive(true);
+                ResourceEater re = obj.transform.GetChild(0).GetComponent<ResourceEater>();
+                re.name = RandomName();
+            },
+            (obj) => {
+                obj.SetActive(false);
+            },
+            (obj) => Object.Destroy(obj)
+        );
+        if (!currentPlayerSoul)
+        {
+            currentPlayerSoul = (Instantiate(playerSoul_prefab) as GameObject).GetComponent<RespawningPlayer>();
+        }
+    }
 
-	public bool IsBlocked(Vector3 testLoc) {
-		foreach(GameObject p in players.GetAllObjects()) {
-			if(p.activeInHierarchy) {
-				float dist = (testLoc - p.transform.position).magnitude;
-				if(dist < p.transform.localScale.x) return true;
-			}
-		}
-		return false;
-	}
-
-	public PlayerForce CreateRandomPlayer() {
-		PlayerForce p = players.Alloc().GetComponent<PlayerForce>();
-		Vector3 loc = Vector3.zero;
-		bool supressed = false;
-		int iterations = 0;
-		do {
-			loc = Random.onUnitSphere;
-			loc *= Random.Range(0, sc.radius);
-			supressed = IsBlocked(loc);
-			iterations++;
-			if(iterations > 10) break;
-		} while(supressed);
-		p.transform.position = loc;
+	public PlayerForce CreateRandomAgent() {
+		PlayerForce p = agents.Alloc().GetComponent<PlayerForce>();
+        MoveToPositionInUnblockedSpace(p.gameObject);
 		return p;
 	}
 
-	void Update () {
+    public PlayerForce CreateRandomPlayerAgent() {
+        PlayerForce p = userplayers.Alloc().GetComponent<PlayerForce>();
+        MoveToPositionInUnblockedSpace(p.gameObject);
+        return p;
+    }
+
+    public GameObject MoveToPositionInUnblockedSpace(GameObject obj) {
+        Vector3 loc = Vector3.zero;
+        bool supressed = false;
+        int iterations = 0;
+        do {
+            loc = Random.onUnitSphere;
+            loc *= Random.Range(0, sc.radius);
+            supressed = Physics.CheckSphere(loc, obj.transform.lossyScale.x);
+            iterations++;
+            if (iterations > 10) break;
+        } while (supressed);
+        obj.transform.position = loc;
+        return supressed?null:obj;
+    }
+
+    void FixedUpdate () {
 		if(timer < settings.creationDelay) {
 			timer += Time.deltaTime;
 		}
 		if(timer >= settings.creationDelay) {
 			if(activeAgents < settings.maxActive) {
-				CreateRandomPlayer();
+				CreateRandomAgent();
 				timer -= settings.creationDelay;
 			} else {
 				timer = settings.creationDelay;
 			}
 		}
+        if (currentPlayerSoul.IsDisembodied()) {
+            PlayerForce pf = CreateRandomPlayerAgent();
+            currentPlayerSoul.Posess(pf);
+        }
 	}
 }

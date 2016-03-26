@@ -126,6 +126,16 @@ public class ResourceEater : MonoBehaviour {
 
     public float GetMass() { return this.mass; }
 
+    public RespawningPlayer GetUserSoul()
+    {
+        RespawningPlayer soul = null;
+        for (int i = 0; i < playerObject.transform.childCount; ++i)
+        {
+            soul = playerObject.transform.GetChild(i).GetComponent<RespawningPlayer>();
+        }
+        return soul;
+    }
+
     public void Die()
     {
         if (this.enabled)
@@ -137,11 +147,15 @@ public class ResourceEater : MonoBehaviour {
             playerObject.GetComponent<PlayerForce>().enabled = false;
             TrailRenderer trail = FindComponent<TrailRenderer>(false, true);
             float tailTime = trail.time;
-            TimeMS.CallbackWithDuration(((int)tailTime*1000), (progress) =>
-            {
-                playerObject.transform.localScale = playerObject.transform.localScale * (1 - progress);
-                if (progress == 1)
-                {
+            int deathTimeOut = (int)(tailTime * 1000);
+
+            //float originalMass = this.mass;
+            Vector3 originalScale = playerObject.transform.localScale;
+            TimeMS.CallbackWithDuration(deathTimeOut, (progress) => {
+                playerObject.transform.localScale = originalScale * (1 - progress);
+                //SetMass(originalMass * (1 - progress));
+                if (progress == 1) {
+                    World.ResetTrailRenderer(trail);
                     // reset the body just before release, so that when it is reborn, it has default values
                     playerObject.GetComponent<MouseLook>().enabled = true;
                     playerObject.GetComponent<PlayerForce>().enabled = true;

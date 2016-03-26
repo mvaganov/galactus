@@ -24,22 +24,6 @@ public class PlayerForce : MonoBehaviour {
 		rb = GetComponent<Rigidbody>();
 		rb.freezeRotation = true;
         if (!orientation) orientation = transform;
-        if (playerControlled)
-        {
-            Debug.Log("watching for "+name+"'s destruction");
-            // remove the camera before destruction...
-            MemoryPoolRelease.Add(gameObject, (obj) => {
-                Debug.Log("I'm "+name+" and I'm Dead!");
-                for(int i = 0; i < transform.childCount; ++i)
-                {
-                    ThirdPersonCameraHelper cam = transform.GetChild(i).GetComponent<ThirdPersonCameraHelper>();
-                    if (cam)
-                    {
-                        cam.transform.SetParent(null);
-                    }
-                }
-            });
-        }
     }
 	float stuckTimer = -1;
 	Vector3 stuckPosition;

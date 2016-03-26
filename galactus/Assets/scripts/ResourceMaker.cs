@@ -62,6 +62,7 @@ public class ResourceMaker : MonoBehaviour {
                     if(ss) ss.ReduceOrbitCount(1);
                 }
                 n.creator = null;
+                World.ResetTrailRenderer(obj.GetComponent<TrailRenderer>());
             },
 			(obj) => Object.Destroy(obj)
 		);
