@@ -120,7 +120,7 @@ public class ResourceEater : MonoBehaviour {
         }
         if (targetScale < 0.1f)
         {
-            playerObject.GetComponent<MouseLook>().enabled = false;
+			playerObject.GetComponent<EntitySteering>().enabled = false;
         }
     }
 
@@ -143,7 +143,7 @@ public class ResourceEater : MonoBehaviour {
             this.enabled = false;
             //Debug.Log(name + " going dead");
             playerObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
-            playerObject.GetComponent<MouseLook>().enabled = false;
+			playerObject.GetComponent<EntitySteering>().enabled = false;
             playerObject.GetComponent<PlayerForce>().enabled = false;
             TrailRenderer trail = FindComponent<TrailRenderer>(false, true);
             float tailTime = trail.time;
@@ -157,7 +157,7 @@ public class ResourceEater : MonoBehaviour {
                 if (progress == 1) {
                     World.ResetTrailRenderer(trail);
                     // reset the body just before release, so that when it is reborn, it has default values
-                    playerObject.GetComponent<MouseLook>().enabled = true;
+					playerObject.GetComponent<EntitySteering>().enabled = true;
                     playerObject.GetComponent<PlayerForce>().enabled = true;
                     this.enabled = true;
                     resetValues();
@@ -196,7 +196,7 @@ public class ResourceEater : MonoBehaviour {
     public void EatResource(float value, Color color)
     {
         AddValue(value);
-        playerObject.GetComponent<MouseLook>().ClearTarget();
+		playerObject.GetComponent<EntitySteering>().ClearTarget();
         // TODO some kind of code that interpolates the preferred color... the more similar the color, the stronger the effect.
         this.preferredColor = color;
         //float colorWeight = value;// * value;

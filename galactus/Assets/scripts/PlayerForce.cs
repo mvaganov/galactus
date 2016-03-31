@@ -9,8 +9,9 @@ public class PlayerForce : MonoBehaviour {
 	public bool playerControlled = true;
 	public bool showDebugLines = false;
 	GameObject line_velocity, line_acceleration;
-    [Tooltip("What transform to use with WASD controls (default to self if null)")]
+//    [Tooltip("What transform to use with WASD controls (default to self if null)")]
     public Transform orientation;
+	public Vector3 accelDirection;
 
     public ResourceEater GetResourceEater()
     {
@@ -23,12 +24,28 @@ public class PlayerForce : MonoBehaviour {
 	void Start () {
 		rb = GetComponent<Rigidbody>();
 		rb.freezeRotation = true;
-        if (!orientation) orientation = transform;
+        //if (!orientation) orientation = transform;
     }
 	float stuckTimer = -1;
 	Vector3 stuckPosition;
 
     public float fore = 1, side;
+
+	void FixedUpdate() {
+		Vector3 dir = accelDirection;
+		if (dir == Vector3.zero) {
+			dir = GetComponent<Rigidbody> ().velocity.normalized;
+		}
+		if (dir != Vector3.zero) {
+			Vector3 up = transform.up;
+			EntitySteering es = GetComponent<EntitySteering> ();
+			if (es && es.controllingTransform)
+				up = es.controllingTransform.up;
+			Quaternion lookDir = Quaternion.LookRotation (dir, up);
+			//transform.LookAt (transform.position + transform.forward + accelDirection, up);
+			transform.rotation = Quaternion.Lerp (transform.rotation, lookDir, Time.deltaTime);
+		}
+	}
 
 	void Update () {
 		if(playerControlled) {
@@ -49,13 +66,23 @@ public class PlayerForce : MonoBehaviour {
 				}
 			}
 		}
-		Vector3 accel = Vector3.zero;
-		if(fore != 0) {
-			accel += orientation.forward * fore * accelerationForce;
-		}
-		if(side != 0) {
-			accel += orientation.right * side * accelerationForce;
-		}
+//		Vector3 accel = Vector3.zero;
+//		if (fore != 0 || side != 0) { 
+//			if (fore != 0) {
+//				accel += accelDirection * fore;
+//			}
+//			if (side != 0) {
+//				EntitySteering es = GetComponent<EntitySteering> ();
+//				Vector3 right = Vector3.Cross (es.controllingTransform.up, accelDirection);
+//				accel += right * side;
+//			}
+//			if (fore != 0 && side != 0) {
+//				accel.Normalize ();
+//			}
+//			accel *= accelerationForce;
+//		}
+		Vector3 accel = accelDirection * accelerationForce;
+
 		float speed = rb.velocity.magnitude;
 		Vector3 direction = rb.velocity / speed;
 		// if we aren't moving at all, reverse!

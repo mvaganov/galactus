@@ -30,12 +30,29 @@ public class Steering
     {
         Vector3 delta = desiredLocation - position;
         Vector3 desiredVelocity = delta.normalized * desiredSpeed;
-        Vector3 velocityDelta = desiredVelocity - velocity;
-        float velocityDeltaDist = velocityDelta.magnitude;
-        if (velocityDeltaDist < maxAcceleration * deltaTime)
-            return velocityDelta * (1 / deltaTime);
-        return velocityDelta * maxAcceleration * (1 / velocityDeltaDist);
+//        Vector3 velocityDelta = desiredVelocity - velocity;
+//        float velocityDeltaDist = velocityDelta.magnitude;
+//        if (velocityDeltaDist < maxAcceleration * deltaTime)
+//            return velocityDelta * (1 / deltaTime);
+//        return velocityDelta * maxAcceleration * (1 / velocityDeltaDist);
+		return SeekDirection(desiredVelocity, velocity, maxAcceleration, deltaTime);
     }
+
+	public static Vector3 SeekDirectionNormal(Vector3 desiredVelocity, Vector3 velocity, float maxAcceleration, float deltaTime){
+		Vector3 velocityDelta = desiredVelocity - velocity;
+		float velocityDeltaDist = velocityDelta.magnitude;
+		if (velocityDeltaDist < maxAcceleration * deltaTime)
+			return Vector3.zero;//velocityDelta * (1 / (deltaTime*maxAcceleration));
+		return velocityDelta.normalized;
+	}
+
+	public static Vector3 SeekDirection(Vector3 desiredVelocity, Vector3 velocity, float maxAcceleration, float deltaTime){
+		Vector3 velocityDelta = desiredVelocity - velocity;
+		float velocityDeltaDist = velocityDelta.magnitude;
+		if (velocityDeltaDist < maxAcceleration * deltaTime)
+			return velocityDelta * (1 / deltaTime);
+		return velocityDelta * maxAcceleration * (1 / velocityDeltaDist);
+	}
 
     public static Vector3 Flee(Vector3 position, Vector3 fleeLocation, Vector3 velocity, float desiredSpeed, float maxAcceleration, float deltaTime)
     {

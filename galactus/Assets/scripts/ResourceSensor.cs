@@ -28,20 +28,27 @@ public class ResourceSensor : MonoBehaviour {
 		}
 	}
 
-    public ResourceEater RefreshSensorOwner()
+	public ResourceEater RefreshSensorOwner(ResourceEater whoIsSensing)
     {
-        sensorOwner = null;
-        Transform t = transform;
-        PlayerForce pf = null;
-        do
-        {
-            pf = t.GetComponent<PlayerForce>();
-            t = t.parent;
-        } while (!pf && t);
-        if (pf)
-        {
-            sensorOwner = pf.GetResourceEater();
-        }
+		sensorOwner = whoIsSensing;
+		if (!sensorOwner) {
+			Transform t = transform;
+			PlayerForce pf = null;
+			RespawningPlayer rp = null;
+			do {
+				pf = t.GetComponent<PlayerForce> ();
+				if (!pf) {
+					rp = t.GetComponent<RespawningPlayer> ();
+					if (rp && rp.IsPosessing ()) {
+						pf = rp.posessed.GetComponent<PlayerForce> ();
+					}
+				}
+				t = t.parent;
+			} while (!pf && t);
+			if (pf) {
+				sensorOwner = pf.GetResourceEater ();
+			}
+		}
         return sensorOwner;
     }
 

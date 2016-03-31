@@ -7,8 +7,10 @@ public class Prediction : MonoBehaviour {
 
 	ParticleSystem.Particle[] particles = new ParticleSystem.Particle[50];
 
+	public Transform toPredict;
+
 	void FixedUpdate () {
-		Transform p = transform.parent;
+		Transform p = toPredict;
 		if (p) {
 			PlayerForce pf = p.GetComponent<PlayerForce> ();
 			ResourceEater thisRe = pf.GetResourceEater ();
@@ -33,7 +35,7 @@ public class Prediction : MonoBehaviour {
 				particles [i].startColor = thisRe.color;
 				//predictionParticle.Emit (predictedLocation, v, thisRe.effectsRadius, Time.deltaTime * 2, thisRe.color);
 				//points [i] = predictedLocation;
-				v += (pf.orientation.forward * pf.accelerationForce * (tMod / thisRe.mass));
+				v += (pf.accelDirection * pf.accelerationForce * (tMod / thisRe.mass));
 				d = v.magnitude;
 				if (d > pf.maxSpeed/thisRe.mass) {
 					v = v.normalized * (pf.maxSpeed/thisRe.mass);

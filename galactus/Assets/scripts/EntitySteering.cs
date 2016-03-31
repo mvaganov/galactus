@@ -1,17 +1,18 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class MouseLook : MonoBehaviour {
-	public float xSensitivity = 5, ySensitivity = 5;
+public class EntitySteering : MonoBehaviour {
+	//public float xSensitivity = 5, ySensitivity = 5;
 	public bool invertY = false;
 	public enum Controlled { player, randomWalk, wallAvoid, randomWalkWallAvoid, getMostCenteredResource }
     // TODO remove, check MouseLook controlledByPlayer (or whatever)
 	public Controlled controlledBy = Controlled.player;
 
+	public Transform controllingTransform = null;
+
     public GameObject target;
     float timer = 0;
     GameObject view, viewS, viewE;
-    GameObject targetCircle;
     public bool flee = false;
 
     GameObject v, up, rgt;
@@ -44,17 +45,39 @@ public class MouseLook : MonoBehaviour {
     // TODO look up seek code from other projects...
 	void Update () {
 		Vector2 move = Vector2.zero;
+		PlayerForce ml = GetComponent<PlayerForce>();
+		Rigidbody rb = GetComponent<Rigidbody>();
 		switch(controlledBy) {
-		    case Controlled.player:     move = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));   break;
-		    case Controlled.randomWalk: move = new Vector2(Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f)); break;
+		    case Controlled.player:     //move = new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y"));   break;
+				if(controllingTransform){
+					Vector3 p = controllingTransform.position;
+				Vector3 dir = Vector3.zero;
+						//controllingTransform.forward
+				float fore = Input.GetAxis("Vertical");
+				float side = Input.GetAxis("Horizontal");
+					if (fore != 0 || side != 0) { 
+						if (fore != 0) { 
+						dir = Steering.SeekDirectionNormal(controllingTransform.forward*ml.maxSpeed, rb.velocity, ml.accelerationForce, Time.deltaTime);
+						dir *= fore; 
+					}
+						if (side != 0) {
+							Vector3 right = Vector3.Cross (controllingTransform.up, dir);
+							dir += right * side * (fore<0?-1:1);
+						}
+						if (fore != 0 && side != 0) {
+							dir.Normalize ();
+						}
+					}
+				ml.accelDirection = dir;
+				}
+				break;
+		    //case Controlled.randomWalk: move = new Vector2(Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f)); break;
 		    case Controlled.wallAvoid:  move = WallAvoid();                                                       break;
 		    case Controlled.randomWalkWallAvoid:
 			    move = new Vector2(Random.Range(-1.0f, 1.0f), Random.Range(-1.0f, 1.0f)) + WallAvoid();;
 			    break;
             case Controlled.getMostCenteredResource:
-				PlayerForce ml = GetComponent<PlayerForce>();
 				ResourceEater thisRe = ml.GetResourceEater();
-				Rigidbody rb = GetComponent<Rigidbody>();
                 timer -= Time.deltaTime;
                 //float speed = rb.velocity.magnitude;
                 ml.fore = 1;
@@ -132,6 +155,7 @@ public class MouseLook : MonoBehaviour {
                         steerForce = Steering.Flee(transform.position, target.transform.position, rb.velocity, ml.maxSpeed, ml.accelerationForce, Time.deltaTime);
                     }
                     transform.LookAt(transform.position + steerForce);
+					ml.accelDirection = steerForce;
                     move = Vector2.zero;
                     move.x += Random.Range(-2, 2);
                     move.y += Random.Range(-2, 2);
@@ -160,13 +184,13 @@ public class MouseLook : MonoBehaviour {
                 }
                 break;
 		}
-		if(move.x != 0) {
-			transform.Rotate(0, move.x * xSensitivity, 0);
-		}
-		if(move.y != 0) {
-			if(invertY) { move.y *= -1; }
-			transform.Rotate(-move.y * ySensitivity, 0, 0);
-		}
+		//if(move.x != 0) {
+		//	transform.Rotate(0, move.x * xSensitivity, 0);
+		//}
+		//if(move.y != 0) {
+		//	if(invertY) { move.y *= -1; }
+		//	transform.Rotate(-move.y * ySensitivity, 0, 0);
+		//}
 	}
 	public Vector2 WallAvoid() {
 		Vector2 move = Vector2.zero;

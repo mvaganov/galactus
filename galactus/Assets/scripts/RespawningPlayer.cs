@@ -12,20 +12,24 @@ public class RespawningPlayer : MonoBehaviour {
     public Settings settings = new Settings();
     private bool isPosessing = false;
     public bool IsPosessing() { return isPosessing; }
-    public bool IsDisembodied() { return transform.parent == null && !isPosessing; }
+	public bool IsDisembodied() { return posessed == null && !isPosessing; }
+	public Transform posessed = null;
 
     public void Disconnect()
     {
-        if (transform.parent)
+		if (posessed)
         {
-            PlayerForce pf = transform.parent.GetComponent<PlayerForce>();
+			PlayerForce pf = posessed.GetComponent<PlayerForce>();
             pf.playerControlled = false;
-            MouseLook ml = pf.GetComponent<MouseLook>();
-            ml.controlledBy = MouseLook.Controlled.player;
+			EntitySteering ml = pf.GetComponent<EntitySteering>();
+			ml.controlledBy = EntitySteering.Controlled.player;
+			ThirdPersonCamera cam3 = GetComponent<ThirdPersonCamera> ();
+			cam3.followedEntity = null;
+			Prediction pred = GetComponent<Prediction> ();
+			pred.toPredict = null;
         }
         isPosessing = false;
         sensor.sensorOwner = null;
-        transform.SetParent(null);
     }
 
     public void Posess(PlayerForce pf)
@@ -39,14 +43,19 @@ public class RespawningPlayer : MonoBehaviour {
             transform.localScale = Vector3.Lerp(transform.localScale, n.lossyScale, t);
             if (t >= 1)
             {
-                transform.parent = n;
+                posessed = n;
+				ThirdPersonCamera cam3 = GetComponent<ThirdPersonCamera> ();
+				cam3.followedEntity = n;
+				Prediction pred = GetComponent<Prediction> ();
+				pred.toPredict = n;
                 pf.playerControlled = true;
-                MouseLook ml = pf.GetComponent<MouseLook>();
-                ml.controlledBy = MouseLook.Controlled.player;
+				EntitySteering ml = pf.GetComponent<EntitySteering>();
+				ml.controlledBy = EntitySteering.Controlled.player;
                 pf.GetResourceEater().name = settings.name;
+				ml.controllingTransform = transform;
                 transform.localScale = new Vector3(1, 1, 1);
                 isPosessing = false;
-                sensor.RefreshSensorOwner();
+				sensor.RefreshSensorOwner(pf.GetResourceEater());
 
                 //Debug.Log("watching for " + name + "'s destruction");
                 // remove the soul before destruction...
