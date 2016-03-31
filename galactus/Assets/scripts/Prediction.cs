@@ -35,7 +35,7 @@ public class Prediction : MonoBehaviour {
 				particles [i].startColor = thisRe.color;
 				//predictionParticle.Emit (predictedLocation, v, thisRe.effectsRadius, Time.deltaTime * 2, thisRe.color);
 				//points [i] = predictedLocation;
-				v += (pf.accelDirection * pf.accelerationForce * (tMod / thisRe.mass));
+				v += (pf.accelDirection * pf.maxAcceleration * (tMod / thisRe.mass));
 				d = v.magnitude;
 				if (d > pf.maxSpeed/thisRe.mass) {
 					v = v.normalized * (pf.maxSpeed/thisRe.mass);

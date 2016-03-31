@@ -118,10 +118,6 @@ public class ResourceEater : MonoBehaviour {
             if (mass < 0) Debug.LogError("mass deficit for " + name);
             Die();
         }
-        if (targetScale < 0.1f)
-        {
-			playerObject.GetComponent<EntitySteering>().enabled = false;
-        }
     }
 
     public float GetMass() { return this.mass; }
@@ -140,11 +136,13 @@ public class ResourceEater : MonoBehaviour {
     {
         if (this.enabled)
         {
-            this.enabled = false;
+			PlayerForce pf = playerObject.GetComponent<PlayerForce> ();
+			Transform c = pf.controllingTransform;
+			if (c) { c.GetComponent<RespawningPlayer> ().Disconnect (); }
+			this.enabled = false;
             //Debug.Log(name + " going dead");
             playerObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
-			playerObject.GetComponent<EntitySteering>().enabled = false;
-            playerObject.GetComponent<PlayerForce>().enabled = false;
+            pf.enabled = false;
             TrailRenderer trail = FindComponent<TrailRenderer>(false, true);
             float tailTime = trail.time;
             int deathTimeOut = (int)(tailTime * 1000);
@@ -157,7 +155,7 @@ public class ResourceEater : MonoBehaviour {
                 if (progress == 1) {
                     World.ResetTrailRenderer(trail);
                     // reset the body just before release, so that when it is reborn, it has default values
-					playerObject.GetComponent<EntitySteering>().enabled = true;
+					//playerObject.GetComponent<EntitySteering>().enabled = true;
                     playerObject.GetComponent<PlayerForce>().enabled = true;
                     this.enabled = true;
                     resetValues();
@@ -196,13 +194,8 @@ public class ResourceEater : MonoBehaviour {
     public void EatResource(float value, Color color)
     {
         AddValue(value);
-		playerObject.GetComponent<EntitySteering>().ClearTarget();
-        // TODO some kind of code that interpolates the preferred color... the more similar the color, the stronger the effect.
-        this.preferredColor = color;
-        //float colorWeight = value;// * value;
-        //if (colorWeight > this.mass) colorWeight = this.mass;
-        //Color newColor = Color.Lerp(this.color, color, colorWeight / this.mass);
-        //SetColor(newColor);
+		playerObject.GetComponent<PlayerForce>().ClearTarget();
+        preferredColor = color;
     }
 
     void OnTriggerEnter(Collider c) {

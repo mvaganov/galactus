@@ -21,8 +21,9 @@ public class RespawningPlayer : MonoBehaviour {
         {
 			PlayerForce pf = posessed.GetComponent<PlayerForce>();
             pf.playerControlled = false;
-			EntitySteering ml = pf.GetComponent<EntitySteering>();
-			ml.controlledBy = EntitySteering.Controlled.player;
+			pf.controllingTransform = null;
+			//EntitySteering ml = pf.GetComponent<EntitySteering>();
+			//ml.controlledBy = EntitySteering.Controlled.player;
 			ThirdPersonCamera cam3 = GetComponent<ThirdPersonCamera> ();
 			cam3.followedEntity = null;
 			Prediction pred = GetComponent<Prediction> ();
@@ -49,10 +50,8 @@ public class RespawningPlayer : MonoBehaviour {
 				Prediction pred = GetComponent<Prediction> ();
 				pred.toPredict = n;
                 pf.playerControlled = true;
-				EntitySteering ml = pf.GetComponent<EntitySteering>();
-				ml.controlledBy = EntitySteering.Controlled.player;
                 pf.GetResourceEater().name = settings.name;
-				ml.controllingTransform = transform;
+				pf.controllingTransform = transform;
                 transform.localScale = new Vector3(1, 1, 1);
                 isPosessing = false;
 				sensor.RefreshSensorOwner(pf.GetResourceEater());
