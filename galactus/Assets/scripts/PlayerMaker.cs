@@ -60,8 +60,8 @@ public class PlayerMaker : MonoBehaviour {
 			},
 			(obj) => {
                 obj.SetActive(true); activeAgents++;
-                ResourceEater re = obj.transform.GetChild(0).GetComponent<ResourceEater>();
-                re.name = RandomName();
+				PlayerForce pf = obj.GetComponent<PlayerForce>();
+				pf.Rebirth();
             },
 			(obj) => {
                 obj.SetActive(false); activeAgents--;
@@ -79,8 +79,8 @@ public class PlayerMaker : MonoBehaviour {
             },
             (obj) => {
                 obj.SetActive(true);
-                ResourceEater re = obj.transform.GetChild(0).GetComponent<ResourceEater>();
-                re.name = RandomName();
+				PlayerForce pf = obj.GetComponent<PlayerForce>();
+				pf.Rebirth();
             },
             (obj) => {
                 obj.SetActive(false);

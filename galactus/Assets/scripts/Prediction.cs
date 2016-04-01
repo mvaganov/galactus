@@ -32,7 +32,7 @@ public class Prediction : MonoBehaviour {
 				particles [i].startSize = thisRe.effectsRadius;
 				particles [i].lifetime = 1;
 				particles [i].startLifetime = 2;
-				particles [i].startColor = thisRe.color;
+				particles [i].startColor = thisRe.GetCurrentColor();
 				//predictionParticle.Emit (predictedLocation, v, thisRe.effectsRadius, Time.deltaTime * 2, thisRe.color);
 				//points [i] = predictedLocation;
 				v += (pf.accelDirection * pf.maxAcceleration * (tMod / thisRe.mass));

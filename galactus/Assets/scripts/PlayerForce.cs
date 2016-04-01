@@ -3,26 +3,47 @@ using System.Collections;
 
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerForce : MonoBehaviour {
-	Rigidbody rb;
+	// TODO eaters attack for less damage from eaters with similar colors. the same color means essentially alliance.
+	// TODO some kind of ray attack that forces hit target to release energy
+
 	public float maxAcceleration = 10;
 	public float maxSpeed = 20;
-	public bool playerControlled = true;
 	public bool showDebugLines = false;
 	public Vector3 accelDirection;
+	/// <summary>movement decision making (user input)</summary>
+	public float fore = 1, side;
 
-    public ResourceEater GetResourceEater() {
-        ResourceEater re = null;
-        for (int i = 0; re == null && i < transform.childCount; ++i)
-            re = transform.GetChild(i).GetComponent<ResourceEater>();
-        return re;
-    }
+	private Rigidbody rb;
+	private ResourceEater res;
+	private MeshRenderer meshRend;
+	public ResourceEater GetResourceEater() { if (!res) FindComponents (); return res; }
+	public MeshRenderer GetMeshRenderer() { if (!meshRend) FindComponents (); return meshRend; }
+	public Rigidbody GetRigidBody() { if (!rb) FindComponents (); return rb; }
+	public RespawningPlayer GetUserSoul() { return (controllingTransform==null)?null:controllingTransform.GetComponent<RespawningPlayer> (); }
+	public SphereCollider GetCollisionSphere() { return GetComponent<SphereCollider> (); }
+
+	private void FindComponents() {
+		for (int i = 0; (!meshRend || !res) && i < transform.childCount; ++i) {
+			if(!meshRend) meshRend = transform.GetChild (i).GetComponent<MeshRenderer> ();
+			if(!res) res = transform.GetChild(i).GetComponent<ResourceEater>();
+		}
+		if (!meshRend) meshRend = GetComponent<MeshRenderer> ();
+		if(!rb) rb = GetComponent<Rigidbody>();
+	}
+
+	public bool IsDead() { return res.IsDead (); }
+	public bool IsAlive() { return res.IsAlive (); }
+	public void Rebirth() {
+		if (!res) FindComponents ();
+		res.resetValues ();
+		GetCollisionSphere ().isTrigger = false;
+	}
+	public void Die(){ res.Die (); }
 
 	void Start () {
-		rb = GetComponent<Rigidbody>();
+		FindComponents ();
 		rb.freezeRotation = true;
     }
-
-	public float fore = 1, side;
 
 	void TurnModelTowardCorrectDirection(float t){
 		Vector3 dir = accelDirection;
@@ -34,13 +55,16 @@ public class PlayerForce : MonoBehaviour {
 			if (controllingTransform)
 				up = controllingTransform.up;
 			Quaternion lookDir = Quaternion.LookRotation (dir, up);
-			//transform.LookAt (transform.position + transform.forward + accelDirection, up);
 			transform.rotation = Quaternion.Lerp (transform.rotation, lookDir, t);
 		}
 	}
 
 	void FixedUpdate() {
 		TurnModelTowardCorrectDirection (Time.deltaTime);
+		if (IsAlive ()) {
+			DoSteering (this);
+		}
+		DoPhysics ();
 	}
 
 	public Transform controllingTransform = null;
@@ -135,50 +159,45 @@ public class PlayerForce : MonoBehaviour {
 		}
 	}
 
-	void Update () {
-		DoSteering (this);
-		DoPhysics ();
-	}
-
 	void DoPhysics() {
-		Vector3 accel = accelDirection * maxAcceleration;
-		float speed = rb.velocity.magnitude;
-		Vector3 direction = rb.velocity / speed;
+		bool noAccel = accelDirection == Vector3.zero;
+		float currentSpeed = rb.velocity.magnitude;
+		if (noAccel && currentSpeed == 0) return;
+		Vector3 accelForce = accelDirection * maxAcceleration;
+		Vector3 direction = rb.velocity / currentSpeed;
 		// if we aren't moving at all, reverse!
-		if(side == 0 && fore == 0 && speed != 0) {
+		if(noAccel && currentSpeed != 0) {
 			// this will prevent spastic acceleration force
-			float forceRequiredToStop = speed / Time.deltaTime;
+			float forceRequiredToStop = currentSpeed / Time.deltaTime;
 			if(forceRequiredToStop > maxAcceleration) {
-				accel = -direction * maxAcceleration;
+				accelForce = -direction * maxAcceleration;
 			} else {
-				accel = -direction * forceRequiredToStop;
+				accelForce = -direction * forceRequiredToStop;
 			}
 		}
 		// how aligned our acceleration is with our velocity: are we trying to go faster? negative = no.
-		float speedChange = Vector3.Dot(accel, rb.velocity);
-		// if we are slowing down, OR we aren't going our max speed
-		if(accel != Vector3.zero) {
+		float speedChange = Vector3.Dot(accelForce, rb.velocity);
+		if(accelForce != Vector3.zero) {
+			// reduce the acceleration force based on mass
+			accelForce /= rb.mass;
 			float currentMaxSpeed = maxSpeed / rb.mass;
 			if (currentMaxSpeed > World.SPEED_LIMIT) currentMaxSpeed = World.SPEED_LIMIT;
 			// if we're going too fast, and trying to go faster
-			if (speed >= currentMaxSpeed && speedChange > 0) {
+			if (currentSpeed >= currentMaxSpeed && speedChange > 0) {
 				// reduce our acceleration force in our current speed direction
-				float overSpeed = Vector3.Dot(direction, accel);
-				accel -= direction * overSpeed;
-			} else
-			{
-				accel /= rb.mass;
+				float overSpeed = Vector3.Dot(direction, accelForce);
+				accelForce -= direction * overSpeed;
 			}
-			rb.velocity += accel * Time.deltaTime;
+			rb.velocity += accelForce * Time.deltaTime;
 		}
 		if(showDebugLines) {
 			Vector3 p = transform.position;
 			Vector3 v = p + rb.velocity;
 			LineRenderer lr = Lines.Make(ref line_velocity, Color.cyan, p, v, .1f, .1f);
 			lr.transform.SetParent (transform);
-			lr = Lines.Make(ref line_acceleration, Color.magenta, v, v + accel, .2f, 0);
+			lr = Lines.Make(ref line_acceleration, Color.magenta, v, v + accelForce, .2f, 0);
 			lr.transform.SetParent (transform);
 		}
 	}
-	GameObject line_velocity, line_acceleration;
+	private GameObject line_velocity, line_acceleration;
 }

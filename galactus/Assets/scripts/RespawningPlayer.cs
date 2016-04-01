@@ -20,7 +20,6 @@ public class RespawningPlayer : MonoBehaviour {
 		if (posessed)
         {
 			PlayerForce pf = posessed.GetComponent<PlayerForce>();
-            pf.playerControlled = false;
 			pf.controllingTransform = null;
 			//EntitySteering ml = pf.GetComponent<EntitySteering>();
 			//ml.controlledBy = EntitySteering.Controlled.player;
@@ -49,7 +48,6 @@ public class RespawningPlayer : MonoBehaviour {
 				cam3.followedEntity = n;
 				Prediction pred = GetComponent<Prediction> ();
 				pred.toPredict = n;
-                pf.playerControlled = true;
                 pf.GetResourceEater().name = settings.name;
 				pf.controllingTransform = transform;
                 transform.localScale = new Vector3(1, 1, 1);

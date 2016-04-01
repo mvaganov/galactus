@@ -20,17 +20,11 @@ public class World : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
         sc = GetComponent<SphereCollider>();
-        if (instance)
-        {
+        if (instance) {
             throw new System.Exception("singleton already set... is there more than one World?");
         }
         instance = this;
 	}
-	
-	// Update is called once per frame
-	//void Update () {
-	//
-	//}
 
 	public ParticleSystem attackParticle;
 
@@ -42,8 +36,7 @@ public class World : MonoBehaviour {
 		Debug.LogError(other.gameObject+" left! "+extra);
 	}
 
-    public static Vector3 GetRandomLocation()
-    {
+    public static Vector3 GetRandomLocation() {
         Vector3 loc = Random.onUnitSphere;
         loc *= Random.Range(0, instance.sc.radius);
         return loc;
