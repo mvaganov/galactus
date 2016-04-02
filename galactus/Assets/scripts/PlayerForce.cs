@@ -8,21 +8,39 @@ public class PlayerForce : MonoBehaviour {
 
 	public float maxAcceleration = 10;
 	public float maxSpeed = 20;
-	public bool showDebugLines = false;
-	public Vector3 accelDirection;
+	public bool showDebugLines = false, flee = false;
+    public Vector3 accelDirection;
 	/// <summary>movement decision making (user input)</summary>
 	public float fore = 1, side;
+    private UserSoul soul = null;
+    public GameObject target;
+    float distanceFromTarget;
+    float timer = 0;
+    private Vector3 flyErrorVector;
 
-	private Rigidbody rb;
-	private ResourceEater res;
-	private MeshRenderer meshRend;
+    private Rigidbody rb;
+    private ResourceEater res;
+    private MeshRenderer meshRend;
+
+
+    [System.Serializable]
+    public class AISettings
+    {
+        [Tooltip("what percent error this agent should experience when just flying around")]
+        public float minFlyError = 0, maxFlyError = 1, currentFlyError = 1;
+        public void Reset() {
+            if(minFlyError < maxFlyError) { currentFlyError = Random.Range(minFlyError, maxFlyError); }
+        }
+    }
+    public AISettings aISettings = new AISettings();
 	public ResourceEater GetResourceEater() { if (!res) FindComponents (); return res; }
 	public MeshRenderer GetMeshRenderer() { if (!meshRend) FindComponents (); return meshRend; }
 	public Rigidbody GetRigidBody() { if (!rb) FindComponents (); return rb; }
-	public RespawningPlayer GetUserSoul() { return (controllingTransform==null)?null:controllingTransform.GetComponent<RespawningPlayer> (); }
 	public SphereCollider GetCollisionSphere() { return GetComponent<SphereCollider> (); }
+    public void SetUserSoul(UserSoul soul) { this.soul = soul; }
+    public UserSoul GetUserSoul() { return soul; }
 
-	private void FindComponents() {
+    private void FindComponents() {
 		for (int i = 0; (!meshRend || !res) && i < transform.childCount; ++i) {
 			if(!meshRend) meshRend = transform.GetChild (i).GetComponent<MeshRenderer> ();
 			if(!res) res = transform.GetChild(i).GetComponent<ResourceEater>();
@@ -34,7 +52,8 @@ public class PlayerForce : MonoBehaviour {
 	public bool IsDead() { return res.IsDead (); }
 	public bool IsAlive() { return res.IsAlive (); }
 	public void Rebirth() {
-		if (!res) FindComponents ();
+        aISettings.Reset();
+        if (!res) FindComponents ();
 		res.resetValues ();
 		GetCollisionSphere ().isTrigger = false;
 	}
@@ -52,8 +71,8 @@ public class PlayerForce : MonoBehaviour {
 		}
 		if (dir != Vector3.zero) {
 			Vector3 up = transform.up;
-			if (controllingTransform)
-				up = controllingTransform.up;
+			if (soul)
+				up = soul.cameraTransform.up;
 			Quaternion lookDir = Quaternion.LookRotation (dir, up);
 			transform.rotation = Quaternion.Lerp (transform.rotation, lookDir, t);
 		}
@@ -67,41 +86,36 @@ public class PlayerForce : MonoBehaviour {
 		DoPhysics ();
 	}
 
-	public Transform controllingTransform = null;
-	public GameObject target;
-	float timer = 0;
-	public bool flee = false;
 
-	public void ClearTarget() { target = null; }
-
-	public bool AisCloserThanB(GameObject A, GameObject B) {
-		return Vector3.Distance(transform.position, A.transform.position) - (transform.lossyScale.x + A.transform.lossyScale.x) / 2
-			< Vector3.Distance(transform.position, B.transform.position) - (transform.lossyScale.x + B.transform.lossyScale.x) / 2;
-	}
+	public void ClearTarget() { target = null; distanceFromTarget = -1; }
 
 	public bool FollowThisTargetIfItsCloser(GameObject t) {
-		// if there is no target, this one is it. de-facto.
-		if (!target) { target = t; return true; }
-		// if this newly found target is closer than the current target
-		else if (AisCloserThanB(t, target)) { target = t; return true; }
+        float d = Vector3.Distance(transform.position, t.transform.position) - (transform.lossyScale.x + t.transform.lossyScale.x) / 2;
+        if (d <= 0) return false;
+        // if there is no target, or this target is closer
+        if (distanceFromTarget < 0 || d < distanceFromTarget){
+            distanceFromTarget = d;
+            target = t;
+            return true;
+        }
 		return false;
 	}
 
 	void DoSteering(PlayerForce ml) {
 		Rigidbody rb = GetComponent<Rigidbody>();
 		// player control
-		if (controllingTransform) {
+		if (soul) {
 			Vector3 dir = Vector3.zero;
 			//controllingTransform.forward
 			fore = Input.GetAxis ("Vertical");
 			side = Input.GetAxis ("Horizontal");
 			if (fore != 0 || side != 0) { 
 				if (fore != 0) { 
-					dir = Steering.SeekDirectionNormal (controllingTransform.forward * ml.maxSpeed, rb.velocity, ml.maxAcceleration, Time.deltaTime);
+					dir = Steering.SeekDirectionNormal (soul.cameraTransform.forward * ml.maxSpeed, rb.velocity, ml.maxAcceleration, Time.deltaTime);
 					dir *= fore; 
 				}
 				if (side != 0) {
-					Vector3 right = Vector3.Cross (controllingTransform.up, dir);
+					Vector3 right = Vector3.Cross (soul.cameraTransform.up, dir);
 					dir += right * side * (fore < 0 ? -1 : 1);
 				}
 				if (fore != 0 && side != 0) {
@@ -110,25 +124,32 @@ public class PlayerForce : MonoBehaviour {
 			}
 			ml.accelDirection = dir;
 		} else { // AI control
-			ResourceEater thisRe = ml.GetResourceEater();
+            ResourceEater thisRe = ml.GetResourceEater();
 			timer -= Time.deltaTime;
 			if (!target || timer <= 0) {
-				if (target == World.GetInstance()) target = null;
+                flyErrorVector = Random.insideUnitSphere * aISettings.currentFlyError;
+                if (target == World.GetInstance()) target = null;
 				Ray r = new Ray(transform.position, Random.onUnitSphere);
 				RaycastHit[] hits = Physics.SphereCastAll(r, thisRe.GetRadius()+20, 100f);
 				if (hits != null && hits.Length > 0) {
-					foreach (RaycastHit hit in hits) {
+                    if (target)
+                    {
+                        GameObject lastTarget = target;
+                        ClearTarget();
+                        FollowThisTargetIfItsCloser(lastTarget);
+                    }
+                    foreach (RaycastHit hit in hits) {
 						ResourceNode n = hit.collider.GetComponent<ResourceNode>();
 						if (n) {
 							if (FollowThisTargetIfItsCloser(hit.collider.gameObject)) { flee = false; }
-							timer = Random.Range(1.0f, 2.0f);
+							timer = Random.Range(2.0f, 3.0f);
 						} else {
 							ResourceEater re = hit.collider.GetComponent<ResourceEater>();
 							if (re && re != thisRe) {
 								if (re.GetMass() > thisRe.GetMass() * ResourceEater.minimumPreySize) {
 									if (FollowThisTargetIfItsCloser(re.gameObject)) {
 										flee = true;
-										timer = Random.Range(0.25f, 2.0f);
+										timer = Random.Range(0.25f, 3.0f);
 									}
 								} else if(re.GetMass() * ResourceEater.minimumPreySize < thisRe.GetMass()) {
 									if (FollowThisTargetIfItsCloser(re.gameObject)) { 
@@ -138,7 +159,6 @@ public class PlayerForce : MonoBehaviour {
 								}
 							}
 						}
-
 					}
 				}
 				if (target == null) {
@@ -147,11 +167,21 @@ public class PlayerForce : MonoBehaviour {
 				}
 			}
 			if (target) {
-				Vector3 steerForce = Vector3.zero;
-				if (!flee) {
-					steerForce = Steering.Arrive(transform.position, target.transform.position, rb.velocity, ml.maxSpeed, ml.maxAcceleration, Time.deltaTime);
+                Vector3 steerForce = Vector3.zero;
+                Vector3 targetPosition = target.transform.position;
+                if (showDebugLines) {
+                    LineRenderer lr = Lines.Make(ref line_target, Color.magenta, transform.position, targetPosition, .2f, 0);
+                    lr.transform.SetParent(transform);
+                }
+                targetPosition += flyErrorVector * distanceFromTarget;
+                if (showDebugLines) {
+                    LineRenderer lr = Lines.Make(ref line_error, Color.green, transform.position, targetPosition, .5f, .1f);
+                    lr.transform.SetParent(transform);
+                }
+                if (!flee) {
+					steerForce = Steering.Arrive(transform.position, targetPosition, rb.velocity, ml.maxSpeed, ml.maxAcceleration, Time.deltaTime);
 				} else {
-					steerForce = Steering.Flee(transform.position, target.transform.position, rb.velocity, ml.maxSpeed, ml.maxAcceleration, Time.deltaTime);
+					steerForce = Steering.Flee(transform.position, targetPosition, rb.velocity, ml.maxSpeed, ml.maxAcceleration, Time.deltaTime);
 				}
 				transform.LookAt(transform.position + steerForce);
 				ml.accelDirection = steerForce;
@@ -199,5 +229,5 @@ public class PlayerForce : MonoBehaviour {
 			lr.transform.SetParent (transform);
 		}
 	}
-	private GameObject line_velocity, line_acceleration;
+	private GameObject line_velocity, line_acceleration, line_target, line_error;
 }

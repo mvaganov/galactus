@@ -65,6 +65,14 @@ public class ResourceEater : MonoBehaviour {
             float d = ColorDistance(this.currentColor, preferredColor);
             SetColor(Color.Lerp(this.currentColor, preferredColor, (1 - d) * Time.deltaTime));
         }
+        if (pf.GetUserSoul() && Input.GetKeyDown(KeyCode.Space))
+        {
+            //float amnt = mass / (ResourceEater.countReleasesPerSprint * 2);
+            //if (amnt < 1) amnt = 1;
+            int count = (int)Mathf.Sqrt(mass);
+            if (count < 1) count = 1;
+            Eject(false, 1, mass/count, this, 0);
+        }
     }
 
     float ColorDistance(Color a, Color b) {
@@ -80,13 +88,15 @@ public class ResourceEater : MonoBehaviour {
 		name = PlayerMaker.RandomName();
     }
 
+    public static void SetTrailRendererColor(TrailRenderer trail, Color c) { trail.material.SetColor("_TintColor", c); }
+    public static Color GetTrailRendererColor(TrailRenderer trail) { return trail.material.GetColor("_TintColor"); }
+
     public void SetColor(Color color) {
         this.currentColor = color;
         if(halo) halo.startColor = color;
         TrailRenderer trail = FindComponent<TrailRenderer>(false, true);
         if (trail) {
-            Color slighter = new Color(color.r, color.g, color.b, 0.25f);
-            trail.material.SetColor("_TintColor", slighter);
+            SetTrailRendererColor(trail, new Color(color.r, color.g, color.b, 0.25f));
             Color c = color;
 			MeshRenderer r = GetPlayerForce().GetMeshRenderer ();
 			c.a = r.materials [0].color.a;//playerObject.GetComponent<MeshRenderer>().materials[0].color.a;
@@ -115,7 +125,7 @@ public class ResourceEater : MonoBehaviour {
     public void Die() {
 		if (IsAlive()) {
 			SetAlive (false);
-			RespawningPlayer soul = GetPlayerForce().GetUserSoul ();
+			UserSoul soul = GetPlayerForce().GetUserSoul ();
 			if (soul) { soul.Disconnect (); }
 			pf.GetCollisionSphere ().isTrigger = true;
 			SetMass(0);
@@ -123,13 +133,14 @@ public class ResourceEater : MonoBehaviour {
             TrailRenderer trail = FindComponent<TrailRenderer>(false, true);
             float tailTime = trail.time;
             int deathTimeOut = (int)(tailTime * 1000);
-			print (name+" is now dead.");
+			//print (name+" is now dead.");
             //float originalMass = this.mass;
 			TimeMS.TimerCallback(deathTimeOut, () => {
-				print (name+" is being cleared for respawn.");
+				//print (name+" is being cleared for respawn.");
                 World.ResetTrailRenderer(trail);
                 // reset the body just before release, so that when it is reborn, it has default values
                 resetValues();
+                if (soul) { soul.SetNeedsBody(true); }
 				MemoryPoolItem.Destroy(pf.gameObject);
             });
         }
@@ -174,8 +185,10 @@ public class ResourceEater : MonoBehaviour {
 		if (e.mass >= 0 && e.mass < (mass * minimumPreySize)) {
 			float distance = Vector3.Distance (e.transform.position, transform.position);
 			if (distance < transform.lossyScale.x) {
-				//print(name + " attacks " + e.name);
-				e.Eject (false, e.mass, transform, 1);
+                //print(name + " attacks " + e.name);
+                int count = (int)Mathf.Sqrt(e.mass);
+                if (count < 1) count = 1;
+				e.Eject (false, count, e.mass / count, this, 1);
 			}
 		} else {
 			if(mass < (e.mass * minimumPreySize)) e.Attack (this);
@@ -186,19 +199,17 @@ public class ResourceEater : MonoBehaviour {
     public static float minimumTransientEnergySeconds = 10;
     public static float secondsIncreasePerRelease = 1;
 
-    public void Eject(bool forward, float amount, Transform target, float edibleDelay) {
+    public void Eject(bool forward, int howMany, float amountPerEjection, ResourceEater target, float edibleDelay) {
         Vector3 dir = transform.forward;
-        float amountPerPacket = amount / countReleasesPerSprint;
-        for (int i = 0; i < countReleasesPerSprint; ++i) {
+        for (int i = 0; i < howMany; ++i) {
             TimeMS.TimerCallback(i * 100, () => {
                 if (!forward) dir = Random.onUnitSphere;
-                EjectOne(dir, amountPerPacket, target, edibleDelay);
-
+                EjectOne(dir, amountPerEjection, target, edibleDelay);
             });
         }
     }
 
-    bool EjectOne(Vector3 direction, float size, Transform target, float edibleDelay) {
+    bool EjectOne(Vector3 direction, float size, ResourceEater target, float edibleDelay) {
         if (mass <= 0) return false;
         if (mass <= size) size = mass;
         ChangeMass(-size);
@@ -209,16 +220,16 @@ public class ResourceEater : MonoBehaviour {
         Rigidbody rb = n.gameObject.GetComponent<Rigidbody>();
         if (!rb) { rb = n.gameObject.AddComponent<Rigidbody>(); }
         TrailRenderer tr = n.gameObject.GetComponent<TrailRenderer>();
-        tr.material = mommaTrail.material;
+        SetTrailRendererColor(tr, GetTrailRendererColor(mommaTrail));
         tr.startWidth = effectsRadius * 0.0625f;
         tr.endWidth = 0;
         tr.time = 0.125f;
-        SimpleGravityForce s = n.gameObject.AddComponent<SimpleGravityForce>();
+        ResourceOrbit s = n.gameObject.AddComponent<ResourceOrbit>();
         s.Setup(target, pf.maxSpeed * 2.5f, pf.maxSpeed * 8);
         rb.velocity = n.transform.forward * pf.maxSpeed;
-        n.creator = gameObject;
+        n.creator = this;
         int msDelay = (int)(minimumTransientEnergySeconds * 1000 + (numReleases * secondsIncreasePerRelease * 1000));
-		if (target == transform || target == pf.transform) {
+		if (target == this) {
 			numReleases++;
 			// make sure this ejected resource node takes away from the num released
 			MemoryPoolRelease.Add (n.gameObject, (obj) => {

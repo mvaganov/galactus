@@ -48,7 +48,7 @@ public class ResourceMaker : MonoBehaviour {
                 bool moving = false;
                 Rigidbody rb = obj.GetComponent<Rigidbody>();
 				if (rb) { moving = rb.velocity != Vector3.zero; rb.velocity = Vector3.zero; }
-                SimpleGravityForce s = obj.GetComponent<SimpleGravityForce>();
+                ResourceOrbit s = obj.GetComponent<ResourceOrbit>();
                 if (s) Destroy(s);
                 obj.SetActive(false);
 				activeResources--;

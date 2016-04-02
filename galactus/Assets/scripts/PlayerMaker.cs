@@ -14,7 +14,7 @@ public class PlayerMaker : MonoBehaviour {
 	public PlayerForce userControlledPlayer_prefab;
     [Tooltip("An object containing RespawningPlayer, and some kind of camera")]
     public GameObject playerSoul_prefab;
-    public RespawningPlayer currentPlayerSoul;
+    public UserSoul currentPlayerSoul;
 
 	int activeAgents = 0;
 
@@ -89,7 +89,7 @@ public class PlayerMaker : MonoBehaviour {
         );
         if (!currentPlayerSoul)
         {
-            currentPlayerSoul = (Instantiate(playerSoul_prefab) as GameObject).GetComponent<RespawningPlayer>();
+            currentPlayerSoul = (Instantiate(playerSoul_prefab) as GameObject).GetComponent<UserSoul>();
         }
     }
 
@@ -117,6 +117,7 @@ public class PlayerMaker : MonoBehaviour {
             if (iterations > 10) break;
         } while (supressed);
         obj.transform.position = loc;
+        obj.transform.rotation = Random.rotation;
         return supressed?null:obj;
     }
 
@@ -132,7 +133,7 @@ public class PlayerMaker : MonoBehaviour {
 				timer = settings.creationDelay;
 			}
 		}
-        if (currentPlayerSoul.IsDisembodied()) {
+        if (currentPlayerSoul.IsInNeedOfBody()) {
             PlayerForce pf = CreateRandomPlayerAgent();
             currentPlayerSoul.Posess(pf);
         }

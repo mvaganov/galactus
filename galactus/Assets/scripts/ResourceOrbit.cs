@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 
-public class SimpleGravityForce : MonoBehaviour {
+public class ResourceOrbit : MonoBehaviour {
 
-    public Transform target;
+    private ResourceEater target;
     float maxSpeed = 10;
     float maxAcceleration = 5;
     Rigidbody rb;
@@ -13,7 +13,7 @@ public class SimpleGravityForce : MonoBehaviour {
     public void SetForce(float acceleration) { maxAcceleration = acceleration; }
     public float GetForce() { return maxAcceleration; }
 
-    public void Setup(Transform t, float speed, float accel)
+    public void Setup(ResourceEater t, float speed, float accel)
     {
         target = t;
         maxSpeed = speed;
@@ -23,26 +23,30 @@ public class SimpleGravityForce : MonoBehaviour {
 
 	void FixedUpdate () {
         float speed = rb.velocity.magnitude;
-        if (target)
-        {
-            Vector3 accelForce = target.position - transform.position;
+        if (target) {
+            Vector3 accelForce = target.transform.position - transform.position;
             accelForce.Normalize();
             accelForce *= maxAcceleration;
             rb.velocity += accelForce * Time.deltaTime;
-            if (speed > maxSpeed)
-            {
+            if (speed > maxSpeed) {
                 rb.velocity = rb.velocity.normalized * maxSpeed;
             }
-        } else if(speed > 0)
-        {
+            if (!target.IsAlive()) {
+                target = null;
+                ResourceNode rn = GetComponent<ResourceNode>();
+                if (rn) rn.RefreshSize();
+            }
+        } else if(speed > 0) {
             float accelThisTime = maxAcceleration * Time.deltaTime;
             if (speed > accelThisTime) {
                 rb.velocity = rb.velocity - rb.velocity.normalized * accelThisTime;
-            } else
-            {
+            } else {
                 rb.velocity = Vector3.zero;
                 ResourceNode rn = GetComponent<ResourceNode>();
-                if (rn) rn.RefreshSize();
+                if (rn) {
+                    rn.RefreshSize();
+                    if (!target) rn.creator = null;
+                }
             }
         }
     }

@@ -30,12 +30,12 @@ public class Steering
     {
         Vector3 delta = desiredLocation - position;
         Vector3 desiredVelocity = delta.normalized * desiredSpeed;
-//        Vector3 velocityDelta = desiredVelocity - velocity;
-//        float velocityDeltaDist = velocityDelta.magnitude;
-//        if (velocityDeltaDist < maxAcceleration * deltaTime)
-//            return velocityDelta * (1 / deltaTime);
-//        return velocityDelta * maxAcceleration * (1 / velocityDeltaDist);
-		return SeekDirection(desiredVelocity, velocity, maxAcceleration, deltaTime);
+        Vector3 velocityDelta = desiredVelocity - velocity;
+        float velocityDeltaDist = velocityDelta.magnitude;
+        if (velocityDeltaDist < maxAcceleration * deltaTime)
+            return velocityDelta * (1 / deltaTime);
+        return velocityDelta * maxAcceleration * (1 / velocityDeltaDist);
+//        return SeekDirection(desiredVelocity, velocity, maxAcceleration, deltaTime);
     }
 
 	public static Vector3 SeekDirectionNormal(Vector3 desiredVelocity, Vector3 velocity, float maxAcceleration, float deltaTime){
