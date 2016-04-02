@@ -32,13 +32,13 @@ public class ResourceSensor : MonoBehaviour {
 		if (!sensorOwner) {
 			Transform t = transform;
 			PlayerForce pf = null;
-			UserSoul rp = null;
+			UserSoul soul = null;
 			do {
 				pf = t.GetComponent<PlayerForce> ();
 				if (!pf) {
-					rp = t.GetComponent<UserSoul> ();
-					if (rp && rp.IsPosessing ()) {
-						pf = rp.posessed.GetComponent<PlayerForce> ();
+                    soul = t.GetComponent<UserSoul> ();
+					if (soul) {
+						pf = soul.GetPossesed();
 					}
 				}
 				t = t.parent;

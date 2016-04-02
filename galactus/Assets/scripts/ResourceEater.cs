@@ -65,13 +65,20 @@ public class ResourceEater : MonoBehaviour {
             float d = ColorDistance(this.currentColor, preferredColor);
             SetColor(Color.Lerp(this.currentColor, preferredColor, (1 - d) * Time.deltaTime));
         }
-        if (pf.GetUserSoul() && Input.GetKeyDown(KeyCode.Space))
-        {
-            //float amnt = mass / (ResourceEater.countReleasesPerSprint * 2);
-            //if (amnt < 1) amnt = 1;
-            int count = (int)Mathf.Sqrt(mass);
-            if (count < 1) count = 1;
-            Eject(false, 1, mass/count, this, 0);
+    }
+
+    public float GetAppropriateSizeOfEnergy() {
+        int count = (int)Mathf.Sqrt(mass);
+        if (count < 1) count = 1;
+        return mass / count;
+    }
+
+    public void DoUserActions(Transform direction) {
+        if (Input.GetButton("Fire1")) {
+            // shoot hostile resource
+        } else if (Input.GetButton("Fire2")) {
+            // release resources on your own
+            EjectOne(direction.forward, GetAppropriateSizeOfEnergy(), this, 0);
         }
     }
 

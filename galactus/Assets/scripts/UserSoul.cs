@@ -7,11 +7,23 @@ public class UserSoul : MonoBehaviour {
     public float cameraDistance = 3;
     public Transform cameraTransform;
     private bool isPosessing = false, needsBody = true;
-    public Transform posessed = null;
+    private PlayerForce posessed = null;
 
     private Vector2 move;
     public float xSensitivity = 5, ySensitivity = 5;
     public bool invertY = false;
+
+    public WarpGate warpgate;
+
+    void Update() {
+        if(posessed) {
+            posessed.GetResourceEater().DoUserActions(transform);
+        }
+        if (warpgate)
+        {
+            warpgate.UpdateKeypress();
+        }
+    }
 
     void LateUpdate()
     {
@@ -30,8 +42,8 @@ public class UserSoul : MonoBehaviour {
             var d = Input.GetAxis("Mouse ScrollWheel");
             if (d > 0f) { cameraDistance -= 0.125f; if (cameraDistance < 0) cameraDistance = 0; }
             else if (d < 0f) { cameraDistance += 0.125f; }
-            Vector3 delta = cameraTransform.forward.normalized * cameraDistance * posessed.lossyScale.z;
-            transform.position = posessed.position - delta;
+            Vector3 delta = cameraTransform.forward.normalized * cameraDistance * posessed.transform.lossyScale.z;
+            transform.position = posessed.transform.position - delta;
         }
     }
 
@@ -62,6 +74,8 @@ public class UserSoul : MonoBehaviour {
         sensor.sensorOwner = null;
     }
 
+    public PlayerForce GetPossesed() { return posessed; }
+
     public void Posess(PlayerForce pf) {
         Disconnect();
         isPosessing = true;
@@ -78,7 +92,7 @@ public class UserSoul : MonoBehaviour {
             if (t >= 1)
             {
                 pf.gameObject.SetActive(true);
-                posessed = n;
+                posessed = pf;
                 Prediction pred = GetComponent<Prediction>();
                 pred.toPredict = n;
                 pf.GetResourceEater().name = settings.name;
@@ -86,7 +100,7 @@ public class UserSoul : MonoBehaviour {
                 transform.localScale = new Vector3(1, 1, 1);
                 isPosessing = false;
                 sensor.RefreshSensorOwner(pf.GetResourceEater());
-
+                if (warpgate) { warpgate.Setup(pf, cameraTransform); }
                 //Debug.Log("watching for " + name + "'s destruction");
                 // remove the soul before destruction...
                 MemoryPoolRelease.Add(pf.gameObject, (obj) => {
