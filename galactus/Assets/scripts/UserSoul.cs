@@ -16,14 +16,15 @@ public class UserSoul : MonoBehaviour {
     public WarpGate warpgate;
 
     void Update() {
-        if(posessed) {
-            posessed.GetResourceEater().DoUserActions(transform);
+        if(posessed && posessed.IsAlive()) {
+            posessed.GetResourceEater().DoUserActions(cameraTransform);
         }
-        if (warpgate)
-        {
+        if (warpgate) {
             warpgate.UpdateKeypress();
         }
     }
+
+    public Transform GetLookTransform() { return cameraTransform; }
 
     void LateUpdate()
     {

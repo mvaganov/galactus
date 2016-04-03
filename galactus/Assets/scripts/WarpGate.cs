@@ -2,7 +2,7 @@
 using System.Collections;
 
 public class WarpGate : MonoBehaviour {
-
+    // TODO warping should cost energy. like, radius * distance * teleportationConstant or something.
     private float jumpButtonHeld = 0;
 
     public PlayerForce owner;
@@ -30,10 +30,13 @@ public class WarpGate : MonoBehaviour {
                 startPoint.EnableEmission(true);
                 endPoint.EnableEmission(true);
                 if (text) text.enabled = true;
-                transform.localScale = owner.transform.lossyScale;
+                Vector3 s = owner.transform.lossyScale;
+                startPoint.transform.localScale = s;
+                endPoint.transform.localScale = s;
+                //text.transform.localScale = new Vector3(1 / s.x, 1 / s.y, 1 / s.z);
             }
             jumpButtonHeld += Time.deltaTime;
-            float emit = jumpButtonHeld * 10;
+            float emit = 20 + jumpButtonHeld;
             startPoint.SetEmissionRate(emit);
             endPoint.SetEmissionRate(emit);
         }
@@ -54,10 +57,12 @@ public class WarpGate : MonoBehaviour {
             endPoint.transform.position = owner.transform.position + direction.forward * d;
             endPoint.transform.rotation = direction.rotation;
             if (text) {
+                text.transform.position = endPoint.transform.position;
+                text.transform.rotation = endPoint.transform.rotation;
                 float s = 0.01f;
                 s *= d / 2.0f;
                 text.transform.localScale = new Vector3(s, s, s);
-                text.text = ((int)(jumpButtonHeld * d)).ToString();
+                text.text = "\n"+((int)(jumpButtonHeld * d)).ToString();
             }
         }
     }

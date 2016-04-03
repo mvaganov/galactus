@@ -4,16 +4,27 @@ using System.Collections;
 public class ResourceNode : MonoBehaviour {
 
 	public float value = 1;
-
-    public void SetEdible(bool edible) { this.enabled = edible; }
-
+    float lifetime = -1;
     public ResourceEater creator = null;
 
-	public float GetValue() { return value; }
+    public void SetEdible(bool edible) { this.enabled = edible; }
+    public bool IsEdible() { return this.enabled; }
+    public void SetLifetime(float lifeInSeconds) { lifetime = lifeInSeconds; }
+
+    void FixedUpdate() {
+        if (lifetime > 0) {
+            lifetime -= Time.deltaTime;
+            if (lifetime <= 0) {
+                value = 0;
+                MemoryPoolItem.Destroy(gameObject);
+            }
+        }
+    }
+    public float GetValue() { return value; }
 
 	public void SetValue(float v) {
 		value = v;
-		GetComponent<SphereCollider>().radius = Mathf.Sqrt(v);
+		GetComponent<SphereCollider>().radius = Mathf.Sqrt(Mathf.Abs(v));
         //GetComponent<ParticleSystem>().startSize = Mathf.Sqrt(v);
         RefreshSize();
     }
@@ -46,9 +57,8 @@ public class ResourceNode : MonoBehaviour {
 	void OnTriggerStay(Collider c) {
         if (!this.enabled) return;
 		ResourceEater re = c.gameObject.GetComponent<ResourceEater>();
-		if(re != null && re != creator) {
-			re.EatResource(value, GetColor());
-            MemoryPoolItem.Destroy(gameObject);
+		if(re != null && re != creator && re.IsAlive()) {
+			re.EatResource(this);
         }
     }
 }

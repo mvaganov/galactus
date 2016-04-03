@@ -21,6 +21,7 @@ public class ResourceOrbit : MonoBehaviour {
         rb = GetComponent<Rigidbody>();
     }
 
+
 	void FixedUpdate () {
         float speed = rb.velocity.magnitude;
         if (target) {
@@ -36,7 +37,7 @@ public class ResourceOrbit : MonoBehaviour {
                 ResourceNode rn = GetComponent<ResourceNode>();
                 if (rn) rn.RefreshSize();
             }
-        } else if(speed > 0) {
+        } else if(speed > 0 && maxAcceleration > 0) {
             float accelThisTime = maxAcceleration * Time.deltaTime;
             if (speed > accelThisTime) {
                 rb.velocity = rb.velocity - rb.velocity.normalized * accelThisTime;

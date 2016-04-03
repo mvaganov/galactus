@@ -73,10 +73,17 @@ public class ResourceEater : MonoBehaviour {
         return mass / count;
     }
 
+    private float shootCooldown = 0;
     public void DoUserActions(Transform direction) {
-        if (Input.GetButton("Fire1")) {
+        if (shootCooldown > 0) shootCooldown -= Time.deltaTime;
+        if (Input.GetButton("Fire1") && shootCooldown <= 0) {
             // shoot hostile resource
-        } else if (Input.GetButton("Fire2")) {
+            Vector3 dir = direction.forward;
+            //if (pf.GetUserSoul()) { dir = pf.GetUserSoul().GetLookTransform().forward; }
+            ResourceNode n = EjectOne(dir, -GetRadius(), null, 0);
+            n.SetLifetime(1);
+            shootCooldown = .25f;
+        } else if (Input.GetButtonDown("Fire2")) {
             // release resources on your own
             EjectOne(direction.forward, GetAppropriateSizeOfEnergy(), this, 0);
         }
@@ -169,10 +176,26 @@ public class ResourceEater : MonoBehaviour {
 
     private void AddValue(float v) { ChangeMass(v); }
 
-    public void EatResource(float value, Color color) {
-        AddValue(value);
-		GetPlayerForce().ClearTarget();
-        preferredColor = color;
+    public void EatResource(ResourceNode resource) {
+        float value = resource.GetValue();
+        Color color = resource.GetColor();
+        if (value > 0) {
+            AddValue(value);
+            GetPlayerForce().ClearTarget();
+            preferredColor = color;
+        } else if(value < 0) {
+            Vector3 direction = Vector3.zero;
+            Rigidbody rb = resource.GetComponent<Rigidbody>();
+            if (rb && rb.velocity != Vector3.zero) { direction = rb.velocity.normalized; }
+            if (direction == Vector3.zero) {
+                direction = transform.position - resource.transform.position;
+                if (direction != Vector3.zero) { direction = rb.velocity.normalized; }
+            }
+            if (direction == Vector3.zero) { direction = Random.onUnitSphere; }
+            EjectOne(direction, -value, this, -value);
+        }
+        //resource.SetValue(0);
+        MemoryPoolItem.Destroy(resource.gameObject);
     }
 
     void OnTriggerEnter(Collider c) {
@@ -216,14 +239,17 @@ public class ResourceEater : MonoBehaviour {
         }
     }
 
-    bool EjectOne(Vector3 direction, float size, ResourceEater target, float edibleDelay) {
-        if (mass <= 0) return false;
-        if (mass <= size) size = mass;
-        ChangeMass(-size);
+    ResourceNode EjectOne(Vector3 direction, float size, ResourceEater target, float edibleDelayInSeconds) {
+        if (mass <= 0) return null;
+        if (size > 0) {
+            if (mass <= size) size = mass;
+            ChangeMass(-size);
+        }
 		GetPlayerForce ();
         World w = World.GetInstance();
         TrailRenderer mommaTrail = FindComponent<TrailRenderer>(false, true);
         ResourceNode n = w.spawner.CreateResourceNode(transform.position + direction * effectsRadius, size, currentColor);
+        n.transform.rotation = Quaternion.LookRotation(direction);
         Rigidbody rb = n.gameObject.GetComponent<Rigidbody>();
         if (!rb) { rb = n.gameObject.AddComponent<Rigidbody>(); }
         TrailRenderer tr = n.gameObject.GetComponent<TrailRenderer>();
@@ -232,12 +258,16 @@ public class ResourceEater : MonoBehaviour {
         tr.endWidth = 0;
         tr.time = 0.125f;
         ResourceOrbit s = n.gameObject.AddComponent<ResourceOrbit>();
-        s.Setup(target, pf.maxSpeed * 2.5f, pf.maxSpeed * 8);
+        if (size > 0) {
+            s.Setup(target, pf.maxSpeed * 2.5f, pf.maxSpeed * 8);
+        } else {
+            s.Setup(target, World.PROJECTILE_SPEED_LIMIT, 0);
+        }
         rb.velocity = n.transform.forward * pf.maxSpeed;
         n.creator = this;
-        int msDelay = (int)(minimumTransientEnergySeconds * 1000 + (numReleases * secondsIncreasePerRelease * 1000));
 		if (target == this) {
-			numReleases++;
+            int msDelay = (int)(minimumTransientEnergySeconds * 1000 + (numReleases * secondsIncreasePerRelease * 1000));
+            numReleases++;
 			// make sure this ejected resource node takes away from the num released
 			MemoryPoolRelease.Add (n.gameObject, (obj) => {
 				if (n.creator){ numReleases -= 1; }
@@ -249,11 +279,11 @@ public class ResourceEater : MonoBehaviour {
 				n.creator = null;
 			});
 		}
-        if(edibleDelay > 0) {
+        if(edibleDelayInSeconds > 0) {
             n.SetEdible(false);
-            TimeMS.TimerCallback((int)(edibleDelay * 1000), () => { n.SetEdible(true); });
+            TimeMS.TimerCallback((int)(edibleDelayInSeconds * 1000), () => { n.SetEdible(true); });
         }
-        return true;
+        return n;
     }
 	/// <summary>The number of energy packets floating around this entity</summary>
 	int numReleases;

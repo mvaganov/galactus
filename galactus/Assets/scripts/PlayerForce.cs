@@ -115,8 +115,8 @@ public class PlayerForce : MonoBehaviour {
 					dir *= fore; 
 				}
 				if (side != 0) {
-					Vector3 right = Vector3.Cross (soul.cameraTransform.up, dir);
-					dir += right * side * (fore < 0 ? -1 : 1);
+                    Vector3 right = soul.cameraTransform.right;
+                    dir += right * side;// * (fore < 0 ? -1 : 1);
 				}
 				if (fore != 0 && side != 0) {
 					dir.Normalize ();
@@ -140,7 +140,7 @@ public class PlayerForce : MonoBehaviour {
                     }
                     foreach (RaycastHit hit in hits) {
 						ResourceNode n = hit.collider.GetComponent<ResourceNode>();
-						if (n) {
+						if (n && n.GetValue() > 0 && n.creator != res && n.IsEdible()) {
 							if (FollowThisTargetIfItsCloser(hit.collider.gameObject)) { flee = false; }
 							timer = Random.Range(2.0f, 3.0f);
 						} else {
