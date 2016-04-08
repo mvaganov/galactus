@@ -27,15 +27,18 @@ public class Prediction : MonoBehaviour {
 			float d;
 			float tMod = (float)(thisRe.mass / 2f);
             predictedLocation += v * Time.deltaTime;
+			Vector3 accelDir = pf.accelDirection;
             for (int i = 0; i < numPredictions; ++i) {
 				particles [i].position = predictedLocation;
 				particles [i].startSize = thisRe.effectsRadius;
 				particles [i].lifetime = 1;
 				particles [i].startLifetime = 2;
 				particles [i].startColor = thisRe.GetCurrentColor();
+				particles [i].rotation3D = gameObject.transform.rotation.eulerAngles;
 				//predictionParticle.Emit (predictedLocation, v, thisRe.effectsRadius, Time.deltaTime * 2, thisRe.color);
 				//points [i] = predictedLocation;
-				v += (pf.accelDirection * pf.maxAcceleration * (tMod / thisRe.mass));
+				// TODO make the acceleration change as the velocity changes, to better predict if acceleration stays constant.
+				v += (accelDir * pf.maxAcceleration * (tMod / thisRe.mass));
 				d = v.magnitude;
 				if (d > pf.maxSpeed/thisRe.mass) {
 					v = v.normalized * (pf.maxSpeed/thisRe.mass);
