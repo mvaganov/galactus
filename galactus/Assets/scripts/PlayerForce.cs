@@ -4,7 +4,6 @@ using System.Collections;
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerForce : MonoBehaviour {
 	// TODO eaters attack for less damage from eaters with similar colors. the same color means essentially alliance.
-	// TODO some kind of ray attack that forces hit target to release energy
 
 	public float maxAcceleration = 10;
 	public float maxSpeed = 20;
@@ -22,6 +21,15 @@ public class PlayerForce : MonoBehaviour {
     private ResourceEater res;
     private MeshRenderer meshRend;
 
+    public Vector3 GetIdeaDirection() {
+        if(soul) {
+            return soul.cameraTransform.forward;
+        } else if(target) {
+            return (target.transform.position - transform.position).normalized;
+        } else {
+            return transform.forward;
+        }
+    }
 
     [System.Serializable]
     public class AISettings

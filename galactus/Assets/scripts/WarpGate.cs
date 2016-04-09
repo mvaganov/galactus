@@ -62,7 +62,7 @@ public class WarpGate : MonoBehaviour {
                 float s = 0.01f;
                 s *= d / 2.0f;
                 text.transform.localScale = new Vector3(s, s, s);
-                text.text = "\n"+((int)(jumpButtonHeld * d)).ToString();
+                text.text = "\n"+((int)d).ToString();
             }
         }
     }

@@ -27,7 +27,7 @@ public class Prediction : MonoBehaviour {
 			float d;
 			float tMod = (float)(thisRe.mass / 2f);
             predictedLocation += v * Time.deltaTime;
-			Vector3 accelDir = pf.accelDirection;
+			Vector3 accelForce = pf.accelDirection * pf.maxAcceleration;
             for (int i = 0; i < numPredictions; ++i) {
 				particles [i].position = predictedLocation;
 				particles [i].startSize = thisRe.effectsRadius;
@@ -35,17 +35,18 @@ public class Prediction : MonoBehaviour {
 				particles [i].startLifetime = 2;
 				particles [i].startColor = thisRe.GetCurrentColor();
 				particles [i].rotation3D = gameObject.transform.rotation.eulerAngles;
-				//predictionParticle.Emit (predictedLocation, v, thisRe.effectsRadius, Time.deltaTime * 2, thisRe.color);
-				//points [i] = predictedLocation;
-				// TODO make the acceleration change as the velocity changes, to better predict if acceleration stays constant.
-				v += (accelDir * pf.maxAcceleration * (tMod / thisRe.mass));
-				d = v.magnitude;
+                //predictionParticle.Emit (predictedLocation, v, thisRe.effectsRadius, Time.deltaTime * 2, thisRe.color);
+                //points [i] = predictedLocation;
+                // TODO make the acceleration change as the velocity changes, to better predict if acceleration stays constant.
+                v += (accelForce * (tMod / thisRe.mass));
+                d = v.magnitude;
 				if (d > pf.maxSpeed/thisRe.mass) {
 					v = v.normalized * (pf.maxSpeed/thisRe.mass);
 				}
 				predictedLocation += v * tMod;
-			}
-			for (int i = numPredictions; i < particles.Length; ++i) {
+                accelForce = Steering.SeekDirection(pf.GetIdeaDirection() * pf.maxSpeed, rb.velocity, pf.maxAcceleration, tMod);
+            }
+            for (int i = numPredictions; i < particles.Length; ++i) {
 				particles [i].startSize = 0;
 			}
 			predictionParticle.SetParticles (particles, particles.Length);

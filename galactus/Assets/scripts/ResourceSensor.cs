@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class ResourceSensor : MonoBehaviour {
     public ResourceEater sensorOwner;
@@ -13,12 +14,15 @@ public class ResourceSensor : MonoBehaviour {
     public static Color bigr = new Color(1, 0, 0, .75f);
     public static Color peer = new Color(.75f, .75f, .75f, .75f);
     public static Color lowr = new Color(1, 1, 1, .75f);
+    public static Color dist = new Color(.5f, .5f, .5f);
 
     public GameObject textPrefab;
     public Camera cam;
+    /// <summary>all of the text UI</summary>
     List<GameObject> textEntries = new List<GameObject>();
+    int usedEntries;
 
-	void LateUpdate(){
+    void LateUpdate(){
 		for (int i = textEntries.Count-1; i >= 0; --i) {
             if (!textEntries[i]) textEntries.RemoveAt(i);
 			else if (textEntries [i].activeInHierarchy) {
@@ -50,53 +54,76 @@ public class ResourceSensor : MonoBehaviour {
         return sensorOwner;
     }
 
+    Text GetFreeText() {
+        Text t = null;
+        if (textEntries.Count <= usedEntries) {
+            GameObject tentr = Instantiate(textPrefab) as GameObject;
+            textEntries.Add(tentr);
+        }
+        t = textEntries[usedEntries++].GetComponent<Text>();
+        t.gameObject.SetActive(true);
+        return t;
+    }
+    void FreeUpAllText()
+    {
+        for (int i = 0; i < textEntries.Count; ++i)
+        {
+            textEntries[i].SetActive(false);
+        }
+        usedEntries = 0;
+    }
+
     void FixedUpdate () {
         if(!sensorOwner) return;
         sensorTimer += Time.deltaTime;
         if(sensorTimer >= sensorUpdateTime) {
             sensorTimer = 0;
-			Ray r = new Ray (cam.transform.position, cam.transform.forward);
+            FreeUpAllText();
+            // find everything that *might* need sensor info this time
+            Ray r = new Ray (cam.transform.position, cam.transform.forward);
 			RaycastHit[] hits = Physics.SphereCastAll(r, sensorOwner.effectsRadius + radiusExtra, range+sensorOwner.effectsRadius);
-            for(int i = 0; i < textEntries.Count; ++i) {
-                textEntries[i].SetActive(false);
-            }
-            int validOnes = 0;
             for(int i = 0; i < hits.Length; ++i) {
                 ResourceEater reat = hits[i].collider.gameObject.GetComponent<ResourceEater>();
-                bool showThisOne = reat != null && reat.mass > 0;
+                ResourceNode rn = (reat)? null : hits[i].collider.gameObject.GetComponent<ResourceNode>();
+                // only show a few kinds of things. Living ResourceEaters and ResourceNodes
+                bool showThisOne = (reat != null && reat.IsAlive()) || rn;
                 if (showThisOne) {
-					float d = Vector3.Distance(cam.transform.position, reat.transform.position);
-                    if (textEntries.Count <= validOnes) {
-                        GameObject tentr = Instantiate(textPrefab) as GameObject;
-						tentr.transform.SetParent (reat.transform);//cam.transform);
-                        textEntries.Add(tentr);
-                    }
                     Collider c = hits[i].collider;
-                    UnityEngine.UI.Text t = textEntries[validOnes].GetComponent<UnityEngine.UI.Text>();
-
-                    t.transform.SetParent(null);
-					float s = 0.01f;
-					s *= d/2.0f;
-                    t.transform.localScale = new Vector3(s,s,s);
-					t.transform.rotation = lookTransform.rotation;
-					t.transform.SetParent(c.transform);
-					t.transform.localPosition = Vector3.zero;
-                    t.text = c.name+"\n"+((int)reat.mass);
-                    if (reat.mass * ResourceEater.minimumPreySize > sensorOwner.mass) {
-                        t.color = bigr;
-                        t.fontStyle = FontStyle.Italic;
+                    float d = Vector3.Distance(cam.transform.position, c.transform.position);
+                    float s = 0.01f;
+                    s *= d / 2.0f;
+                    if (reat) {
+                        Color color;
+                        FontStyle fontStyle;
+                        // name
+                        if (reat.mass * ResourceEater.minimumPreySize > sensorOwner.mass) {
+                            color = bigr;
+                            fontStyle = FontStyle.Italic;
+                        } else if (reat.mass < sensorOwner.mass * ResourceEater.minimumPreySize) {
+                            color = lowr;
+                            fontStyle = FontStyle.Bold;
+                        } else {
+                            color = peer;
+                            fontStyle = FontStyle.Normal;
+                        }
+                        DoText(c.name + "\n" + ((int)reat.mass), c.transform, s, color, fontStyle);
                     }
-                    else if(reat.mass < sensorOwner.mass * ResourceEater.minimumPreySize) {
-                        t.color = lowr;
-                        t.fontStyle = FontStyle.Bold;
-                    } else {
-                        t.color = peer;
-                        t.fontStyle = FontStyle.Normal;
-                    }
-                    t.gameObject.SetActive(true);
-                    validOnes++;
+                    // distance
+                    DoText( "\n\n\n" + ((int)d), c.transform, s*0.75f, dist, FontStyle.Normal);
                 }
             }
         }
 	}
+    void DoText(string text, Transform forWho, float size, Color color, FontStyle style)
+    {
+        Text t = GetFreeText();
+        t.transform.SetParent(null);
+        t.transform.localScale = new Vector3(size, size, size);
+        t.transform.rotation = lookTransform.rotation;
+        t.transform.SetParent(forWho);
+        t.transform.localPosition = Vector3.zero;
+        t.text = text;
+        t.color = color;
+        t.fontStyle = style;
+    }
 }
