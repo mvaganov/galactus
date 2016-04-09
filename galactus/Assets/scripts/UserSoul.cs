@@ -12,6 +12,7 @@ public class UserSoul : MonoBehaviour {
     private Vector2 move;
     public float xSensitivity = 5, ySensitivity = 5;
     public bool invertY = false;
+    public bool holdVector = false;
 
     public WarpGate warpgate;
 
@@ -46,6 +47,7 @@ public class UserSoul : MonoBehaviour {
             Vector3 delta = cameraTransform.forward.normalized * cameraDistance * posessed.transform.lossyScale.z;
             transform.position = posessed.transform.position - delta;
         }
+        holdVector = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
     }
 
 

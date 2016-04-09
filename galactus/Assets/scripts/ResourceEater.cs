@@ -80,12 +80,12 @@ public class ResourceEater : MonoBehaviour {
             // shoot hostile resource
             Vector3 dir = direction.forward;
             //if (pf.GetUserSoul()) { dir = pf.GetUserSoul().GetLookTransform().forward; }
-            ResourceNode n = EjectOne(dir, -GetRadius(), null, 0);
-            n.SetLifetime(1);
+            EjectOne(dir, -GetRadius(), null, 0, GetRadius());
             shootCooldown = .25f;
+            ChangeMass(GetRadius() * World.DAMAGE_ENERGY_COST_RATIO);
         } else if (Input.GetButtonDown("Fire2")) {
             // release resources on your own
-            EjectOne(direction.forward, GetAppropriateSizeOfEnergy(), this, 0);
+            EjectOne(direction.forward, GetAppropriateSizeOfEnergy(), this, 0, -1);
         }
     }
 
@@ -192,7 +192,7 @@ public class ResourceEater : MonoBehaviour {
                 if (direction != Vector3.zero) { direction = rb.velocity.normalized; }
             }
             if (direction == Vector3.zero) { direction = Random.onUnitSphere; }
-            EjectOne(direction, -value, this, -value);
+            EjectOne(direction, -value, this, -value, value);
         }
         //resource.SetValue(0);
         MemoryPoolItem.Destroy(resource.gameObject);
@@ -218,7 +218,7 @@ public class ResourceEater : MonoBehaviour {
                 //print(name + " attacks " + e.name);
                 int count = (int)Mathf.Sqrt(e.mass);
                 if (count < 1) count = 1;
-				e.Eject (false, count, e.mass / count, this, 1);
+				e.Eject (false, count, e.mass / count, this, 1, -1);
 			}
 		} else {
 			if(mass < (e.mass * minimumPreySize)) e.Attack (this);
@@ -229,17 +229,20 @@ public class ResourceEater : MonoBehaviour {
     public static float minimumTransientEnergySeconds = 10;
     public static float secondsIncreasePerRelease = 1;
 
-    public void Eject(bool forward, int howMany, float amountPerEjection, ResourceEater target, float edibleDelay) {
+    public void Eject(bool forward, int howMany, float amountPerEjection, ResourceEater target, float edibleDelay, float lifetimeInSeconds) {
         Vector3 dir = transform.forward;
-        for (int i = 0; i < howMany; ++i) {
+        if(howMany == 1) {
+            if (!forward) dir = Random.onUnitSphere;
+            EjectOne(dir, amountPerEjection, target, edibleDelay, lifetimeInSeconds);
+        } else for (int i = 0; i < howMany; ++i) {
             TimeMS.TimerCallback(i * 100, () => {
                 if (!forward) dir = Random.onUnitSphere;
-                EjectOne(dir, amountPerEjection, target, edibleDelay);
+                EjectOne(dir, amountPerEjection, target, edibleDelay, lifetimeInSeconds);
             });
         }
     }
 
-    ResourceNode EjectOne(Vector3 direction, float size, ResourceEater target, float edibleDelayInSeconds) {
+    public ResourceNode EjectOne(Vector3 direction, float size, ResourceEater target, float edibleDelayInSeconds, float lifetimeInSeconds) {
         if (mass <= 0) return null;
         if (size > 0) {
             if (mass <= size) size = mass;
@@ -283,6 +286,8 @@ public class ResourceEater : MonoBehaviour {
             n.SetEdible(false);
             TimeMS.TimerCallback((int)(edibleDelayInSeconds * 1000), () => { n.SetEdible(true); });
         }
+        if (lifetimeInSeconds <= 0) lifetimeInSeconds = World.MAX_RESOURCE_LIFETIME_IN_SECONDS;
+        n.SetLifetime(lifetimeInSeconds);
         return n;
     }
 	/// <summary>The number of energy packets floating around this entity</summary>

@@ -44,7 +44,7 @@ public class Prediction : MonoBehaviour {
 					v = v.normalized * (pf.maxSpeed/thisRe.mass);
 				}
 				predictedLocation += v * tMod;
-                accelForce = Steering.SeekDirection(pf.GetIdeaDirection() * pf.maxSpeed, rb.velocity, pf.maxAcceleration, tMod);
+                accelForce = Steering.SeekDirection(pf.GetIntendedDirection() * pf.maxSpeed, rb.velocity, pf.maxAcceleration, tMod);
             }
             for (int i = numPredictions; i < particles.Length; ++i) {
 				particles [i].startSize = 0;

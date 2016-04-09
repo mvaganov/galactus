@@ -23,6 +23,27 @@ public class WarpGate : MonoBehaviour {
         endPoint.EnableEmission(false);
     }
 
+    public static float CalculateRate(float mass) {
+        float massScore = (mass - World.TELEPORT_IDEAL_SIZE);
+        float easeScore = (World.TELEPORT_VIABILITY_RANGE * World.TELEPORT_VIABILITY_RANGE);
+        return (massScore * massScore) / easeScore + (1/World.TELEPORT_MINIMUM_COST_EFFICIENCY);
+    }
+
+    public float CalculateTeleportRate() { return CalculateRate(owner.GetResourceEater().GetMass()); }
+
+    public void DoJump() {
+        ResourceEater re = owner.GetResourceEater();
+        //int count = (int)re.GetRadius();
+        float cost = CalculateRate(re.GetMass());
+        cost *= Vector3.Distance(startPoint.transform.position, endPoint.transform.position);
+        re.Eject(false, 1, cost, null, 0, -1);
+        owner.transform.position = endPoint.transform.position;
+        jumpButtonHeld = 0;
+        startPoint.EnableEmission(false);
+        endPoint.EnableEmission(false);
+        if (text) text.enabled = false;
+    }
+
     public void UpdateKeypress () {
         if (Input.GetButton("Jump")) {
             if (Input.GetButtonDown("Jump")) {
@@ -41,11 +62,7 @@ public class WarpGate : MonoBehaviour {
             endPoint.SetEmissionRate(emit);
         }
         if (Input.GetButtonUp("Jump")) {
-            owner.transform.position = endPoint.transform.position;
-            jumpButtonHeld = 0;
-            startPoint.EnableEmission(false);
-            endPoint.EnableEmission(false);
-            if (text) text.enabled = false;
+            DoJump();
         }
     }
 
@@ -62,7 +79,7 @@ public class WarpGate : MonoBehaviour {
                 float s = 0.01f;
                 s *= d / 2.0f;
                 text.transform.localScale = new Vector3(s, s, s);
-                text.text = "\n"+((int)d).ToString();
+                text.text = "\n\n\n\n\n"+((int)d).ToString();
             }
         }
     }

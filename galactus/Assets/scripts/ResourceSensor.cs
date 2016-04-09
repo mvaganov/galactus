@@ -14,12 +14,13 @@ public class ResourceSensor : MonoBehaviour {
     public static Color bigr = new Color(1, 0, 0, .75f);
     public static Color peer = new Color(.75f, .75f, .75f, .75f);
     public static Color lowr = new Color(1, 1, 1, .75f);
-    public static Color dist = new Color(.5f, .5f, .5f);
+    public static Color distColor = new Color(1, 1, 1);
 
     public GameObject textPrefab;
     public Camera cam;
     /// <summary>all of the text UI</summary>
     List<GameObject> textEntries = new List<GameObject>();
+
     int usedEntries;
 
     void LateUpdate(){
@@ -82,6 +83,9 @@ public class ResourceSensor : MonoBehaviour {
             // find everything that *might* need sensor info this time
             Ray r = new Ray (cam.transform.position, cam.transform.forward);
 			RaycastHit[] hits = Physics.SphereCastAll(r, sensorOwner.effectsRadius + radiusExtra, range+sensorOwner.effectsRadius);
+            float mostCenteredDist = -1, test;
+            Text distText = null;
+            Vector2 midScreen = new Vector2(0.5f, 0.5f);
             for(int i = 0; i < hits.Length; ++i) {
                 ResourceEater reat = hits[i].collider.gameObject.GetComponent<ResourceEater>();
                 ResourceNode rn = (reat)? null : hits[i].collider.gameObject.GetComponent<ResourceNode>();
@@ -90,6 +94,7 @@ public class ResourceSensor : MonoBehaviour {
                 if (showThisOne) {
                     Collider c = hits[i].collider;
                     float d = Vector3.Distance(cam.transform.position, c.transform.position);
+                    float dist = Vector3.Distance(sensorOwner.transform.position, c.transform.position);
                     float s = 0.01f;
                     s *= d / 2.0f;
                     if (reat) {
@@ -108,14 +113,21 @@ public class ResourceSensor : MonoBehaviour {
                         }
                         DoText(c.name + "\n" + ((int)reat.mass), c.transform, s, color, fontStyle);
                     }
-                    // distance
-                    DoText( "\n\n\n" + ((int)d), c.transform, s*0.75f, dist, FontStyle.Normal);
+                    if (dist != 0) {
+                        Vector2 screenPos = cam.WorldToViewportPoint(c.transform.position);
+                        // show the distance if it is the distance value closest to the center of the screen (to avoid clutter)
+                        test = Vector2.Distance(screenPos, midScreen) * dist;
+                        if (!distText || test < mostCenteredDist) {
+                            mostCenteredDist = test;
+                            if (distText) distText.gameObject.SetActive(false);
+                            distText = DoText("\n\n\n" + ((int)dist), c.transform, s * 0.75f, distColor, FontStyle.Normal);
+                        }
+                    }
                 }
             }
         }
 	}
-    void DoText(string text, Transform forWho, float size, Color color, FontStyle style)
-    {
+    Text DoText(string text, Transform forWho, float size, Color color, FontStyle style) {
         Text t = GetFreeText();
         t.transform.SetParent(null);
         t.transform.localScale = new Vector3(size, size, size);
@@ -125,5 +137,6 @@ public class ResourceSensor : MonoBehaviour {
         t.text = text;
         t.color = color;
         t.fontStyle = style;
+        return t;
     }
 }
