@@ -12,6 +12,8 @@ public class ResourceEater : MonoBehaviour {
 
     public PlayerForce pf;
     public ParticleSystem halo;
+    // TODO create a proper team class... with a color, name, icon, and other stats
+    public PlayerForce team;
 
     public float GetRadius() { return effectsRadius; }
 
@@ -212,7 +214,7 @@ public class ResourceEater : MonoBehaviour {
 
 	void Attack(ResourceEater e) {
 		if(e == null || e == this) { return; }
-		if (e.mass >= 0 && e.mass < (mass * MINIMUM_PREY_SIZE)) {
+		if (e.mass >= 0 && (e.team || e.team != team) && e.mass < (mass * MINIMUM_PREY_SIZE)) {
 			float distance = Vector3.Distance (e.transform.position, transform.position);
 			if (distance < transform.lossyScale.x) {
                 //print(name + " attacks " + e.name);

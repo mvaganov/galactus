@@ -44,7 +44,7 @@ public class ResourceSensor : MonoBehaviour {
 				if (!pf) {
                     soul = t.GetComponent<UserSoul> ();
 					if (soul) {
-						pf = soul.GetPossesed();
+                        pf = soul.GetBiggestBody().GetPlayerForce();//GetPossesed();
 					}
 				}
 				t = t.parent;
