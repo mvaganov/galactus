@@ -11,6 +11,7 @@ public class ResourceSensor : MonoBehaviour {
     public float sensorUpdateTime = 1.0f/2;
     float sensorTimer = 0;
 
+    public static Color selfColor = new Color(1, 1, 1);
     public static Color bigr = new Color(1, 0, 0, .75f);
     public static Color peer = new Color(.75f, .75f, .75f, .75f);
     public static Color lowr = new Color(1, 1, 1, .75f);
@@ -94,17 +95,23 @@ public class ResourceSensor : MonoBehaviour {
                 if (showThisOne) {
                     Collider c = hits[i].collider;
                     float d = Vector3.Distance(cam.transform.position, c.transform.position);
-                    float dist = Vector3.Distance(sensorOwner.transform.position, c.transform.position);
+                    Vector3 delta = c.transform.position - sensorOwner.transform.position;
+                    float dist = delta.magnitude;
+                    dist -= sensorOwner.GetRadius();
                     float s = 0.01f;
                     s *= d / 2.0f;
                     if (reat) {
+                        //dist -= reat.GetRadius();
                         Color color;
                         FontStyle fontStyle;
                         // name
-                        if (reat.mass * ResourceEater.minimumPreySize > sensorOwner.mass) {
+                        if(reat == sensorOwner) {
+                            color = selfColor;
+                            fontStyle = FontStyle.Normal;
+                        } else if (reat.mass * ResourceEater.MINIMUM_PREY_SIZE > sensorOwner.mass) {
                             color = bigr;
                             fontStyle = FontStyle.Italic;
-                        } else if (reat.mass < sensorOwner.mass * ResourceEater.minimumPreySize) {
+                        } else if (reat.mass < sensorOwner.mass * ResourceEater.MINIMUM_PREY_SIZE) {
                             color = lowr;
                             fontStyle = FontStyle.Bold;
                         } else {
@@ -113,7 +120,7 @@ public class ResourceSensor : MonoBehaviour {
                         }
                         DoText(c.name + "\n" + ((int)reat.mass), c.transform, s, color, fontStyle);
                     }
-                    if (dist != 0) {
+                    if (dist > 0) {
                         Vector2 screenPos = cam.WorldToViewportPoint(c.transform.position);
                         // show the distance if it is the distance value closest to the center of the screen (to avoid clutter)
                         test = Vector2.Distance(screenPos, midScreen) * dist;
@@ -133,7 +140,7 @@ public class ResourceSensor : MonoBehaviour {
         t.transform.localScale = new Vector3(size, size, size);
         t.transform.rotation = lookTransform.rotation;
         t.transform.SetParent(forWho);
-        t.transform.localPosition = Vector3.zero;
+        t.transform.localPosition = Vector3.zero;// offset;
         t.text = text;
         t.color = color;
         t.fontStyle = style;

@@ -91,6 +91,8 @@ public class PlayerForce : MonoBehaviour {
 
 	public void ClearTarget() { target = null; distanceFromTarget = -1; }
 
+    public void SetTarget(GameObject t) { target = t; distanceFromTarget = Vector3.Distance(transform.position, t.transform.position); }
+
 	public bool FollowThisTargetIfItsCloser(GameObject t) {
         float d = Vector3.Distance(transform.position, t.transform.position) - (transform.lossyScale.x + t.transform.lossyScale.x) / 2;
         if (d <= 0) return false;
@@ -103,30 +105,39 @@ public class PlayerForce : MonoBehaviour {
 		return false;
 	}
 
+    public void JustAcheivedObjective(GameObject objective)
+    {
+        // if target is reached, target self for a while...
+        if(target && objective.transform == target.transform) {
+            // take a break for 1 to 10 seconds...
+            timer = Random.Range(0.5f, 2);
+            SetTarget(gameObject);
+            flee = true;
+        }
+    }
+
 	void DoSteering(PlayerForce ml) {
 		Rigidbody rb = GetComponent<Rigidbody>();
 		// player control
 		if (soul) {
-			    Vector3 dir = Vector3.zero;
-            if (!soul.holdVector)
-            {
-                //controllingTransform.forward
+		    Vector3 dir = Vector3.zero;
+            if (!soul.holdVector) {
                 fore = Input.GetAxis ("Vertical");
 			    side = Input.GetAxis ("Horizontal");
                 intendedDirection = soul.cameraTransform.forward;
             }
-                if (fore != 0 || side != 0) { 
-				    if (fore != 0) { 
-					    dir = Steering.SeekDirectionNormal (intendedDirection * ml.maxSpeed, rb.velocity, ml.maxAcceleration, Time.deltaTime);
-					    dir *= fore; 
-				    }
-				    if (side != 0) {
-                        Vector3 right = soul.cameraTransform.right;
-                        dir += right * side;// * (fore < 0 ? -1 : 1);
-				    }
-				    if (fore != 0 && side != 0) { dir.Normalize (); }
-			    }
-			    ml.accelDirection = dir;
+            if (fore != 0 || side != 0) { 
+				if (fore != 0) { 
+					dir = Steering.SeekDirectionNormal (intendedDirection * ml.maxSpeed, rb.velocity, ml.maxAcceleration, Time.deltaTime);
+					dir *= fore; 
+				}
+				if (side != 0) {
+                    Vector3 right = soul.cameraTransform.right;
+                    dir += right * side;// * (fore < 0 ? -1 : 1);
+				}
+				if (fore != 0 && side != 0) { dir.Normalize (); }
+			}
+			ml.accelDirection = dir;
 		} else { // AI control
             ResourceEater thisRe = ml.GetResourceEater();
 			timer -= Time.deltaTime;
@@ -150,12 +161,12 @@ public class PlayerForce : MonoBehaviour {
 						} else {
 							ResourceEater re = hit.collider.GetComponent<ResourceEater>();
 							if (re && re != thisRe) {
-								if (re.GetMass() > thisRe.GetMass() * ResourceEater.minimumPreySize) {
+								if (re.GetMass() > thisRe.GetMass() * ResourceEater.MINIMUM_PREY_SIZE) {
 									if (FollowThisTargetIfItsCloser(re.gameObject)) {
 										flee = true;
 										timer = Random.Range(0.25f, 3.0f);
 									}
-								} else if(re.GetMass() * ResourceEater.minimumPreySize < thisRe.GetMass()) {
+								} else if(re.GetMass() * ResourceEater.MINIMUM_PREY_SIZE < thisRe.GetMass()) {
 									if (FollowThisTargetIfItsCloser(re.gameObject)) { 
 										flee = false;
 										timer = Random.Range(1.0f, 5.0f);

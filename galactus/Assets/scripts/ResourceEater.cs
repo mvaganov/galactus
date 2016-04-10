@@ -2,21 +2,19 @@
 using System.Collections;
 
 public class ResourceEater : MonoBehaviour {
+    public const float MINIMUM_PREY_SIZE = 0.85f;
 
+    private Color currentColor = Color.white;
     public Color preferredColor = Color.white;
 	public float effectsRadius = 1, mass = 1, targetScale = 1;
 	private float scale = 1;
-	private Color currentColor = Color.white;
-	/// <summary>how fast rescale happens when size changes</summary>
-	public const float scaleVelocity = 1;
-	public const float minimumPreySize = 0.85f;
+    bool isAlive = true;
 
-	public PlayerForce pf;
+    public PlayerForce pf;
     public ParticleSystem halo;
 
     public float GetRadius() { return effectsRadius; }
 
-	bool isAlive = true;
 
 	public void SetAlive(bool alive){ this.isAlive = alive; }
 	public bool IsAlive() { return this.isAlive; }
@@ -39,7 +37,7 @@ public class ResourceEater : MonoBehaviour {
         return c;
     }
 
-	PlayerForce GetPlayerForce(){ if(!pf) pf = FindComponent<PlayerForce>(true, false); return pf;}
+	public PlayerForce GetPlayerForce(){ if(!pf) pf = FindComponent<PlayerForce>(true, false); return pf;}
 
 	void Start() {
         
@@ -54,7 +52,8 @@ public class ResourceEater : MonoBehaviour {
     void Update() {
         if (scale != targetScale) {
             float dir = targetScale - scale;
-            float s = (scaleVelocity * ((dir < 0) ? -1 : 1)) * Time.deltaTime;
+            float s = //(scaleVelocity * ((dir < 0) ? -1 : 1)) 
+                dir * Time.deltaTime;
             scale += s;
             if(scale > targetScale ^ dir < 0) {
                 scale = targetScale;
@@ -73,10 +72,11 @@ public class ResourceEater : MonoBehaviour {
         return mass / count;
     }
 
+    // TODO create a new component for shooting?
     private float shootCooldown = 0;
     public void DoUserActions(Transform direction) {
         if (shootCooldown > 0) shootCooldown -= Time.deltaTime;
-        if (Input.GetButton("Fire1") && shootCooldown <= 0) {
+        if ((Input.GetButton("Fire1") || Input.GetKey(KeyCode.X)) && shootCooldown <= 0) {
             // shoot hostile resource
             Vector3 dir = direction.forward;
             //if (pf.GetUserSoul()) { dir = pf.GetUserSoul().GetLookTransform().forward; }
@@ -89,7 +89,7 @@ public class ResourceEater : MonoBehaviour {
         }
     }
 
-    float ColorDistance(Color a, Color b) {
+    public static float ColorDistance(Color a, Color b) {
         Vector3 v = new Vector3(a.r - b.r, a.g - b.g, a.b - b.b);
         return v.magnitude;
     }
@@ -140,7 +140,7 @@ public class ResourceEater : MonoBehaviour {
 		if (IsAlive()) {
 			SetAlive (false);
 			UserSoul soul = GetPlayerForce().GetUserSoul ();
-			if (soul) { soul.Disconnect (); }
+			if (soul) { soul.Disconnect (pf); }
 			pf.GetCollisionSphere ().isTrigger = true;
 			SetMass(0);
 			pf.GetRigidBody().velocity = Vector3.zero;
@@ -181,7 +181,7 @@ public class ResourceEater : MonoBehaviour {
         Color color = resource.GetColor();
         if (value > 0) {
             AddValue(value);
-            GetPlayerForce().ClearTarget();
+            GetPlayerForce().JustAcheivedObjective(resource.gameObject);
             preferredColor = color;
         } else if(value < 0) {
             Vector3 direction = Vector3.zero;
@@ -212,7 +212,7 @@ public class ResourceEater : MonoBehaviour {
 
 	void Attack(ResourceEater e) {
 		if(e == null || e == this) { return; }
-		if (e.mass >= 0 && e.mass < (mass * minimumPreySize)) {
+		if (e.mass >= 0 && e.mass < (mass * MINIMUM_PREY_SIZE)) {
 			float distance = Vector3.Distance (e.transform.position, transform.position);
 			if (distance < transform.lossyScale.x) {
                 //print(name + " attacks " + e.name);
@@ -221,13 +221,12 @@ public class ResourceEater : MonoBehaviour {
 				e.Eject (false, count, e.mass / count, this, 1, -1);
 			}
 		} else {
-			if(mass < (e.mass * minimumPreySize)) e.Attack (this);
+			if(mass < (e.mass * MINIMUM_PREY_SIZE)) e.Attack (this);
 		}
 	}
 
-    public static int countReleasesPerSprint = 5;
-    public static float minimumTransientEnergySeconds = 10;
-    public static float secondsIncreasePerRelease = 1;
+    // TODO do these variables still make sense?
+    public const float minimumTransientEnergySeconds = 10, secondsIncreasePerRelease = 1;
 
     public void Eject(bool forward, int howMany, float amountPerEjection, ResourceEater target, float edibleDelay, float lifetimeInSeconds) {
         Vector3 dir = transform.forward;
@@ -254,7 +253,7 @@ public class ResourceEater : MonoBehaviour {
         ResourceNode n = w.spawner.CreateResourceNode(transform.position + direction * effectsRadius, size, currentColor);
         n.transform.rotation = Quaternion.LookRotation(direction);
         Rigidbody rb = n.gameObject.GetComponent<Rigidbody>();
-        if (!rb) { rb = n.gameObject.AddComponent<Rigidbody>(); }
+        if (!rb) { rb = n.gameObject.AddComponent<Rigidbody>(); rb.useGravity = false; }
         TrailRenderer tr = n.gameObject.GetComponent<TrailRenderer>();
         SetTrailRendererColor(tr, GetTrailRendererColor(mommaTrail));
         tr.startWidth = effectsRadius * 0.0625f;

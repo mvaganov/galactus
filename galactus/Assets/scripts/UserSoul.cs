@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class UserSoul : MonoBehaviour {
     public ResourceSensor sensor;
@@ -8,6 +9,8 @@ public class UserSoul : MonoBehaviour {
     public Transform cameraTransform;
     private bool isPosessing = false, needsBody = true;
     private PlayerForce posessed = null;
+
+    private List<PlayerForce> posessedBodies = new List<PlayerForce>();
 
     private Vector2 move;
     public float xSensitivity = 5, ySensitivity = 5;
@@ -19,6 +22,10 @@ public class UserSoul : MonoBehaviour {
     void Update() {
         if(posessed && posessed.IsAlive()) {
             posessed.GetResourceEater().DoUserActions(cameraTransform);
+        } else if(posessedBodies.Count > 0) {
+            foreach(PlayerForce pf in posessedBodies) {
+                pf.GetResourceEater().DoUserActions(cameraTransform);
+            }
         }
         if (warpgate) {
             warpgate.UpdateKeypress();
@@ -39,13 +46,28 @@ public class UserSoul : MonoBehaviour {
             if (invertY) { move.y *= -1; }
             transform.Rotate(-move.y * ySensitivity, 0, 0);
         }
-        if (posessed)
-        {
+        if (posessed || posessedBodies.Count > 0) {
             var d = Input.GetAxis("Mouse ScrollWheel");
             if (d > 0f) { cameraDistance -= 0.125f; if (cameraDistance < 0) cameraDistance = 0; }
             else if (d < 0f) { cameraDistance += 0.125f; }
-            Vector3 delta = cameraTransform.forward.normalized * cameraDistance * posessed.transform.lossyScale.z;
-            transform.position = posessed.transform.position - delta;
+            Vector3 center = Vector3.zero;
+            float scale = 0;
+            if (posessed) {
+                center = posessed.transform.position;
+                scale = posessed.transform.lossyScale.z;
+            } else {
+                foreach(PlayerForce pf in posessedBodies) {
+                    center += pf.transform.position;
+                    scale += pf.transform.lossyScale.z;
+                }
+                center /= posessedBodies.Count;
+                scale /= posessedBodies.Count;
+            }
+            Vector3 delta = cameraTransform.forward.normalized * cameraDistance * scale;
+            transform.position = center - delta;
+        }
+        else if(posessedBodies.Count > 0) {
+
         }
         holdVector = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
     }
@@ -61,26 +83,59 @@ public class UserSoul : MonoBehaviour {
 
 
     public bool IsPosessing() { return isPosessing; }
-	public bool IsDisembodied() { return posessed == null && !isPosessing; }
+	public bool IsDisembodied() { return (posessed == null || posessedBodies.Count == 0) && !isPosessing; }
     public bool IsInNeedOfBody() { return needsBody; }
     public void SetNeedsBody(bool need) { this.needsBody = need; }
 
-    public void Disconnect() {
-		if (posessed) {
-			PlayerForce pf = posessed.GetComponent<PlayerForce>();
-			pf.SetUserSoul(null);
-			Prediction pred = GetComponent<Prediction> ();
-			pred.toPredict = null;
+    public ResourceEater GetBiggestBody() {
+        if (posessedBodies.Count == 0) return null;
+        ResourceEater biggest = posessedBodies[0].GetResourceEater();
+        ResourceEater e;
+        for (int i = 1; i < posessedBodies.Count; ++i) {
+            e = posessedBodies[i].GetResourceEater();
+            if (e.GetMass() > biggest.GetMass()) {
+                biggest = e;
+            }
         }
-        posessed = null;
+        return biggest;
+    }
+
+    public void Disconnect(PlayerForce pf) {
+        bool somethingDisconnected = false;
+        if (posessed == pf) {
+            Prediction pred = GetComponent<Prediction> ();
+			pred.toPredict = null;
+            posessed = null;
+            somethingDisconnected = true;
+            sensor.sensorOwner = null;
+        }
+        if (posessedBodies.Count > 0) {
+            somethingDisconnected = posessedBodies.Remove(pf);
+            Prediction pred = GetComponent<Prediction>();
+            ResourceEater primary = GetBiggestBody();
+            sensor.sensorOwner = primary;
+            pred.toPredict = primary?primary.GetPlayerForce().transform:null;
+        }
+        if (somethingDisconnected) {
+            pf.SetUserSoul(null);
+        } else {
+            Debug.LogError("invalid component: Attempted to remove " + pf+" from "+this);
+        }
         isPosessing = false;
-        sensor.sensorOwner = null;
     }
 
     public PlayerForce GetPossesed() { return posessed; }
 
-    public void Posess(PlayerForce pf) {
-        Disconnect();
+    public void Posess(PlayerForce pf, bool asOnlyBody) {
+        if (asOnlyBody) {
+            // remove all other bodies that are posessed
+            if(posessed) Disconnect(posessed);
+            else if(posessedBodies.Count > 0) {
+                for(int i = posessedBodies.Count-1; i >= 0; ++i) {
+                    Disconnect(posessedBodies[i]);
+                }
+            }
+        }
         isPosessing = true;
         Transform n = pf.transform;
         SetNeedsBody(false);
@@ -108,7 +163,7 @@ public class UserSoul : MonoBehaviour {
                 // remove the soul before destruction...
                 MemoryPoolRelease.Add(pf.gameObject, (obj) => {
                     //Debug.Log("I'm " + name + " and I'm Dead!");
-                    Disconnect();
+                    if(posessed == pf || posessedBodies.Contains(pf)) Disconnect(pf);
                 });
 
             }

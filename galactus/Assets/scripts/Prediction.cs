@@ -7,6 +7,7 @@ public class Prediction : MonoBehaviour {
 
 	ParticleSystem.Particle[] particles = new ParticleSystem.Particle[50];
 
+    // TODO make this a PlayerForce, not a Transform
 	public Transform toPredict;
 
 	void FixedUpdate () {

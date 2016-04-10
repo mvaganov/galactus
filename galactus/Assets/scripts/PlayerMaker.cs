@@ -135,7 +135,7 @@ public class PlayerMaker : MonoBehaviour {
 		}
         if (currentPlayerSoul.IsInNeedOfBody()) {
             PlayerForce pf = CreateRandomPlayerAgent();
-            currentPlayerSoul.Posess(pf);
+            currentPlayerSoul.Posess(pf, true);
         }
 	}
 }
