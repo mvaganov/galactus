@@ -63,17 +63,26 @@ public class ResourceMaker : MonoBehaviour {
 	}
 
 	public void Harvest(ResourceNode rn) {
-        resourceNodeHarvest.transform.position = rn.transform.position;
         float v = rn.GetValue();
         if(v > 0) {
-            resourceNodeHarvest.startColor = rn.GetColor();
-		    resourceNodeHarvest.startSize = v;
-		    resourceNodeHarvest.startSpeed = v;
-		    resourceNodeHarvest.Emit((int)(Mathf.Sqrt(v) * 10));
+            ResourcePoof(rn.transform.position, rn.GetColor(), v);
+      //      resourceNodeHarvest.transform.position = rn.transform.position;
+      //      resourceNodeHarvest.startColor = rn.GetColor();
+		    //resourceNodeHarvest.startSize = v;
+		    //resourceNodeHarvest.startSpeed = v;
+		    //resourceNodeHarvest.Emit((int)(Mathf.Sqrt(v) * 10));
         }
     }
 
-	public bool IsBlocked(Vector3 testLoc, float suppressionRange) {
+    public void ResourcePoof(Vector3 position, Color color, float size) {
+        resourceNodeHarvest.transform.position = position;
+        resourceNodeHarvest.startColor = color;
+        resourceNodeHarvest.startSize = size;
+        resourceNodeHarvest.startSpeed = size;
+        resourceNodeHarvest.Emit((int)(Mathf.Sqrt(size) * 10));
+    }
+
+    public bool IsBlocked(Vector3 testLoc, float suppressionRange) {
 		foreach(Suppression s in suppression) {
 			float dist = (testLoc - s.position).magnitude;
 			if(dist < suppressionRange) return true;

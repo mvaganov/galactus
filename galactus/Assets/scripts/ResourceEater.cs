@@ -88,6 +88,21 @@ public class ResourceEater : MonoBehaviour {
         } else if (Input.GetButtonDown("Fire2")) {
             // release resources on your own
             EjectOne(direction.forward, GetAppropriateSizeOfEnergy(), this, 0, -1);
+        } else if (Input.GetKeyDown(KeyCode.P)) {
+            float newMass = GetMass() / 2;
+            SetMass(newMass);
+            World w = World.GetInstance();
+            ResourceMaker rm = w.spawner;
+            GameObject dup = Instantiate(pf.gameObject) as GameObject;
+            PlayerForce dupPf = dup.GetComponent<PlayerForce>();
+            dupPf.GetResourceEater().scale = 0;
+            float superTiny = 1 / 1024f;
+            dup.transform.localScale = new Vector3(superTiny, superTiny, superTiny);
+            UserSoul soul = pf.GetUserSoul();
+            Vector3 birthPoint = transform.position + soul.cameraTransform.forward * GetRadius();
+            dup.transform.position = birthPoint;
+            rm.ResourcePoof(birthPoint, GetCurrentColor(), newMass);
+            soul.Posess(dupPf, false);
         }
     }
 
