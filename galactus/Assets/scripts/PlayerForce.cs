@@ -160,7 +160,7 @@ public class PlayerForce : MonoBehaviour {
 							timer = Random.Range(2.0f, 3.0f);
 						} else {
 							ResourceEater re = hit.collider.GetComponent<ResourceEater>();
-							if (re && re != thisRe) {
+							if (re && re != thisRe && !thisRe.IsOnSameTeam(re)) {
 								if (re.GetMass() > thisRe.GetMass() * ResourceEater.MINIMUM_PREY_SIZE) {
 									if (FollowThisTargetIfItsCloser(re.gameObject)) {
 										flee = true;

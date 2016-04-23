@@ -84,7 +84,7 @@ public class ResourceEater : MonoBehaviour {
             //if (pf.GetUserSoul()) { dir = pf.GetUserSoul().GetLookTransform().forward; }
             EjectOne(dir, -GetRadius(), null, 0, GetRadius());
             shootCooldown = .25f;
-            ChangeMass(GetRadius() * World.DAMAGE_ENERGY_COST_RATIO);
+            ChangeMass(-GetRadius() * World.DAMAGE_ENERGY_COST_RATIO);
         } else if (Input.GetButtonDown("Fire2")) {
             // release resources on your own
             EjectOne(direction.forward, GetAppropriateSizeOfEnergy(), this, 0, -1);
@@ -103,6 +103,8 @@ public class ResourceEater : MonoBehaviour {
             dup.transform.position = birthPoint;
             rm.ResourcePoof(birthPoint, GetCurrentColor(), newMass);
             soul.Posess(dupPf, false);
+        } else if (Input.GetKeyDown(KeyCode.F9)) {
+            ChangeMass(10);
         }
     }
 
@@ -227,9 +229,11 @@ public class ResourceEater : MonoBehaviour {
 		Attack(e);
 	}
 
+   public bool IsOnSameTeam(ResourceEater e) { return (e.team && e.team == team); }
+
 	void Attack(ResourceEater e) {
 		if(e == null || e == this) { return; }
-		if (e.mass >= 0 && (e.team || e.team != team) && e.mass < (mass * MINIMUM_PREY_SIZE)) {
+		if (e.mass >= 0 && !IsOnSameTeam(e) && e.mass < (mass * MINIMUM_PREY_SIZE)) {
 			float distance = Vector3.Distance (e.transform.position, transform.position);
 			if (distance < transform.lossyScale.x) {
                 //print(name + " attacks " + e.name);

@@ -24,8 +24,14 @@ public class UserSoul : MonoBehaviour {
         //    posessed.GetResourceEater().DoUserActions(cameraTransform);
         //} else 
         if(posessedBodies.Count > 0) {
-            foreach(PlayerForce pf in posessedBodies) {
-                pf.GetResourceEater().DoUserActions(cameraTransform);
+            if (posessedBodies.Count == 1) {
+                posessedBodies[0].GetResourceEater().DoUserActions(cameraTransform);
+            } else {
+                // create a copy of the list of bodies in case the list is modified in the update of one of the bodies
+                List<PlayerForce> bodies = new List<PlayerForce>(posessedBodies);
+                foreach (PlayerForce pf in bodies) {
+                    pf.GetResourceEater().DoUserActions(cameraTransform);
+                }
             }
         }
         if (warpgate) {
