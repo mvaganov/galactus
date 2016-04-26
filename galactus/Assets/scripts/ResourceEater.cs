@@ -12,11 +12,16 @@ public class ResourceEater : MonoBehaviour {
 
     public PlayerForce pf;
     public ParticleSystem halo;
-    // TODO create a proper team class... with a color, name, icon, and other stats
-    public PlayerForce team;
+    public Team team;
 
     public float GetRadius() { return effectsRadius; }
 
+    public Team GetTeam() { return team; }
+    public void SetTeam(Team team) {
+        if (this.team) { this.team.RemoveMember(pf); }
+        this.team = team;
+        if (this.team) { this.team.AddMember(pf); }
+    }
 
 	public void SetAlive(bool alive){ this.isAlive = alive; }
 	public bool IsAlive() { return this.isAlive; }
@@ -42,7 +47,6 @@ public class ResourceEater : MonoBehaviour {
 	public PlayerForce GetPlayerForce(){ if(!pf) pf = FindComponent<PlayerForce>(true, false); return pf;}
 
 	void Start() {
-        
         GetComponent<SphereCollider>().isTrigger = true;
         halo = FindComponent<ParticleSystem>(false, true);
         preferredColor = currentColor;
@@ -119,6 +123,7 @@ public class ResourceEater : MonoBehaviour {
 		SetAlive (true);
 		pf.transform.position = Vector3.zero;//World.GetRandomLocation ();
 		name = PlayerMaker.RandomName();
+        SetTeam(Team.NewTeam());
     }
 
     public static void SetTrailRendererColor(TrailRenderer trail, Color c) { trail.material.SetColor("_TintColor", c); }
@@ -158,7 +163,8 @@ public class ResourceEater : MonoBehaviour {
     public void Die() {
 		if (IsAlive()) {
 			SetAlive (false);
-			UserSoul soul = GetPlayerForce().GetUserSoul ();
+            SetTeam(null);
+            UserSoul soul = GetPlayerForce().GetUserSoul ();
 			if (soul) { soul.Disconnect (pf); }
 			pf.GetCollisionSphere ().isTrigger = true;
 			SetMass(0);

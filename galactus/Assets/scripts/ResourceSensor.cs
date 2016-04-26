@@ -21,14 +21,23 @@ public class ResourceSensor : MonoBehaviour {
     public Camera cam;
     /// <summary>all of the text UI</summary>
     List<GameObject> textEntries = new List<GameObject>();
-
     int usedEntries;
+
+    // TODO display team name as a sprite icon
+    List<SpriteRenderer> icons = new List<SpriteRenderer>();
+    int usedIcons;
 
     void LateUpdate(){
 		for (int i = textEntries.Count-1; i >= 0; --i) {
             if (!textEntries[i]) textEntries.RemoveAt(i);
 			else if (textEntries [i].activeInHierarchy) {
 				textEntries [i].transform.rotation = transform.rotation;
+			}
+		}
+		for (int i = icons.Count-1; i >= 0; --i) {
+            if (!icons[i]) icons.RemoveAt(i);
+			else if (icons[i].gameObject.activeInHierarchy) {
+                icons[i].transform.rotation = transform.rotation;
 			}
 		}
 	}
@@ -66,13 +75,29 @@ public class ResourceSensor : MonoBehaviour {
         t.gameObject.SetActive(true);
         return t;
     }
-    void FreeUpAllText()
-    {
-        for (int i = 0; i < textEntries.Count; ++i)
-        {
+    SpriteRenderer GetFreeIcon() {
+        SpriteRenderer i = null;
+        if (icons.Count <= usedIcons) {
+            GameObject g = new GameObject();
+            i = g.AddComponent<SpriteRenderer>();
+            icons.Add(i);
+        } else {
+            i = icons[usedIcons++].GetComponent<SpriteRenderer>();
+        }
+        i.gameObject.SetActive(true);
+        return i;
+    }
+    void FreeUpAllText() {
+        for (int i = 0; i < textEntries.Count; ++i) {
             textEntries[i].SetActive(false);
         }
         usedEntries = 0;
+    }
+    void FreeUpAllIcons() {
+        for (int i = 0; i < icons.Count; ++i) {
+            icons[i].gameObject.SetActive(false);
+        }
+        usedIcons = 0;
     }
 
     void FixedUpdate () {
@@ -81,11 +106,13 @@ public class ResourceSensor : MonoBehaviour {
         if(sensorTimer >= sensorUpdateTime) {
             sensorTimer = 0;
             FreeUpAllText();
+            FreeUpAllIcons();
             // find everything that *might* need sensor info this time
             Ray r = new Ray (cam.transform.position, cam.transform.forward);
 			RaycastHit[] hits = Physics.SphereCastAll(r, sensorOwner.effectsRadius + radiusExtra, range+sensorOwner.effectsRadius);
             float mostCenteredDist = -1, test;
             Text distText = null;
+            Sprite icon = null;
             Vector2 midScreen = new Vector2(0.5f, 0.5f);
             for(int i = 0; i < hits.Length; ++i) {
                 ResourceEater reat = hits[i].collider.gameObject.GetComponent<ResourceEater>();
@@ -118,7 +145,11 @@ public class ResourceSensor : MonoBehaviour {
                             color = peer;
                             fontStyle = FontStyle.Normal;
                         }
-                        DoText(c.name + "\n" + ((int)reat.mass), c.transform, s, color, fontStyle);
+                        Text t = DoText(c.name + "\n" + ((int)reat.mass), c.transform, s, color, fontStyle);
+                        icon = (reat.team != null) ? reat.team.icon : null;
+                        if (icon) {
+                            Doicon(icon, t.transform, 30, reat.team.color);
+                        }
                     }
                     if (dist > 0) {
                         Vector2 screenPos = cam.WorldToViewportPoint(c.transform.position);
@@ -145,5 +176,17 @@ public class ResourceSensor : MonoBehaviour {
         t.color = color;
         t.fontStyle = style;
         return t;
+    }
+    SpriteRenderer Doicon(Sprite img, Transform forWho, float size, Color color) {
+        SpriteRenderer sr = GetFreeIcon();
+        //sr.transform.SetParent(null);
+        //sr.transform.localScale = new Vector3(size, size, size);
+        //sr.transform.rotation = lookTransform.rotation;
+        sr.transform.SetParent(forWho);
+        sr.transform.localScale = new Vector3(size, size, size);
+        sr.transform.localPosition = new Vector3(0, 20, 0);//Vector3.zero;// offset;
+        sr.sprite = img;
+        sr.color = color;
+        return sr;
     }
 }

@@ -5,6 +5,8 @@ using System.Collections.Generic;
 public class UserSoul : MonoBehaviour {
     public ResourceSensor sensor;
 
+    public Team team;
+
     public float cameraDistance = 3;
     public Transform cameraTransform;
     private bool isPosessing = false, needsBody = true;
@@ -18,6 +20,16 @@ public class UserSoul : MonoBehaviour {
     public bool holdVector = false;
 
     public WarpGate warpgate;
+
+    void Start()
+    {
+        if(team == null)
+        {
+            // TODO make some kind of mechanism that allows a player to pick an existing team instead of creating a new one for themselves
+            // TODO make a mechanism that has the team allwo or deny entry for new members, including rules for officers, majority vs consensus, weighted votes, and possibly ranked voting
+            team = Team.NewTeam(name);
+        }
+    }
 
     void Update() {
         //if(posessed && posessed.IsAlive()) {
@@ -128,7 +140,8 @@ public class UserSoul : MonoBehaviour {
             Prediction pred = GetComponent<Prediction>();
             ResourceEater primary = GetBiggestBody();
             sensor.sensorOwner = primary;
-            pred.toPredict = primary?primary.GetPlayerForce().transform:null;
+            //pred.toPredict = primary?primary.GetPlayerForce().transform:null;
+            pred.SetBodies(null);
         }
         if (somethingDisconnected) {
             pf.SetUserSoul(null);
@@ -170,12 +183,15 @@ public class UserSoul : MonoBehaviour {
                 //posessed = pf;
                 posessedBodies.Add(pf);
                 Prediction pred = GetComponent<Prediction>();
-                pred.toPredict = n;
-                pf.GetResourceEater().name = settings.name;
+                //pred.toPredict = n;
+                pred.SetBodies(posessedBodies);
+                ResourceEater re = pf.GetResourceEater();
+                re.name = settings.name;
+                re.SetTeam(team);
                 pf.SetUserSoul(this);
                 transform.localScale = new Vector3(1, 1, 1);
                 isPosessing = false;
-                sensor.RefreshSensorOwner(pf.GetResourceEater());
+                sensor.RefreshSensorOwner(re);
                 if (warpgate) { warpgate.Setup(pf, cameraTransform); }
                 //Debug.Log("watching for " + name + "'s destruction");
                 // remove the soul before destruction...

@@ -24,6 +24,9 @@ public class PlayerMaker : MonoBehaviour {
     public static string[] nameFragments = { "","butt","poop","troll","lol","noob","dude","swag","super","haxor","red","green","blue","lady","leet" };
     public static string[] nameSuffix = { "","","","","","","","ed","ly","dude","man","TheGreat","lady","guy" };
     public static string RandomName() {
+        return RandomName(namePrefix, nameFragments, nameSuffix);
+    }
+    public static string RandomName(string[] namePrefix, string[] nameFragments, string[] nameSuffix) {
         string n = "";
         do {
             n = namePrefix[Random.Range(0, namePrefix.Length)];

@@ -1,0 +1,1065 @@
+fileFormatVersion: 2
+guid: 16aa808bae3c08644aa7803a8f770999
+timeCreated: 1461455213
+licenseType: Free
+TextureImporter:
+  fileIDToRecycleName:
+    21300000: 5-90-Free-Flat-Social-Media-Icons_0
+    21300002: 5-90-Free-Flat-Social-Media-Icons_1
+    21300004: 5-90-Free-Flat-Social-Media-Icons_2
+    21300006: 5-90-Free-Flat-Social-Media-Icons_3
+    21300008: 5-90-Free-Flat-Social-Media-Icons_4
+    21300010: 5-90-Free-Flat-Social-Media-Icons_5
+    21300012: 5-90-Free-Flat-Social-Media-Icons_6
+    21300014: 5-90-Free-Flat-Social-Media-Icons_7
+    21300016: 5-90-Free-Flat-Social-Media-Icons_8
+    21300018: 5-90-Free-Flat-Social-Media-Icons_9
+    21300020: 5-90-Free-Flat-Social-Media-Icons_10
+    21300022: 5-90-Free-Flat-Social-Media-Icons_11
+    21300024: 5-90-Free-Flat-Social-Media-Icons_12
+    21300026: 5-90-Free-Flat-Social-Media-Icons_13
+    21300028: 5-90-Free-Flat-Social-Media-Icons_14
+    21300030: 5-90-Free-Flat-Social-Media-Icons_15
+    21300032: 5-90-Free-Flat-Social-Media-Icons_16
+    21300034: 5-90-Free-Flat-Social-Media-Icons_17
+    21300036: 5-90-Free-Flat-Social-Media-Icons_18
+    21300038: 5-90-Free-Flat-Social-Media-Icons_19
+    21300040: 5-90-Free-Flat-Social-Media-Icons_20
+    21300042: 5-90-Free-Flat-Social-Media-Icons_21
+    21300044: 5-90-Free-Flat-Social-Media-Icons_22
+    21300046: 5-90-Free-Flat-Social-Media-Icons_23
+    21300048: 5-90-Free-Flat-Social-Media-Icons_24
+    21300050: 5-90-Free-Flat-Social-Media-Icons_25
+    21300052: 5-90-Free-Flat-Social-Media-Icons_26
+    21300054: 5-90-Free-Flat-Social-Media-Icons_27
+    21300056: 5-90-Free-Flat-Social-Media-Icons_28
+    21300058: 5-90-Free-Flat-Social-Media-Icons_29
+    21300060: 5-90-Free-Flat-Social-Media-Icons_30
+    21300062: 5-90-Free-Flat-Social-Media-Icons_31
+    21300064: 5-90-Free-Flat-Social-Media-Icons_32
+    21300066: 5-90-Free-Flat-Social-Media-Icons_33
+    21300068: 5-90-Free-Flat-Social-Media-Icons_34
+    21300070: 5-90-Free-Flat-Social-Media-Icons_35
+    21300072: 5-90-Free-Flat-Social-Media-Icons_36
+    21300074: 5-90-Free-Flat-Social-Media-Icons_37
+    21300076: 5-90-Free-Flat-Social-Media-Icons_38
+    21300078: 5-90-Free-Flat-Social-Media-Icons_39
+    21300080: 5-90-Free-Flat-Social-Media-Icons_40
+    21300082: 5-90-Free-Flat-Social-Media-Icons_41
+    21300084: 5-90-Free-Flat-Social-Media-Icons_42
+    21300086: 5-90-Free-Flat-Social-Media-Icons_43
+    21300088: 5-90-Free-Flat-Social-Media-Icons_44
+    21300090: 5-90-Free-Flat-Social-Media-Icons_45
+    21300092: 5-90-Free-Flat-Social-Media-Icons_46
+    21300094: 5-90-Free-Flat-Social-Media-Icons_47
+    21300096: 5-90-Free-Flat-Social-Media-Icons_48
+    21300098: 5-90-Free-Flat-Social-Media-Icons_49
+    21300100: 5-90-Free-Flat-Social-Media-Icons_50
+    21300102: 5-90-Free-Flat-Social-Media-Icons_51
+    21300104: 5-90-Free-Flat-Social-Media-Icons_52
+    21300106: 5-90-Free-Flat-Social-Media-Icons_53
+    21300108: 5-90-Free-Flat-Social-Media-Icons_54
+    21300110: 5-90-Free-Flat-Social-Media-Icons_55
+    21300112: 5-90-Free-Flat-Social-Media-Icons_56
+    21300114: 5-90-Free-Flat-Social-Media-Icons_57
+    21300116: 5-90-Free-Flat-Social-Media-Icons_58
+    21300118: 5-90-Free-Flat-Social-Media-Icons_59
+    21300120: 5-90-Free-Flat-Social-Media-Icons_60
+    21300122: 5-90-Free-Flat-Social-Media-Icons_61
+    21300124: 5-90-Free-Flat-Social-Media-Icons_62
+  serializedVersion: 2
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    linearTexture: 0
+    correctGamma: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+  isReadable: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 0
+  cubemapConvolution: 0
+  cubemapConvolutionSteps: 7
+  cubemapConvolutionExponent: 1.5
+  seamlessCubemap: 0
+  textureFormat: -1
+  maxTextureSize: 2048
+  textureSettings:
+    filterMode: -1
+    aniso: 16
+    mipBias: -1
+    wrapMode: 1
+  nPOTScale: 0
+  lightmap: 0
+  rGBM: 0
+  compressionQuality: 50
+  allowsAlphaSplitting: 0
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spritePixelsToUnits: 100
+  alphaIsTransparency: 1
+  textureType: 8
+  buildTargetSettings: []
+  spriteSheet:
+    sprites:
+    - name: 5-90-Free-Flat-Social-Media-Icons_0
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 359
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_1
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 359
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_2
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 359
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_3
+      rect:
+        serializedVersion: 2
+        x: 179
+        y: 359
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_4
+      rect:
+        serializedVersion: 2
+        x: 236
+        y: 359
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_5
+      rect:
+        serializedVersion: 2
+        x: 293
+        y: 359
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_6
+      rect:
+        serializedVersion: 2
+        x: 350
+        y: 359
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_7
+      rect:
+        serializedVersion: 2
+        x: 407
+        y: 359
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_8
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 359
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_9
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 302
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_10
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 302
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_11
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 302
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_12
+      rect:
+        serializedVersion: 2
+        x: 179
+        y: 302
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_13
+      rect:
+        serializedVersion: 2
+        x: 236
+        y: 302
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_14
+      rect:
+        serializedVersion: 2
+        x: 293
+        y: 302
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_15
+      rect:
+        serializedVersion: 2
+        x: 350
+        y: 302
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_16
+      rect:
+        serializedVersion: 2
+        x: 407
+        y: 302
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_17
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 302
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_18
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 245
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_19
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 245
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_20
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 245
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_21
+      rect:
+        serializedVersion: 2
+        x: 179
+        y: 245
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_22
+      rect:
+        serializedVersion: 2
+        x: 236
+        y: 245
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_23
+      rect:
+        serializedVersion: 2
+        x: 293
+        y: 245
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_24
+      rect:
+        serializedVersion: 2
+        x: 350
+        y: 245
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_25
+      rect:
+        serializedVersion: 2
+        x: 407
+        y: 245
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_26
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 245
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_27
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 188
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_28
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 188
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_29
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 188
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_30
+      rect:
+        serializedVersion: 2
+        x: 179
+        y: 188
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_31
+      rect:
+        serializedVersion: 2
+        x: 236
+        y: 188
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_32
+      rect:
+        serializedVersion: 2
+        x: 293
+        y: 188
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_33
+      rect:
+        serializedVersion: 2
+        x: 350
+        y: 188
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_34
+      rect:
+        serializedVersion: 2
+        x: 407
+        y: 188
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_35
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 188
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_36
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 131
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_37
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 131
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_38
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 131
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_39
+      rect:
+        serializedVersion: 2
+        x: 179
+        y: 131
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_40
+      rect:
+        serializedVersion: 2
+        x: 236
+        y: 131
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_41
+      rect:
+        serializedVersion: 2
+        x: 293
+        y: 131
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_42
+      rect:
+        serializedVersion: 2
+        x: 350
+        y: 131
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_43
+      rect:
+        serializedVersion: 2
+        x: 407
+        y: 131
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_44
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 131
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_45
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 74
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_46
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 74
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_47
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 74
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_48
+      rect:
+        serializedVersion: 2
+        x: 179
+        y: 74
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_49
+      rect:
+        serializedVersion: 2
+        x: 236
+        y: 74
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_50
+      rect:
+        serializedVersion: 2
+        x: 293
+        y: 74
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_51
+      rect:
+        serializedVersion: 2
+        x: 350
+        y: 74
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_52
+      rect:
+        serializedVersion: 2
+        x: 407
+        y: 74
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_53
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 74
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_54
+      rect:
+        serializedVersion: 2
+        x: 8
+        y: 17
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_55
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 17
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_56
+      rect:
+        serializedVersion: 2
+        x: 122
+        y: 17
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_57
+      rect:
+        serializedVersion: 2
+        x: 179
+        y: 17
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_58
+      rect:
+        serializedVersion: 2
+        x: 236
+        y: 17
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_59
+      rect:
+        serializedVersion: 2
+        x: 293
+        y: 17
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_60
+      rect:
+        serializedVersion: 2
+        x: 350
+        y: 17
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_61
+      rect:
+        serializedVersion: 2
+        x: 407
+        y: 17
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    - name: 5-90-Free-Flat-Social-Media-Icons_62
+      rect:
+        serializedVersion: 2
+        x: 464
+        y: 17
+        width: 57
+        height: 57
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -28.5, y: 28.5}
+        - {x: -28.5, y: -28.5}
+        - {x: 28.5, y: -28.5}
+        - {x: 28.5, y: 28.5}
+    outline: []
+  spritePackingTag: 
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
