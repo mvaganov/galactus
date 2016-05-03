@@ -3,11 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class PlayerMaker : MonoBehaviour {
-
-    // TODO if there are no user controlled players, and there is a user controlled camera, create a player for that camera and set it up.
-
-    // TODO make this private?
-	public MemoryPool<GameObject> agents;
+	private MemoryPool<GameObject> agents;
 	MemoryPool<GameObject> userplayers;
 
 	public PlayerForce[] player_prefab;

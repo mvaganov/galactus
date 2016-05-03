@@ -23,7 +23,6 @@ public class ResourceSensor : MonoBehaviour {
     List<GameObject> textEntries = new List<GameObject>();
     int usedEntries;
 
-    // TODO display team name as a sprite icon
     List<SpriteRenderer> icons = new List<SpriteRenderer>();
     int usedIcons;
 

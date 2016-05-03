@@ -7,8 +7,6 @@ public class Prediction : MonoBehaviour {
 
 	ParticleSystem.Particle[] particles = new ParticleSystem.Particle[50];
 
-    // TODO make this a PlayerForce, not a Transform
-    //public Transform toPredict;
     private List<PlayerForce> bodies;
 
     public void SetBodies(List<PlayerForce> bodies) { this.bodies = bodies; }
@@ -37,7 +35,10 @@ public class Prediction : MonoBehaviour {
             v = rb.velocity;
             tMod = (float)(re.mass / 2f);
             predictedLocation += v * Time.deltaTime;
-            accelForce = pf.accelDirection * pf.maxAcceleration;
+            //accelForce = pf.accelDirection * pf.maxAcceleration;
+            Vector3 dir = pf.GetMoveDirection();
+            if (dir == Vector3.zero) dir = rb.transform.forward;
+            accelForce = Steering.SeekDirection(dir * pf.maxSpeed, rb.velocity, pf.maxAcceleration, tMod);
         }
 
         public void Iterate(ref ParticleSystem.Particle particle) {
@@ -56,7 +57,9 @@ public class Prediction : MonoBehaviour {
                 v = v.normalized * (pf.maxSpeed / re.mass);
             }
             predictedLocation += v * tMod;
-            accelForce = Steering.SeekDirection(pf.GetMoveDirection() * pf.maxSpeed, rb.velocity, pf.maxAcceleration, tMod);
+            Vector3 dir = pf.GetMoveDirection();
+            if(dir == Vector3.zero) dir = rb.transform.forward;
+            accelForce = Steering.SeekDirection(dir * pf.maxSpeed, rb.velocity, pf.maxAcceleration, tMod);
         }
     }
 
@@ -86,42 +89,6 @@ public class Prediction : MonoBehaviour {
                 }
                 iterations++;
             }
-            /*
-			PlayerForce pf = p.GetComponent<PlayerForce> ();
-			ResourceEater thisRe = pf.GetResourceEater ();
-			Rigidbody rb = pf.GetComponent<Rigidbody> ();
-			Vector3 predictedLocation = p.position;
-			float speed = rb.velocity.magnitude;
-			int numPredictions = (int)(particles.Length  * speed / 50);//(int)(100 / thisRe.mass);
-			if(numPredictions < 1) numPredictions = 1;
-			if (numPredictions > particles.Length)
-				numPredictions = particles.Length;
-			//Vector3[] points = new Vector3[numPredictions];
-			//float t = 0;
-			Vector3 v = rb.velocity;
-			float d;
-			float tMod = (float)(thisRe.mass / 2f);
-            predictedLocation += v * Time.deltaTime;
-			Vector3 accelForce = pf.accelDirection * pf.maxAcceleration;
-            for (int i = 0; i < numPredictions; ++i) {
-				particles [i].position = predictedLocation;
-				particles [i].startSize = thisRe.effectsRadius;
-				particles [i].lifetime = 1;
-				particles [i].startLifetime = 2;
-				particles [i].startColor = thisRe.GetCurrentColor();
-				particles [i].rotation3D = gameObject.transform.rotation.eulerAngles;
-                //predictionParticle.Emit (predictedLocation, v, thisRe.effectsRadius, Time.deltaTime * 2, thisRe.color);
-                //points [i] = predictedLocation;
-                // TODO make the acceleration change as the velocity changes, to better predict if acceleration stays constant.
-                v += (accelForce * (tMod / thisRe.mass));
-                d = v.magnitude;
-				if (d > pf.maxSpeed/thisRe.mass) {
-					v = v.normalized * (pf.maxSpeed/thisRe.mass);
-				}
-				predictedLocation += v * tMod;
-                accelForce = Steering.SeekDirection(pf.GetIntendedDirection() * pf.maxSpeed, rb.velocity, pf.maxAcceleration, tMod);
-            }
-            */
             for (int i = predictionsTotal; i < particles.Length; ++i) {
 				particles [i].startSize = 0;
 			}

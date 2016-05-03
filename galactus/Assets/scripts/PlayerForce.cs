@@ -3,8 +3,6 @@ using System.Collections;
 
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerForce : MonoBehaviour {
-	// TODO eaters attack for less damage from eaters with similar colors. the same color means essentially alliance.
-
 	public float maxAcceleration = 10;
 	public float maxSpeed = 20;
 	public bool showDebugLines = false, flee = false;
@@ -129,8 +127,9 @@ public class PlayerForce : MonoBehaviour {
 			    side = Input.GetAxis ("Horizontal");
                 lookDirection = soul.cameraTransform.forward;
             }
-            if (fore != 0 || side != 0) { 
-				if (fore != 0) {
+            if (fore != 0 || side != 0) {
+                intentedDirection = Vector3.zero;
+                if (fore != 0) {
                     intentedDirection = Steering.SeekDirectionNormal (lookDirection * ml.maxSpeed, rb.velocity, ml.maxAcceleration, Time.deltaTime);
                     intentedDirection *= fore; 
 				}

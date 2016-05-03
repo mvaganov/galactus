@@ -2,7 +2,6 @@
 using System.Collections;
 
 public class WarpGate : MonoBehaviour {
-    // TODO warping should cost energy. like, radius * distance * teleportationConstant or something.
     private float jumpButtonHeld = 0;
     private float distance;
     bool jumping = false;
