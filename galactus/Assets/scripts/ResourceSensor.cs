@@ -186,7 +186,9 @@ public class ResourceSensor : MonoBehaviour {
         sr.transform.localScale = new Vector3(size, size, size);
         sr.transform.localPosition = new Vector3(0, 20, 0);//Vector3.zero;// offset;
         sr.sprite = img;
-        sr.color = color;
+        Color c = color;
+        c.a = 0.75f;
+        sr.color = c;
         return sr;
     }
 }

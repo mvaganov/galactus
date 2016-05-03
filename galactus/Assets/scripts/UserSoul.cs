@@ -35,19 +35,21 @@ public class UserSoul : MonoBehaviour {
         //if(posessed && posessed.IsAlive()) {
         //    posessed.GetResourceEater().DoUserActions(cameraTransform);
         //} else 
-        if(posessedBodies.Count > 0) {
+        bool processed = false;
+        if (warpgate) {
+            // TODO warpgate for each resource eater...
+            processed |= warpgate.UpdateKeypress();
+        }
+        if (!processed && posessedBodies.Count > 0) {
             if (posessedBodies.Count == 1) {
                 posessedBodies[0].GetResourceEater().DoUserActions(cameraTransform);
             } else {
                 // create a copy of the list of bodies in case the list is modified in the update of one of the bodies
                 List<PlayerForce> bodies = new List<PlayerForce>(posessedBodies);
                 foreach (PlayerForce pf in bodies) {
-                    pf.GetResourceEater().DoUserActions(cameraTransform);
+                    processed |= pf.GetResourceEater().DoUserActions(cameraTransform);
                 }
             }
-        }
-        if (warpgate) {
-            warpgate.UpdateKeypress();
         }
     }
 
@@ -128,6 +130,7 @@ public class UserSoul : MonoBehaviour {
 
     public void Disconnect(PlayerForce pf) {
         bool somethingDisconnected = false;
+        if (warpgate) { warpgate.CancelWarp(); }
         //if (posessed == pf) {
         //    Prediction pred = GetComponent<Prediction> ();
 		//	pred.toPredict = null;

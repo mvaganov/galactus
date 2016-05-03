@@ -56,7 +56,7 @@ public class Prediction : MonoBehaviour {
                 v = v.normalized * (pf.maxSpeed / re.mass);
             }
             predictedLocation += v * tMod;
-            accelForce = Steering.SeekDirection(pf.GetIntendedDirection() * pf.maxSpeed, rb.velocity, pf.maxAcceleration, tMod);
+            accelForce = Steering.SeekDirection(pf.GetMoveDirection() * pf.maxSpeed, rb.velocity, pf.maxAcceleration, tMod);
         }
     }
 

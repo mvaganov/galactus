@@ -80,7 +80,7 @@ public class ResourceEater : MonoBehaviour {
 
     // TODO create a new component for shooting?
     private float shootCooldown = 0;
-    public void DoUserActions(Transform direction) {
+    public bool DoUserActions(Transform direction) {
         if (shootCooldown > 0) shootCooldown -= Time.deltaTime;
         if ((Input.GetButton("Fire1") || Input.GetKey(KeyCode.X)) && shootCooldown <= 0) {
             // shoot hostile resource
@@ -89,9 +89,11 @@ public class ResourceEater : MonoBehaviour {
             EjectOne(dir, -GetRadius(), null, 0, GetRadius());
             shootCooldown = .25f;
             ChangeMass(-GetRadius() * World.DAMAGE_ENERGY_COST_RATIO);
+            return true;
         } else if (Input.GetButtonDown("Fire2")) {
             // release resources on your own
             EjectOne(direction.forward, GetAppropriateSizeOfEnergy(), this, 0, -1);
+            return true;
         } else if (Input.GetKeyDown(KeyCode.P)) {
             float newMass = GetMass() / 2;
             SetMass(newMass);
@@ -107,9 +109,12 @@ public class ResourceEater : MonoBehaviour {
             dup.transform.position = birthPoint;
             rm.ResourcePoof(birthPoint, GetCurrentColor(), newMass);
             soul.Posess(dupPf, false);
+            return true;
         } else if (Input.GetKeyDown(KeyCode.F9)) {
             ChangeMass(10);
+            return true;
         }
+        return false;
     }
 
     public static float ColorDistance(Color a, Color b) {

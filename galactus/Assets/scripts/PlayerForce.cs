@@ -9,8 +9,10 @@ public class PlayerForce : MonoBehaviour {
 	public float maxSpeed = 20;
 	public bool showDebugLines = false, flee = false;
     public Vector3 accelDirection;
-    /// <summary>where this agent wants to be headed</summary>
-    private Vector3 intendedDirection;
+    /// <summary>where this agent wants to be headed when forward is pressed</summary>
+    private Vector3 lookDirection;
+    /// <summary>the direciton that the agent is intentionally headed (could be different than lookDirection because of strafe)</summary>
+    private Vector3 intentedDirection;
     /// <summary>movement decision making (user input)</summary>
     public float fore = 1, side;
     private UserSoul soul = null;
@@ -23,7 +25,8 @@ public class PlayerForce : MonoBehaviour {
     private ResourceEater res;
     private MeshRenderer meshRend;
 
-    public Vector3 GetIntendedDirection() { return intendedDirection; }
+    public Vector3 GetLookDirection() { return lookDirection; }
+    public Vector3 GetMoveDirection() { return intentedDirection; }
 
     [System.Serializable]
     public class AISettings
@@ -120,24 +123,24 @@ public class PlayerForce : MonoBehaviour {
 		Rigidbody rb = GetComponent<Rigidbody>();
 		// player control
 		if (soul) {
-		    Vector3 dir = Vector3.zero;
+            intentedDirection = Vector3.zero;
             if (!soul.holdVector) {
                 fore = Input.GetAxis ("Vertical");
 			    side = Input.GetAxis ("Horizontal");
-                intendedDirection = soul.cameraTransform.forward;
+                lookDirection = soul.cameraTransform.forward;
             }
             if (fore != 0 || side != 0) { 
-				if (fore != 0) { 
-					dir = Steering.SeekDirectionNormal (intendedDirection * ml.maxSpeed, rb.velocity, ml.maxAcceleration, Time.deltaTime);
-					dir *= fore; 
+				if (fore != 0) {
+                    intentedDirection = Steering.SeekDirectionNormal (lookDirection * ml.maxSpeed, rb.velocity, ml.maxAcceleration, Time.deltaTime);
+                    intentedDirection *= fore; 
 				}
 				if (side != 0) {
                     Vector3 right = soul.cameraTransform.right;
-                    dir += right * side;// * (fore < 0 ? -1 : 1);
+                    intentedDirection += right * side;// * (fore < 0 ? -1 : 1);
 				}
-				if (fore != 0 && side != 0) { dir.Normalize (); }
+				if (fore != 0 && side != 0) { intentedDirection.Normalize (); }
 			}
-			ml.accelDirection = dir;
+			ml.accelDirection = intentedDirection;
 		} else { // AI control
             ResourceEater thisRe = ml.GetResourceEater();
 			timer -= Time.deltaTime;
@@ -195,10 +198,10 @@ public class PlayerForce : MonoBehaviour {
                 }
                 if (!flee) {
 					steerForce = Steering.Arrive(transform.position, targetPosition, rb.velocity, ml.maxSpeed, ml.maxAcceleration, Time.deltaTime);
-                    intendedDirection = (targetPosition - transform.position).normalized;
+                    intentedDirection = (targetPosition - transform.position).normalized;
                 } else {
 					steerForce = Steering.Flee(transform.position, targetPosition, rb.velocity, ml.maxSpeed, ml.maxAcceleration, Time.deltaTime);
-                    intendedDirection = (transform.position - targetPosition).normalized;
+                    intentedDirection = (transform.position - targetPosition).normalized;
                 }
                 transform.LookAt(transform.position + steerForce);
 				ml.accelDirection = steerForce;
