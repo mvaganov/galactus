@@ -99,6 +99,8 @@ public class ResourceSensor : MonoBehaviour {
         usedIcons = 0;
     }
 
+    GameObject DBG_rad, DBG_otherRad, DBG_dist;
+
     void FixedUpdate () {
         if(!sensorOwner) return;
         sensorTimer += Time.deltaTime;
@@ -108,7 +110,7 @@ public class ResourceSensor : MonoBehaviour {
             FreeUpAllIcons();
             // find everything that *might* need sensor info this time
             Ray r = new Ray (cam.transform.position, cam.transform.forward);
-			RaycastHit[] hits = Physics.SphereCastAll(r, sensorOwner.effectsRadius + radiusExtra, range+sensorOwner.effectsRadius);
+			RaycastHit[] hits = Physics.SphereCastAll(r, sensorOwner.effectsSize + radiusExtra, range+sensorOwner.effectsSize);
             float mostCenteredDist = -1, test;
             Text distText = null;
             Sprite icon = null;
@@ -120,13 +122,29 @@ public class ResourceSensor : MonoBehaviour {
                 bool showThisOne = (reat != null && reat.IsAlive()) || rn;
                 if (showThisOne) {
                     Collider c = hits[i].collider;
-                    float d = Vector3.Distance(cam.transform.position, c.transform.position);
+                    if (!c) continue;
+                    float distCamera = Vector3.Distance(cam.transform.position, c.transform.position);
                     Vector3 delta = c.transform.position - sensorOwner.transform.position;
                     float dist = delta.magnitude;
-                    dist -= sensorOwner.GetRadius();
+
+                    //Vector3 dir = sensorOwner.transform.forward;
+                    //Vector3 radEnd = sensorOwner.transform.position + dir * sensorOwner.GetSize()/2;
+                    //if (dist != 0) {
+                    //    dir = delta / dist;
+                    //    radEnd = sensorOwner.transform.position + dir * sensorOwner.GetSize()/2;
+                    //}
+                    //Lines.Make(ref DBG_rad, Color.cyan, sensorOwner.transform.position, radEnd, .1f, .1f);
+                    //Vector3 otherRadEnd = c.transform.position;
+
+                    dist -= sensorOwner.GetSize()/2;
                     float s = 0.01f;
-                    s *= d / 2.0f;
+                    s *= distCamera / 2.0f;
                     if (reat) {
+
+                        //otherRadEnd = reat.transform.position - dir * reat.GetSize()/2;
+                        //Lines.Make(ref DBG_otherRad, Color.magenta, reat.transform.position, otherRadEnd, .1f, .1f);
+
+                        dist -= reat.GetSize()/2;
                         //dist -= reat.GetRadius();
                         Color color;
                         FontStyle fontStyle;
@@ -150,6 +168,9 @@ public class ResourceSensor : MonoBehaviour {
                             Doicon(icon, t.transform, 30, reat.team.color);
                         }
                     }
+
+                    //Lines.Make(ref DBG_dist, Color.gray, radEnd, otherRadEnd, 0.3f, 0.3f);
+
                     if (dist > 0) {
                         Vector2 screenPos = cam.WorldToViewportPoint(c.transform.position);
                         // show the distance if it is the distance value closest to the center of the screen (to avoid clutter)

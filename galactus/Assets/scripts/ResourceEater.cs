@@ -6,7 +6,7 @@ public class ResourceEater : MonoBehaviour {
 
     private Color currentColor = Color.white;
     public Color preferredColor = Color.white;
-	public float effectsRadius = 1, mass = 1, targetScale = 1;
+	public float effectsSize = 1, mass = 1, targetScale = 1;
 	private float scale = 1;
     bool isAlive = true;
 
@@ -14,7 +14,7 @@ public class ResourceEater : MonoBehaviour {
     public ParticleSystem halo;
     public Team team;
 
-    public float GetRadius() { return effectsRadius; }
+    public float GetSize() { return effectsSize; }
 
     public Team GetTeam() { return team; }
     public void SetTeam(Team team) {
@@ -86,9 +86,9 @@ public class ResourceEater : MonoBehaviour {
             // shoot hostile resource
             Vector3 dir = direction.forward;
             //if (pf.GetUserSoul()) { dir = pf.GetUserSoul().GetLookTransform().forward; }
-            EjectOne(dir, -GetRadius(), null, 0, GetRadius());
+            EjectOne(dir, -GetSize(), null, 0, GetSize());
             shootCooldown = .25f;
-            ChangeMass(-GetRadius() * World.DAMAGE_ENERGY_COST_RATIO);
+            ChangeMass(-GetSize() * World.DAMAGE_ENERGY_COST_RATIO);
             return true;
         } else if (Input.GetButtonDown("Fire2")) {
             // release resources on your own
@@ -105,7 +105,7 @@ public class ResourceEater : MonoBehaviour {
             float superTiny = 1 / 1024f;
             dup.transform.localScale = new Vector3(superTiny, superTiny, superTiny);
             UserSoul soul = pf.GetUserSoul();
-            Vector3 birthPoint = transform.position + soul.cameraTransform.forward * GetRadius();
+            Vector3 birthPoint = transform.position + soul.cameraTransform.forward * GetSize();
             dup.transform.position = birthPoint;
             rm.ResourcePoof(birthPoint, GetCurrentColor(), newMass);
             soul.Posess(dupPf, false);
@@ -154,7 +154,7 @@ public class ResourceEater : MonoBehaviour {
         rb.mass = Mathf.Sqrt(this.mass) * World.MASS_MODIFIER;
 		// don't ever let the rigidbody-physics mass be zero. bad things happen if mass is zero.
 		if (rb.mass < 1) rb.mass = 1;
-        if (this.effectsRadius < this.targetScale) {
+        if (this.effectsSize < this.targetScale) {
             SetEffectsSize(this.targetScale);
         }
         if (mass <= 0.125f) {
@@ -191,15 +191,15 @@ public class ResourceEater : MonoBehaviour {
     }
 
     public void SetEffectsSize(float n) {
-        effectsRadius = n;
+        effectsSize = n;
         if (halo) {
             halo.Emit(1);
-            halo.startSize = effectsRadius;
+            halo.startSize = effectsSize;
             halo.Emit(1);
             halo.Play();
         }
         TrailRenderer trail = FindComponent<TrailRenderer>(false, true);
-        if (trail) trail.startWidth = effectsRadius;
+        if (trail) trail.startWidth = effectsSize;
     }
 
     public void ChangeMass(float delta) { SetMass(this.mass + delta); }
@@ -282,13 +282,13 @@ public class ResourceEater : MonoBehaviour {
 		GetPlayerForce ();
         World w = World.GetInstance();
         TrailRenderer mommaTrail = FindComponent<TrailRenderer>(false, true);
-        ResourceNode n = w.spawner.CreateResourceNode(transform.position + direction * effectsRadius, size, currentColor);
+        ResourceNode n = w.spawner.CreateResourceNode(transform.position + direction * effectsSize, size, currentColor);
         n.transform.rotation = Quaternion.LookRotation(direction);
         Rigidbody rb = n.gameObject.GetComponent<Rigidbody>();
         if (!rb) { rb = n.gameObject.AddComponent<Rigidbody>(); rb.useGravity = false; }
         TrailRenderer tr = n.gameObject.GetComponent<TrailRenderer>();
         SetTrailRendererColor(tr, GetTrailRendererColor(mommaTrail));
-        tr.startWidth = effectsRadius * 0.0625f;
+        tr.startWidth = effectsSize * 0.0625f;
         tr.endWidth = 0;
         tr.time = 0.125f;
         ResourceOrbit s = n.gameObject.AddComponent<ResourceOrbit>();

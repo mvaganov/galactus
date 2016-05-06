@@ -109,7 +109,7 @@ public class WarpGate : MonoBehaviour {
     void LateUpdate() {
         if (jumpButtonHeld > 0) {
             ResourceEater re = owner.GetResourceEater();
-            distance = re.GetRadius() * jumpButtonHeld;
+            distance = re.GetSize() * jumpButtonHeld;
             startPoint.transform.position = owner.transform.position;
             startPoint.transform.rotation = direction.rotation;
             endPoint.transform.position = owner.transform.position + direction.forward * distance;

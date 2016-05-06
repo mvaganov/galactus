@@ -147,7 +147,7 @@ public class PlayerForce : MonoBehaviour {
                 flyErrorVector = Random.insideUnitSphere * aISettings.currentFlyError;
                 if (target == World.GetInstance()) target = null;
 				Ray r = new Ray(transform.position, Random.onUnitSphere);
-				RaycastHit[] hits = Physics.SphereCastAll(r, thisRe.GetRadius()+20, 100f);
+				RaycastHit[] hits = Physics.SphereCastAll(r, thisRe.GetSize()+20, 100f);
 				if (hits != null && hits.Length > 0) {
                     if (target)
                     {

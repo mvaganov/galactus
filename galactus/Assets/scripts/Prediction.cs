@@ -43,7 +43,7 @@ public class Prediction : MonoBehaviour {
 
         public void Iterate(ref ParticleSystem.Particle particle) {
             particle.position = predictedLocation;
-            particle.startSize = re.effectsRadius;
+            particle.startSize = re.effectsSize;
             particle.lifetime = 1;
             particle.startLifetime = 2;
             particle.startColor = re.GetCurrentColor();
