@@ -15,6 +15,7 @@ public class ResourceSensor : MonoBehaviour {
     public static Color bigr = new Color(1, 0, 0, .75f);
     public static Color peer = new Color(.75f, .75f, .75f, .75f);
     public static Color lowr = new Color(1, 1, 1, .75f);
+    public static Color ally = new Color(0, 1, 1, .75f);
     public static Color distColor = new Color(1, 1, 1);
 
     public GameObject textPrefab;
@@ -145,7 +146,6 @@ public class ResourceSensor : MonoBehaviour {
                         //Lines.Make(ref DBG_otherRad, Color.magenta, reat.transform.position, otherRadEnd, .1f, .1f);
 
                         dist -= reat.GetSize()/2;
-                        //dist -= reat.GetRadius();
                         Color color;
                         FontStyle fontStyle;
                         // name
@@ -154,12 +154,15 @@ public class ResourceSensor : MonoBehaviour {
                             fontStyle = FontStyle.Normal;
                         } else if (reat.mass * ResourceEater.MINIMUM_PREY_SIZE > sensorOwner.mass) {
                             color = bigr;
+                            if (reat.team == sensorOwner.team) color = ally;
                             fontStyle = FontStyle.Italic;
                         } else if (reat.mass < sensorOwner.mass * ResourceEater.MINIMUM_PREY_SIZE) {
                             color = lowr;
+                            if (reat.team == sensorOwner.team) color = ally;
                             fontStyle = FontStyle.Bold;
                         } else {
                             color = peer;
+                            if (reat.team == sensorOwner.team) color = ally;
                             fontStyle = FontStyle.Normal;
                         }
                         Text t = DoText(c.name + "\n" + ((int)reat.mass), c.transform, s, color, fontStyle);

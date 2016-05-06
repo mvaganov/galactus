@@ -78,6 +78,8 @@ public class ResourceEater : MonoBehaviour {
         return mass / count;
     }
 
+    public int numClones = 0;
+
     // TODO create a new component for shooting?
     private float shootCooldown = 0;
     public bool DoUserActions(Transform direction) {
@@ -100,15 +102,18 @@ public class ResourceEater : MonoBehaviour {
             World w = World.GetInstance();
             ResourceMaker rm = w.spawner;
             GameObject dup = Instantiate(pf.gameObject) as GameObject;
+            numClones++;
             PlayerForce dupPf = dup.GetComponent<PlayerForce>();
-            dupPf.GetResourceEater().scale = 0;
+            ResourceEater dupE = dupPf.GetResourceEater();
+            dupE.scale = 0;
+            dupE.name = this.name + "[" + numClones + "]";
             float superTiny = 1 / 1024f;
             dup.transform.localScale = new Vector3(superTiny, superTiny, superTiny);
-            UserSoul soul = pf.GetUserSoul();
-            Vector3 birthPoint = transform.position + soul.cameraTransform.forward * GetSize();
+            Vector3 birthPoint = transform.position + transform.forward * GetSize()/2;
             dup.transform.position = birthPoint;
             rm.ResourcePoof(birthPoint, GetCurrentColor(), newMass);
-            soul.Posess(dupPf, false);
+            //UserSoul soul = pf.GetUserSoul();
+            //soul.Posess(dupPf, false);
             return true;
         } else if (Input.GetKeyDown(KeyCode.F9)) {
             ChangeMass(10);

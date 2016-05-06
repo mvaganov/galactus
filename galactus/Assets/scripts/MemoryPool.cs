@@ -127,9 +127,7 @@ public class MemoryPoolItem : MonoBehaviour {
 			+ "When changing levels, call MemoryPoolItem.SetShutdown(true) first");
 	}
 #endif
-	public void FreeSelf() {
-        gameObjectPool.Free(gameObject);
-    }
+	public void FreeSelf() { if(gameObjectPool != null) gameObjectPool.Free(gameObject); }
 	/// <summary>If the given GameObject belongs to a memory pool, mark it as free in that pool. Otherwise, Object.Destroy()</summary>
 	static public void Destroy(GameObject go) {
         MemoryPoolRelease r = go.GetComponent<MemoryPoolRelease>();
@@ -141,31 +139,22 @@ public class MemoryPoolItem : MonoBehaviour {
 
 public class MemoryPoolRelease : MonoBehaviour
 {
-    public static void Add(GameObject obj, MemoryPool<GameObject>.DelegateDecommission decommissionCode)
-    {
+    public static void Add(GameObject obj, MemoryPool<GameObject>.DelegateDecommission decommissionCode) {
         MemoryPoolRelease mpr = obj.GetComponent<MemoryPoolRelease>();
         if(!mpr) mpr = obj.AddComponent<MemoryPoolRelease>();
         mpr.AddCallback(decommissionCode);
     }
     private List<MemoryPool<GameObject>.DelegateDecommission> destroyBehavior;
-    private void AddCallback(MemoryPool<GameObject>.DelegateDecommission decommissionCode)
-    {
-        if(destroyBehavior == null)
-        {
-            destroyBehavior = new List<MemoryPool<GameObject>.DelegateDecommission>();
-        }
+    private void AddCallback(MemoryPool<GameObject>.DelegateDecommission decommissionCode) {
+        if(destroyBehavior == null) { destroyBehavior = new List<MemoryPool<GameObject>.DelegateDecommission>(); }
         destroyBehavior.Add(decommissionCode);
     }
-    public void Fire()
-    {
-        for(int i = 0; i < destroyBehavior.Count; ++i)
-        {
-            destroyBehavior[i](gameObject);
-        }
+    public void Fire() {
+        if(destroyBehavior != null)
+        for(int i = 0; i < destroyBehavior.Count; ++i) { destroyBehavior[i](gameObject); }
     }
-    public void Forget()
-    {
-        destroyBehavior.Clear();
+    public void Forget() {
+        if (destroyBehavior != null) destroyBehavior.Clear();
     }
     public void FireAndForget() { Fire(); Forget(); }
 }

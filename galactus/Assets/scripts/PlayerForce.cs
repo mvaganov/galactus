@@ -3,7 +3,17 @@ using System.Collections;
 
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerForce : MonoBehaviour {
-	public float maxAcceleration = 10;
+
+    // TODO state machine for:
+    //   standard - gather and grow self
+    //   worker - gather any energy possible and return to leader, emitting down to 1
+    //   energy delivery - seek out release all energy into specified team member
+    //   herbivore - seek out only regular resources (and flee from predators)
+    //   predator - seek out only other team's agents
+    //   assassin - seek out and devour specified agent, return all energy after prey devoured, or prey is too big.
+    //   team predator - surround common prey with other team-predators
+
+    public float maxAcceleration = 10;
 	public float maxSpeed = 20;
 	public bool showDebugLines = false, flee = false;
     public Vector3 accelDirection;

@@ -27,7 +27,7 @@ public class UserSoul : MonoBehaviour {
         {
             // TODO make some kind of mechanism that allows a player to pick an existing team instead of creating a new one for themselves
             // TODO make a mechanism that has the team allwo or deny entry for new members, including rules for officers, majority vs consensus, weighted votes, and possibly ranked voting
-            team = Team.NewTeam(name);
+            team = Team.NewTeam(name, this);
         }
     }
 
@@ -92,9 +92,6 @@ public class UserSoul : MonoBehaviour {
             Vector3 delta = cameraTransform.forward.normalized * cameraDistance * scale;
             transform.position = center - delta;
         }
-        else if(posessedBodies.Count > 0) {
-
-        }
         holdVector = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
     }
 
@@ -125,6 +122,7 @@ public class UserSoul : MonoBehaviour {
                 biggest = e;
             }
         }
+        sensor.sensorOwner = biggest;
         return biggest;
     }
 

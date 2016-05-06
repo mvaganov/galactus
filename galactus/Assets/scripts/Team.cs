@@ -8,6 +8,11 @@ public class Team : MonoBehaviour {
     public Color color;
     public Sprite icon;
 
+    public UserSoul leader;
+
+    public void SetLeader(UserSoul leader) { this.leader = leader; }
+    public UserSoul GetLeader() { return leader; }
+
     public void AddMember(PlayerForce pf) {
         members.Add(pf);
     }
@@ -18,8 +23,9 @@ public class Team : MonoBehaviour {
         }
     }
 
-    void Startup(string name) {
+    void Startup(string name, UserSoul leader) {
         this.name = name;
+        this.leader = leader;
         World w = World.GetInstance();
         // TODO put all the team icons someplace other than world. some other global object, just for data like this. maybe put names in there too. or better yet, complete team descriptions.
         icon = w.teamIcons[Random.Range(0, w.teamIcons.Length)];
@@ -40,12 +46,12 @@ public class Team : MonoBehaviour {
         return PlayerMaker.RandomName();
     }
 
-    public static Team NewTeam() { return NewTeam(RandomName()); }
+    public static Team NewTeam() { return NewTeam(RandomName(), null); }
 
-    public static Team NewTeam(string name) {
+    public static Team NewTeam(string name, UserSoul leader) {
         GameObject team = new GameObject();
         Team t = team.AddComponent<Team>();
-        t.Startup(name);
+        t.Startup(name, leader);
         allTeams.Add(t);
         return t;
     }
