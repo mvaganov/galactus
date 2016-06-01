@@ -10,7 +10,8 @@ public class World : MonoBehaviour {
     public static float MASS_MODIFIER = 0.25f;
     public static float SPEED_LIMIT = 150;
     public static float PROJECTILE_SPEED_LIMIT = 350;
-    public static float DAMAGE_ENERGY_COST_RATIO = 1;
+    /// <summary>when X an damage particle is sent, it costs X*DAMAGE_ENERGY_COST_RATIO energy to send</summary>
+    public static float DAMAGE_ENERGY_COST_RATIO = 0.5f;
     public static float TELEPORT_IDEAL_SIZE = 100;
     /// <summary>at the ideal teleport size, this is teleport distance traveled per unit of energy</summary>
     public static float TELEPORT_MINIMUM_COST_EFFICIENCY = 128.0f;

@@ -88,9 +88,10 @@ public class ResourceEater : MonoBehaviour {
             // shoot hostile resource
             Vector3 dir = direction.forward;
             //if (pf.GetUserSoul()) { dir = pf.GetUserSoul().GetLookTransform().forward; }
-            EjectOne(dir, -GetSize(), null, 0, GetSize());
+            float damage = GetSize();
+            EjectOne(dir, -damage, null, 0, damage);
             shootCooldown = .25f;
-            ChangeMass(-GetSize() * World.DAMAGE_ENERGY_COST_RATIO);
+            ChangeMass(-damage * World.DAMAGE_ENERGY_COST_RATIO);
             return true;
         } else if (Input.GetButtonDown("Fire2")) {
             // release resources on your own
