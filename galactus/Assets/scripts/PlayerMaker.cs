@@ -16,9 +16,9 @@ public class PlayerMaker : MonoBehaviour {
 
 	SphereCollider sc;
 
-    public static string[] namePrefix = { "","","","","","","","the","mr.","mrs.","sir.","ms.","lady","my","ur" };
-    public static string[] nameFragments = { "","butt","poop","troll","lol","noob","dude","swag","super","haxor","red","green","blue","lady","leet" };
-    public static string[] nameSuffix = { "","","","","","","","ed","ly","dude","man","TheGreat","lady","guy" };
+	public static string[] namePrefix = { "","","","","","","","the","mr.","the","mr.","mrs.","sir.","ms.","lady","my","ur","sh","","","" };
+    public static string[] nameFragments = { "","butt","poop","troll","lol","noob","dude","swag","super","haxor","red","green","blue","lady","leet","harambe","space","dank","trump","squanch" };
+	public static string[] nameSuffix = { "","","","","","","","ed","ly","dude","man","lady","guy","TheGreat" };
     public static string RandomName() {
         return RandomName(namePrefix, nameFragments, nameSuffix);
     }

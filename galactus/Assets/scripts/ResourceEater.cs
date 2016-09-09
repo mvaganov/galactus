@@ -133,7 +133,11 @@ public class ResourceEater : MonoBehaviour {
         SetMass(1);
 		SetAlive (true);
 		pf.transform.position = Vector3.zero;//World.GetRandomLocation ();
-		name = PlayerMaker.RandomName();
+		int otherPeopleWithThisName;
+		do{
+			name = PlayerMaker.RandomName();
+			otherPeopleWithThisName = 0;
+		}while(otherPeopleWithThisName > 0);
         SetTeam(Team.NewTeam());
     }
 
