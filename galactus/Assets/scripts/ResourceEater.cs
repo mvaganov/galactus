@@ -135,7 +135,7 @@ public class ResourceEater : MonoBehaviour {
 		pf.transform.position = Vector3.zero;//World.GetRandomLocation ();
 		int otherPeopleWithThisName;
 		do{
-			name = PlayerMaker.RandomName();
+			name = NameGen.RandomName();
 			otherPeopleWithThisName = 0;
 		}while(otherPeopleWithThisName > 0);
         SetTeam(Team.NewTeam());
@@ -191,7 +191,7 @@ public class ResourceEater : MonoBehaviour {
             //float originalMass = this.mass;
 			TimeMS.TimerCallback(deathTimeOut, () => {
 				//print (name+" is being cleared for respawn.");
-                World.ResetTrailRenderer(trail);
+                Effects.ResetTrailRenderer(trail);
                 // reset the body just before release, so that when it is reborn, it has default values
                 resetValues();
                 if (soul) { soul.SetNeedsBody(true); }

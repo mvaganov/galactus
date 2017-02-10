@@ -1,4 +1,4 @@
-﻿// MIT license - TL;DR - Do whatever you want with it, I'm not liable for what you do with it!
+﻿// MIT license - TL;DR - Do what you want, this code is free!
 #define FAIL_FAST
 using UnityEngine;
 using System.Collections;
@@ -19,18 +19,26 @@ using System.Collections.Generic;
 /// <para>MemoryPoolItem.Destroy(gobj); // deallocate object in pool OR Object.Destroy non-MemoryPool object (for GameObjects only)</para>
 /// </summary>
 public class MemoryPool<T> where T : class {
-	private List<T> allObjects = null;
+	private List<T> allObjects = new List<T>();
 	private int freeObjectCount = 0;
 
-	public delegate T DelegateBeginLife();
-	public delegate void DelegateCommission(T obj);
-	public delegate void DelegateDecommission(T obj);
-	public delegate void DelegateEndLife(T obj);
+	public int Count() {
+		return allObjects.Count - freeObjectCount;
+	}
 
-	public DelegateBeginLife birth;
-	public DelegateEndLife death;
-	public DelegateCommission commission;
-	public DelegateDecommission decommission;
+	public int FreeCoutn() {
+		return freeObjectCount;
+	}
+
+	public delegate T DelegateAllocate();
+	public delegate void DelegateStartUse(T obj);
+	public delegate void DelegateEndUse(T obj);
+	public delegate void DelegateDeallocate(T obj);
+
+	private DelegateAllocate allocate;
+	private DelegateDeallocate deallocate;
+	private DelegateStartUse startUse;
+	private DelegateEndUse endUse;
 
 	public List<T> GetAllObjects() { return allObjects; }
 
@@ -47,12 +55,12 @@ public class MemoryPool<T> where T : class {
 	/// <param name="activate">callback function or delegate used to activate an object of type T</param>
 	/// <param name="deactivate">callback function or delegate used to de-activate an object of type T</param>
 	/// <param name="destroy">callback function or delegate used to destroy an object of type T</param>
-	public void Setup(DelegateBeginLife create, DelegateCommission activate, DelegateDecommission deactivate, DelegateEndLife destroy) {
-		birth = create; commission = activate; decommission = deactivate; death = destroy;
+	public void Setup(DelegateAllocate create, DelegateStartUse activate, DelegateEndUse deactivate, DelegateDeallocate destroy) {
+		allocate = create; startUse = activate; endUse = deactivate; deallocate = destroy;
 	}
 
 	/// <summary>Constructs and calls <see cref="Setup"/></summary>
-	public MemoryPool(DelegateBeginLife create, DelegateCommission activate, DelegateDecommission deactivate, DelegateEndLife destroy) {
+	public MemoryPool(DelegateAllocate create, DelegateStartUse activate, DelegateEndUse deactivate, DelegateDeallocate destroy) {
 		Setup(create, activate, deactivate, destroy);
 	}
 
@@ -64,10 +72,9 @@ public class MemoryPool<T> where T : class {
 		T freeObject = null;
 		if(freeObjectCount == 0) {
 #if FAIL_FAST
-			if(birth == null) { throw new System.Exception("Call .Setup(), and provide a create method!"); }
+			if(allocate == null) { throw new System.Exception("Call .Setup(), and provide a create method!"); }
 #endif
-			if(allObjects == null) { allObjects = new List<T>(); }
-			freeObject = birth();
+			freeObject = allocate();
 			allObjects.Add(freeObject);
 			if(typeof(T) == typeof(GameObject)) {
 				GameObject go = freeObject as GameObject;
@@ -77,7 +84,7 @@ public class MemoryPool<T> where T : class {
 			freeObject = allObjects[allObjects.Count - freeObjectCount];
 			freeObjectCount--;
 		}
-		if(commission != null) { commission(freeObject); }
+		if(startUse != null) { startUse(freeObject); }
 		return freeObject;
 	}
 
@@ -92,24 +99,24 @@ public class MemoryPool<T> where T : class {
 		int beginningOfFreeList = allObjects.Count - freeObjectCount;
 		allObjects[indexOfObject] = allObjects[beginningOfFreeList];
 		allObjects[beginningOfFreeList] = obj;
-		if(decommission != null) { decommission(obj); }
+		if(endUse != null) { endUse(obj); }
 	}
 
 	/// <summary>performs the given delegate on each object in the memory pool</summary>
-	public void ForEach(DelegateCommission action) {
+	public void ForEach(DelegateStartUse action) {
 		for(int i = 0; i < allObjects.Count; ++i) { action(allObjects[i]); }
 	}
 
 	/// <summary>Destroys all objects in the pool, after deactivating each one.</summary>
 	public void DeallocateAll() {
-		ForEach((item) => decommission(item));
+		ForEach((item) => endUse(item));
 		if(typeof(T) == typeof(GameObject)) {
 			ForEach((item) => {
 				GameObject go = item as GameObject;
 				Object.DestroyImmediate(go.GetComponent<MemoryPoolItem>());
 			});
 		}
-		if(death != null) { ForEach((item) => death(item)); }
+		if(deallocate != null) { ForEach((item) => deallocate(item)); }
 		allObjects.Clear();
 	}
 }
@@ -135,18 +142,22 @@ public class MemoryPoolItem : MonoBehaviour {
         MemoryPoolItem i = go.GetComponent<MemoryPoolItem>();
         if (i != null) { i.FreeSelf(); } else { Debug.LogWarning("destroying unmanaged object "+go); Object.Destroy(go); }
 	}
+	// TODO use this instead of MemoryPoolRelease, since MemoryPoolRelease doesn't really work without MemoryPoolItem
+	public void AddOnDecommissionCode(MemoryPool<GameObject>.DelegateEndUse decommissionCode) {
+		MemoryPoolRelease.Add (gameObject, decommissionCode);
+	}
 }
 
 public class MemoryPoolRelease : MonoBehaviour
 {
-    public static void Add(GameObject obj, MemoryPool<GameObject>.DelegateDecommission decommissionCode) {
+    public static void Add(GameObject obj, MemoryPool<GameObject>.DelegateEndUse decommissionCode) {
         MemoryPoolRelease mpr = obj.GetComponent<MemoryPoolRelease>();
         if(!mpr) mpr = obj.AddComponent<MemoryPoolRelease>();
         mpr.AddCallback(decommissionCode);
     }
-    private List<MemoryPool<GameObject>.DelegateDecommission> destroyBehavior;
-    private void AddCallback(MemoryPool<GameObject>.DelegateDecommission decommissionCode) {
-        if(destroyBehavior == null) { destroyBehavior = new List<MemoryPool<GameObject>.DelegateDecommission>(); }
+    private List<MemoryPool<GameObject>.DelegateEndUse> destroyBehavior;
+    private void AddCallback(MemoryPool<GameObject>.DelegateEndUse decommissionCode) {
+        if(destroyBehavior == null) { destroyBehavior = new List<MemoryPool<GameObject>.DelegateEndUse>(); }
         destroyBehavior.Add(decommissionCode);
     }
     public void Fire() {
@@ -157,4 +168,20 @@ public class MemoryPoolRelease : MonoBehaviour
         if (destroyBehavior != null) destroyBehavior.Clear();
     }
     public void FireAndForget() { Fire(); Forget(); }
+}
+
+/// <summary>
+/// Game object pool.
+/// </summary>
+//  TODO add methods to make this easy.
+public class GameObjectPool : MemoryPool<GameObject> {
+	public void Setup(GameObject prefab) {
+		Setup( // TODO use MemoryPoolItem and MemoryPoolRelease in here...?
+			()    => GameObject.Instantiate(prefab),
+			(obj) => obj.SetActive(true),
+			(obj) => obj.SetActive(false),
+			(obj) => Object.Destroy(obj)
+		);
+	}
+	public GameObjectPool(GameObject prefab) { Setup (prefab); }
 }

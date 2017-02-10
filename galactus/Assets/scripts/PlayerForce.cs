@@ -190,19 +190,20 @@ public class PlayerForce : MonoBehaviour {
 				}
 				if (target == null) {
 					timer = Random.Range(1.0f, 2.0f);
-					target = World.GetInstance().gameObject;
+					//target = World.GetInstance().gameObject;
+					target = Singleton.Get<GameRules>().gameObject;
 				}
 			}
 			if (target) {
                 Vector3 steerForce = Vector3.zero;
                 Vector3 targetPosition = target.transform.position;
                 if (showDebugLines) {
-                    LineRenderer lr = Lines.Make(ref line_target, Color.magenta, transform.position, targetPosition, .2f, 0);
+					LineRenderer lr = Lines.Make(ref line_target, transform.position, targetPosition, Color.magenta, .2f, 0);
                     lr.transform.SetParent(transform);
                 }
                 targetPosition += flyErrorVector * distanceFromTarget;
                 if (showDebugLines) {
-                    LineRenderer lr = Lines.Make(ref line_error, Color.green, transform.position, targetPosition, .5f, .1f);
+					LineRenderer lr = Lines.Make(ref line_error, transform.position, targetPosition, Color.green, .5f, .1f);
                     lr.transform.SetParent(transform);
                 }
                 if (!flee) {
@@ -252,9 +253,9 @@ public class PlayerForce : MonoBehaviour {
 		if(showDebugLines) {
 			Vector3 p = transform.position;
 			Vector3 v = p + rb.velocity;
-			LineRenderer lr = Lines.Make(ref line_velocity, Color.cyan, p, v, .1f, .1f);
+			LineRenderer lr = Lines.Make(ref line_velocity, p, v, Color.cyan);
 			lr.transform.SetParent (transform);
-			lr = Lines.Make(ref line_acceleration, Color.magenta, v, v + accelForce, .2f, 0);
+			lr = Lines.Make(ref line_acceleration, v, v + accelForce, Color.magenta, .2f, 0);
 			lr.transform.SetParent (transform);
 		}
 	}

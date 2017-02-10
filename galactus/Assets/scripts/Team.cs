@@ -26,9 +26,8 @@ public class Team : MonoBehaviour {
     void Startup(string name, UserSoul leader) {
         this.name = name;
         this.leader = leader;
-        World w = World.GetInstance();
-        // TODO put all the team icons someplace other than world. some other global object, just for data like this. maybe put names in there too. or better yet, complete team descriptions.
-        icon = w.teamIcons[Random.Range(0, w.teamIcons.Length)];
+		Sprite[] icons = Singleton.Get<GroupManager> ().GetIcons ();//GroupManager.GetInstance().GetIcons();
+        icon = icons[Random.Range(0, icons.Length)];
         color = Random.ColorHSV();
     }
 
@@ -42,11 +41,7 @@ public class Team : MonoBehaviour {
         // TODO keep track of history of those stats, so that fancy charts and graphs can be made!
 	}
 
-    public static string RandomName() {
-        return PlayerMaker.RandomName();
-    }
-
-    public static Team NewTeam() { return NewTeam(RandomName(), null); }
+    public static Team NewTeam() { return NewTeam(NameGen.RandomName(), null); }
 
     public static Team NewTeam(string name, UserSoul leader) {
         GameObject team = new GameObject();

@@ -56,7 +56,7 @@ public class ResourceMaker : MonoBehaviour {
     				AddSuppression(obj.transform.position);
                 ResourceNode n = obj.GetComponent<ResourceNode>();
                 Harvest(n);
-                World.ResetTrailRenderer(obj.GetComponent<TrailRenderer>());
+				Effects.ResetTrailRenderer(obj.GetComponent<TrailRenderer>());
             },
 			(obj) => Object.Destroy(obj)
 		);
