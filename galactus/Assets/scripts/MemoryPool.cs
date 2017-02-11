@@ -67,6 +67,11 @@ public class MemoryPool<T> where T : class {
 	/// <summary> Be sure to call <see cref="Setup"/>!</summary>
 	public MemoryPool() { }
 
+	public T this[int index] {
+		get { return allObjects [index]; }
+		set { allObjects [index] = value; }
+	}
+
 	/// <summary>Returns an object from the memory pool, which may have just been created</summary>
 	public T Alloc() {
 		T freeObject = null;
@@ -100,6 +105,11 @@ public class MemoryPool<T> where T : class {
 		allObjects[indexOfObject] = allObjects[beginningOfFreeList];
 		allObjects[beginningOfFreeList] = obj;
 		if(endUse != null) { endUse(obj); }
+	}
+
+	public void FreeAll() {
+		ForEach((item) => endUse(item));
+		freeObjectCount = Count();
 	}
 
 	/// <summary>performs the given delegate on each object in the memory pool</summary>

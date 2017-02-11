@@ -3,20 +3,28 @@ using System.Collections.Generic;
 
 public class Group : MonoBehaviour {
 
-	public List<AgentForce> members = new List<AgentForce>();
+	public List<GroupMember> members = new List<GroupMember>();
 	public Color color;
 	public Sprite icon;
 	[SerializeField]
 	private bool autoDisbandIfEmpty = true;
 
-	public void AddMember(AgentForce pf) {
-		members.Add(pf);
-	}
-	public void RemoveMember(AgentForce pf) {
-		members.Remove(pf);
-		if(members.Count == 0 && autoDisbandIfEmpty) {
-			Singleton.Get<GroupManager> ().Remove (this);
+	public bool AddMember(GroupMember member) {
+		// TODO replace with a Set
+		if (!members.Contains (member)) {
+			members.Add (member);
+			return true;
 		}
+		return false;
+	}
+	public bool RemoveMember(GroupMember member) {
+		if (members.Remove (member)) {
+			if (members.Count == 0 && autoDisbandIfEmpty) {
+				Singleton.Get<GroupManager> ().Remove (this);
+			}
+			return true;
+		}
+		return false;
 	}
 
 	public void Startup(string name) {

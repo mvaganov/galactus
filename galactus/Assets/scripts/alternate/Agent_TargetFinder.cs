@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+// TODO state machines!
 public class Agent_TargetFinder : MonoBehaviour {
 
 	[SerializeField]
@@ -11,7 +12,9 @@ public class Agent_TargetFinder : MonoBehaviour {
 	public float secondsBetweenThinking = 2f;
 	private float timer;
 	private Agent_MOB mob;
+	private EnergyAgent energy;
 
+	// TODO implement these in state machines
 	public enum ThingToDo {nothing, seek, arrive, flee, harvest};
 
 	[System.Serializable]
@@ -30,12 +33,13 @@ public class Agent_TargetFinder : MonoBehaviour {
 	public float generalHarvestingMultiplier = 1;
 
 	public float GetRadius() {
-		return transform.localScale.x;
+		return transform.localScale.z;
 	}
 
 	// Use this for initialization
 	void Start () {
 		mob = GetComponent<Agent_MOB> ();
+		energy = GetComponent<EnergyAgent> ();
 	}
 	
 	public delegate AITask FitnessFunction<T, SELF>(SELF self, T obj);
@@ -47,21 +51,22 @@ public class Agent_TargetFinder : MonoBehaviour {
 	};
 
 	// TODO make this acynchronous
-	public static FitnessFunction<Transform, Agent_TargetFinder> fitnessFromTransform = delegate(Agent_TargetFinder self, Transform t) {
-		if(t == self.transform) { return AITask.none; }
-		EnergyAgent energy = t.GetComponent<EnergyAgent>();
-		if(!energy) { return AITask.none; }
+	public static FitnessFunction<Transform, Agent_TargetFinder> fitnessFromTransform = delegate(Agent_TargetFinder self, Transform them) {
+		if(them == self.transform) { return AITask.none; }
+		EnergyAgent theirEnergy = them.GetComponent<EnergyAgent>();
+		if(!theirEnergy) { return AITask.none; }
 		AITask think = AITask.none;
-		think.score = -(Vector3.Distance(self.transform.position, t.transform.position) - (self.GetRadius() + t.transform.lossyScale.x) / 2);
+		think.score = -self.mob.DistanceTo(them);
+			//-(Vector3.Distance(self.transform.position, them.transform.position) - (self.GetRadius() + them.transform.lossyScale.x) / 2);
 		bool invalid = false;
 		// if the target is a resource collectable
-		if(energy) {
-			Agent_MOB mob = t.GetComponent<Agent_MOB>();
-			if(!mob || mob.GetEatSphere() == null) {
+		if(theirEnergy) {
+			//Agent_MOB mob = t.GetComponent<Agent_MOB>();
+			if(theirEnergy.GetEatSphere() == null) {
 				// add the resource collectable's radius to the fitness score, with a multiplier for how much the agent is a harvester
-				think.target = energy.gameObject;
-				think.score += energy.GetRadius() * self.generalHarvestingMultiplier;
-				think.code = ThingToDo.harvest;
+				think.target = theirEnergy.gameObject;
+				think.score += theirEnergy.GetRadius() * self.generalHarvestingMultiplier;
+				think.code = ThingToDo.arrive; // TODO if close enough, harvest!
 			}
 			// if target is another agent
 			else {
@@ -108,7 +113,7 @@ public class Agent_TargetFinder : MonoBehaviour {
 		// pick a random direction to look in, and look there
 		Ray r = new Ray (transform.position, Random.onUnitSphere);
 		float sightRad = GetRadius () + sightRadius;
-//		Lines.Make (ref this.testRay, transform.position, transform.position + r.direction * maxSightRange, Color.white, sightRad, sightRad);
+		Lines.Make (ref this.testRay, transform.position, transform.position + r.direction * maxSightRange, Color.white);
 		RaycastHit[] hits = Physics.SphereCastAll (r, sightRad, maxSightRange);
 		timer = secondsBetweenThinking;
 		// if we saw something...
@@ -122,47 +127,56 @@ public class Agent_TargetFinder : MonoBehaviour {
 		// TODO add an additional delay to the reconsideration timer based on how much this AI Decision is liked
 	}
 
-	bool CanKeepDoing(AITask thing) {
+	bool ShouldKeepDoing(AITask thing) {
 		switch (currentTask.code) {
 		case ThingToDo.nothing: return false;
-		case ThingToDo.flee: return (mob.target - transform.position).magnitude > maxSightRange;
+		case ThingToDo.flee: 
+			return mob.DistanceTo (thing.target.transform) < maxSightRange;
+			//return Vector3.Distance(thing.target.transform.position, transform.position) > maxSightRange;
 		case ThingToDo.seek:
-		case ThingToDo.arrive: return (mob.target - transform.position).magnitude <= GetRadius();
+		case ThingToDo.arrive:
+			return Vector3.Distance(mob.transform.position, thing.target.transform.position) >= 0;
+			//return Vector3.Distance(thing.target.transform.position, transform.position) <= GetRadius();
 		case ThingToDo.harvest:
-			EatSphere eat = mob.GetEatSphere ();
+			EatSphere eat = energy.GetEatSphere ();
 			Agent_Properties meal = eat.GetMeal ();
-			return (meal && Vector3.Distance (
-				 meal.transform.position,      eat.transform.position) < 
-				(meal.transform.localScale.x + eat.transform.localScale.x));
+			return (meal && mob.DistanceTo(thing.target.transform) < maxSightRange);
 		}
 		throw new UnityException ("don't know how to do " + thing.code);
 	}
 
 	void StartDoing (AITask thing) {
-		switch (currentTask.code) {
-		case ThingToDo.nothing:
-			mob.targetBehavior = Agent_MOB.TargetBehavior.stop;
-			break;
-		case ThingToDo.seek:
-			mob.target = currentTask.target.transform.position;
-			mob.targetBehavior = Agent_MOB.TargetBehavior.seek;
-			break;
-		case ThingToDo.arrive:
-		case ThingToDo.harvest:
-			mob.target = currentTask.target.transform.position;
-			mob.targetBehavior = Agent_MOB.TargetBehavior.arrive;
-			break;
-		case ThingToDo.flee:
-			mob.target = currentTask.target.transform.position;
-			mob.targetBehavior = Agent_MOB.TargetBehavior.flee;
-			break;
-		}
+//		switch (currentTask.code) {
+//		case ThingToDo.nothing:	break;
+//		case ThingToDo.seek:	break;
+//		case ThingToDo.arrive:	break;
+//		case ThingToDo.harvest:	break;
+//		case ThingToDo.flee:	break;
+//		}
 	}
 
 	void KeepDoing (AITask thing) {
+		switch (currentTask.code) {
+		case ThingToDo.nothing:
+			mob.Brake ();
+			break;
+		case ThingToDo.seek:
+			mob.Seek (currentTask.target.transform.position);
+			break;
+		case ThingToDo.arrive:
+		case ThingToDo.harvest:
+			mob.Arrive (currentTask.target.transform.position);
+			break;
+		case ThingToDo.flee:
+			mob.Flee(currentTask.target.transform.position);
+			break;
+		default:
+			print ("What am I doing? " + currentTask.code);
+			break;
+		}
 	}
 	void StopDoing (AITask thing) {
-		mob.targetBehavior = Agent_MOB.TargetBehavior.none;
+//		mob.targetBehavior = Agent_MOB.TargetBehavior.none;
 	}
 
 	// TODO make this acynchronous
@@ -170,14 +184,14 @@ public class Agent_TargetFinder : MonoBehaviour {
 		timer -= Time.deltaTime;
 		// if it's time to do AI logic
 		if (timer <= 0) {
-			if (currentTask.IsSomething() && CanKeepDoing(currentTask)) {
-				KeepDoing (currentTask);
-			} else {
-				StopDoing (currentTask);
-				PlanSomethingNewToDo ();
-				StartDoing (currentTask);
-			}
+			StopDoing (currentTask);
+			PlanSomethingNewToDo ();
+			StartDoing (currentTask);
 			timer = secondsBetweenThinking;
+		}
+		//print (currentTask.code);
+		if (currentTask.IsSomething() && ShouldKeepDoing(currentTask)) {
+			KeepDoing (currentTask);
 		}
 	}
 }

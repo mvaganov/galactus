@@ -22,10 +22,9 @@ public class Agent_Properties : MonoBehaviour {
 		}
 	}
 
-	public float Energy {
-		get { return numericValues["energy"]; }
-		set { SetValue("energy", value); }
-	}
+	public float Energy { get { return numericValues["energy"]; } set { SetValue("energy", value); } }
+
+	public float SpeedPts { get { return numericValues["+speed"]; } }
 
 	public float this[string i]
 	{
@@ -47,7 +46,7 @@ public class Agent_Properties : MonoBehaviour {
 		return 0;
 	}
 
-	public Dictionary_string_float GetValues() {
+	public Dictionary_string_float GetProperties() {
 		return numericValues;
 	}
 
@@ -56,6 +55,12 @@ public class Agent_Properties : MonoBehaviour {
 			float current = 0;
 			if (!numericValues.TryGetValue (resourceName, out current)) { current = 0; }
 			SetValue (resourceName, current + amountToAdd);
+		}
+	}
+
+	private void ActivateChangeListeners(string resourceName, ResourceChangeListener[] listeners, float oldValue, float newValue) {
+		for (int i = 0; i < listeners.Length; ++i) {
+			listeners [i] (this, resourceName, oldValue, newValue);
 		}
 	}
 
@@ -68,9 +73,10 @@ public class Agent_Properties : MonoBehaviour {
 			numericValues [resourceName] = newValue;
 			ResourceChangeListener[] listeners;
 			if (changeListeners.TryGetValue (resourceName, out listeners)) {
-				for (int i = 0; i < listeners.Length; ++i) {
-					listeners [i] (this, resourceName, oldValue, newValue);
-				}
+				ActivateChangeListeners (resourceName, listeners, oldValue, newValue);
+			}
+			if (changeListeners.TryGetValue ("", out listeners)) {
+				ActivateChangeListeners (resourceName, listeners, oldValue, newValue);
 			}
 		} else {
 			numericValues [resourceName] = newValue;
@@ -85,21 +91,45 @@ public class Agent_Properties : MonoBehaviour {
 		return 0;
 	}
 
-	public void Clear() {
-		numericValues.Clear ();
+	public void Clear() { numericValues.Clear (); }
+
+	public void AddValueChangeListener(ResourceChangeListener listener) {
+		AddValueChangeListener ("", listener);
 	}
 
-	public void AddValueChangeListener(string resourceName, ResourceChangeListener listener) {
+	/// <summary>Adds the value change listener.</summary>
+	/// <param name="resourceName">Resource name. if an empty string, this listener will trigger for *every* change</param>
+	/// <param name="listener">Listener.</param>
+	public bool AddValueChangeListener(string resourceName, ResourceChangeListener listener) {
 		ResourceChangeListener[] listeners;
 		if (changeListeners == null) {
 			changeListeners = new Dictionary<string, ResourceChangeListener[]> ();
 		}
 		if (changeListeners.TryGetValue (resourceName, out listeners)) {
+			if (System.Array.IndexOf (listeners, listener) >= 0) {
+				return false;
+			}
 			System.Array.Resize (ref listeners, listeners.Length + 1);
 			listeners [listeners.Length - 1] = listener;
 		} else {
 			listeners = new ResourceChangeListener[1]{listener};
 		}
 		changeListeners [resourceName] = listeners;
+		return true;
+	}
+
+	public bool RemoveValueChangeListener(string resourceName, ResourceChangeListener listener) {
+		if (changeListeners != null) {
+			ResourceChangeListener[] listeners;
+			if (changeListeners.TryGetValue (resourceName, out listeners)) {
+				int index = System.Array.IndexOf (listeners, listener);
+				if (index >= 0) {
+					listeners [index] = listeners [listeners.Length - 1];
+					System.Array.Resize (ref listeners, listeners.Length - 1);
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }

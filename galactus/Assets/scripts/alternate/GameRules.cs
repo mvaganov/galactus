@@ -37,7 +37,7 @@ public class GameRules : MonoBehaviour {
 	}
 
 	public Dictionary_string_float GetDefaultEnergyFor(string typeName) {
-		return savedProperties [typeName].GetValues();
+		return savedProperties [typeName].GetProperties();
 	}
 
 	// Use this for initialization

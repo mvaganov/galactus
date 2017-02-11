@@ -11,15 +11,19 @@ public class EnergyAgent : MonoBehaviour {
 	protected Agent_Properties resh;
 	protected Agent_MOB mob;
 
+	[SerializeField]
+	private EatSphere eatSphere;
+	public EatSphere GetEatSphere() { return eatSphere; }
+
 	public float GetRadius() {
 		return rad;
 	}
 
 	public float GetEnergy() {
-		return GetComponent<Agent_Properties> ()["energy"];
+		return GetComponent<Agent_Properties> ().Energy;
 	}
 
-	public static Agent_Properties.ResourceChangeListener resizeWhenEnergyChanges = delegate(Agent_Properties res, string resourceName, float oldValue, float newValue) {
+	public static Agent_Properties.ResourceChangeListener resizeAndReleaseWithEnergy = delegate(Agent_Properties res, string resourceName, float oldValue, float newValue) {
 		if(newValue <= 0) {
 			MemoryPoolItem.Destroy(res.gameObject);
 		} else {
@@ -34,9 +38,9 @@ public class EnergyAgent : MonoBehaviour {
 		if (mob) { mob.EnsureRigidBody (); }
 		resh = GetComponent<Agent_Properties> ();
 		// add listener to the resource holder
-		resh.AddValueChangeListener ("energy", resizeWhenEnergyChanges);
+		resh.AddValueChangeListener ("energy", resizeAndReleaseWithEnergy);
 		energyDrainPercentagePerSecondDuringMove = Singleton.Get<GameRules> ().EnergyDrainPercentageFor(this);
-		float e = resh["energy"];
+		float e = resh.Energy;
 		SetSize (e);
 	}
 

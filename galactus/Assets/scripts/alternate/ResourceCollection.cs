@@ -5,7 +5,6 @@ using System.Collections.Generic;
 public class ResourceCollection : MonoBehaviour {
 
 	MemoryPool<GameObject> resourceNodes;
-	// TODO rename pfab_resourceCollectable
 	public EnergyAgent pfab_resource;
 	public string resourceName = "energy";
 	private Effects.Effect harvest, waste;

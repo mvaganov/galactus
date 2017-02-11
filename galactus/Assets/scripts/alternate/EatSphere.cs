@@ -9,6 +9,8 @@ public class EatSphere : MonoBehaviour {
 	public float amount = 1;
 	public float conversionRate = .5f;
 
+	private Material m;
+
 	public float cooldown = .75f;
 	[Tooltip("After the warmup, how long can the 'ready' state be kept before activation is lost?")]
 	public float holdDuringActivate = 1;
@@ -25,6 +27,7 @@ public class EatSphere : MonoBehaviour {
 	public Agent_Properties eating;
 
 	void Start() {
+		m = GetComponent<Renderer> ().material;
 		if (owner == null) {
 			Transform t = transform;
 			do {
@@ -41,19 +44,33 @@ public class EatSphere : MonoBehaviour {
 	void FixedUpdate () {
 		if (waiting > 0) { 
 			waiting -= Time.deltaTime;
-			if(waiting <= 0) {
+			if (waiting <= 0) {
 				switch (waitState) {
 				case WaitingFor.warmup:
 					waiting += holdDuringActivate;
-					waitState = WaitingFor.activate; break;
+					waitState = WaitingFor.activate;
+					break;
 				case WaitingFor.activate:
 					waiting = cooldown;
-					waitState = WaitingFor.cooldown; break;
+					waitState = WaitingFor.cooldown;
+					break;
 				case WaitingFor.cooldown:
 					waitState = WaitingFor.nothing;
 					if (effect_cooled != null) {
 						effect_cooled.Emit (5, transform.position, transform);
 					}
+					break;
+				}
+			} else {
+				switch (waitState) {
+				case WaitingFor.warmup:
+					SetSphereVisual ((warmup - Mathf.Max(0,waiting)) / warmup);
+					break;
+				case WaitingFor.activate:
+					SetSphereVisual (1);
+					break;
+				case WaitingFor.cooldown:
+					SetSphereVisual (waiting / cooldown);
 					break;
 				}
 			}
@@ -76,6 +93,19 @@ public class EatSphere : MonoBehaviour {
 
 	void OnTriggerExit(Collider c) {
 		eating = null;
+	}
+
+	void SetSphereVisual(float percent) {
+		if (percent == 0) {
+			GetComponent<Renderer> ().enabled = false;
+		}
+		Color c = m.GetColor("_TintColor");
+		if (c.a == 0 && percent != 0) {
+			GetComponent<Renderer> ().enabled = true;
+		}
+		if (c.a != percent) {
+			m.SetColor("_TintColor", new Color (c.r, c.g, c.b, percent));
+		}
 	}
 
 	void OnTriggerStay(Collider c) {

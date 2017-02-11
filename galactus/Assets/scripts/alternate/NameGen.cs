@@ -19,15 +19,4 @@ public class NameGen : MonoBehaviour {
 		} while (n.Length == 0);
 		return n;
 	}
-
-
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
 }

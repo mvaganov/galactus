@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Agent_InputControl : MonoBehaviour {
 
@@ -37,21 +38,35 @@ public class Agent_InputControl : MonoBehaviour {
 	public void Posess(Agent_MOB toBeControlled) {
 		if (controlled) {
 			// re-enable old mob
-			controlled.enabled = true;
 			Agent_TargetFinder tf = controlled.GetComponent<Agent_TargetFinder> ();
 			if (tf) {
 				tf.enabled = true;
+			} else {
 			}
 		}
 		controlled = toBeControlled;
 		if (controlled) {
 			// deactivate new mob, so player input can take control.
-			controlled.enabled = false;
 			Agent_TargetFinder tf = controlled.GetComponent<Agent_TargetFinder> ();
 			if (tf) {
 				tf.enabled = false;
 			}
 			controlled.EnsureRigidBody ();
+		}
+		if (controlled) {
+			EnergyAgent ea = controlled.GetComponent<EnergyAgent> ();
+			Agent_Prediction prediction = GetComponent<Agent_Prediction> ();
+			if (prediction) {
+				List<Agent_MOB> body = new List<Agent_MOB> ();
+				body.Add (controlled);
+				prediction.SetBodies (body);
+				Agent_UI ui = GetComponent<Agent_UI> ();
+				if (ui) {
+					ui.SetSubject(controlled.gameObject);
+				}
+			}
+			AgentSensor asense = GetComponent<AgentSensor> ();
+			asense.RefreshSensorOwner (ea);
 		}
 	}
 	
