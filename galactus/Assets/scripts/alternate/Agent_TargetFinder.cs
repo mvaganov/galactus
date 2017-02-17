@@ -6,16 +6,17 @@ public class Agent_TargetFinder : MonoBehaviour {
 
 	[SerializeField]
 	private AITask currentTask;
-
-	public float maxSightRange = 100f;
-	public float sightRadius = 20f;
+	private Agent_Sensor sensor;
+//	public float maxSightRange = 100f;
+//	public float sightRadius = 20f;
 	public float secondsBetweenThinking = 2f;
 	private float timer;
 	private Agent_MOB mob;
-	private EnergyAgent energy;
+	// TODO rename energy->sizeAndEffects
+	private Agent_SizeAndEffects energy;
 
 	// TODO implement these in state machines
-	public enum ThingToDo {nothing, seek, arrive, flee, harvest};
+	public enum ThingToDo {nothing, searching, planning, seek, arrive, flee, harvest};
 
 	[System.Serializable]
 	public struct AITask {
@@ -39,7 +40,10 @@ public class Agent_TargetFinder : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		mob = GetComponent<Agent_MOB> ();
-		energy = GetComponent<EnergyAgent> ();
+		energy = GetComponent<Agent_SizeAndEffects> ();
+		sensor = GetComponent<Agent_Sensor> ();
+		sensor.EnsureOwnerIsKnown ();
+		sensor.sensorUpdateTime = secondsBetweenThinking;
 	}
 	
 	public delegate AITask FitnessFunction<T, SELF>(SELF self, T obj);
@@ -53,7 +57,8 @@ public class Agent_TargetFinder : MonoBehaviour {
 	// TODO make this acynchronous
 	public static FitnessFunction<Transform, Agent_TargetFinder> fitnessFromTransform = delegate(Agent_TargetFinder self, Transform them) {
 		if(them == self.transform) { return AITask.none; }
-		EnergyAgent theirEnergy = them.GetComponent<EnergyAgent>();
+		// TODO rename theirEnergy->theirSizeAndEffects
+		Agent_SizeAndEffects theirEnergy = them.GetComponent<Agent_SizeAndEffects>();
 		if(!theirEnergy) { return AITask.none; }
 		AITask think = AITask.none;
 		think.score = -self.mob.DistanceTo(them);
@@ -65,7 +70,7 @@ public class Agent_TargetFinder : MonoBehaviour {
 			if(theirEnergy.GetEatSphere() == null) {
 				// add the resource collectable's radius to the fitness score, with a multiplier for how much the agent is a harvester
 				think.target = theirEnergy.gameObject;
-				think.score += theirEnergy.GetRadius() * self.generalHarvestingMultiplier;
+				think.score += theirEnergy.GetSize() * self.generalHarvestingMultiplier;
 				think.code = ThingToDo.arrive; // TODO if close enough, harvest!
 			}
 			// if target is another agent
@@ -106,41 +111,42 @@ public class Agent_TargetFinder : MonoBehaviour {
 		return fittest;
 	}
 
-	GameObject testRay;
-
-	void PlanSomethingNewToDo() {
-		// TODO task queue. if the task queue is empty, THEN go looking for things.
-		// pick a random direction to look in, and look there
-		Ray r = new Ray (transform.position, Random.onUnitSphere);
-		float sightRad = GetRadius () + sightRadius;
-		Lines.Make (ref this.testRay, transform.position, transform.position + r.direction * maxSightRange, Color.white);
-		RaycastHit[] hits = Physics.SphereCastAll (r, sightRad, maxSightRange);
-		timer = secondsBetweenThinking;
+	AITask PlanSomethingNewToDo() {
+		timer = sensor.sensorUpdateTime;
+		RaycastHit[] hits = sensor.GetSnapshot ().sensed;
 		// if we saw something...
 		if (hits != null && hits.Length > 0) {
 			AITask newChoice = FindFittest<RaycastHit,Agent_TargetFinder> (this, hits, fitnessFromRaycast);
 			if (newChoice.score > float.MinValue) {
-				currentTask = newChoice;
-				// TODO compare the newChoice to what is currently being done
+				// re-evaluate current task, if the current task is valid
+				if (currentTask.target != null) {
+					currentTask = fitnessFromTransform (this, currentTask.target.transform);
+				}
+				if (newChoice.score > currentTask.score) {
+					return newChoice;
+				}
+				return currentTask;
 			}
 		}
-		// TODO add an additional delay to the reconsideration timer based on how much this AI Decision is liked
+		// if we saw nothing, keep doing what we're doing
+		return currentTask;
 	}
 
 	bool ShouldKeepDoing(AITask thing) {
 		switch (currentTask.code) {
 		case ThingToDo.nothing: return false;
+		case ThingToDo.searching:
+			Agent_Sensor.SensorSnapshot s = sensor.GetSnapshot ();
+			return s.sensed.Length == 0 || s.timestamp < Time.time-sensor.sensorUpdateTime;
 		case ThingToDo.flee: 
-			return mob.DistanceTo (thing.target.transform) < maxSightRange;
-			//return Vector3.Distance(thing.target.transform.position, transform.position) > maxSightRange;
+			return mob.DistanceTo (thing.target.transform) < sensor.range;
 		case ThingToDo.seek:
 		case ThingToDo.arrive:
 			return Vector3.Distance(mob.transform.position, thing.target.transform.position) >= 0;
-			//return Vector3.Distance(thing.target.transform.position, transform.position) <= GetRadius();
 		case ThingToDo.harvest:
 			EatSphere eat = energy.GetEatSphere ();
-			Agent_Properties meal = eat.GetMeal ();
-			return (meal && mob.DistanceTo(thing.target.transform) < maxSightRange);
+			Agent_SizeAndEffects meal = eat.GetMeal ();
+			return (meal && mob.DistanceTo(thing.target.transform) < sensor.range);
 		}
 		throw new UnityException ("don't know how to do " + thing.code);
 	}
@@ -158,7 +164,16 @@ public class Agent_TargetFinder : MonoBehaviour {
 	void KeepDoing (AITask thing) {
 		switch (currentTask.code) {
 		case ThingToDo.nothing:
+		case ThingToDo.searching:
+			// stop
 			mob.Brake ();
+			// look around, pretty much randomly, but weight toward the center of the world
+			mob.RandomLook();
+			// make sure we can see!
+			sensor.enabled = true;
+			break;
+		case ThingToDo.planning:
+			currentTask = PlanSomethingNewToDo ();
 			break;
 		case ThingToDo.seek:
 			mob.Seek (currentTask.target.transform.position);
@@ -185,13 +200,15 @@ public class Agent_TargetFinder : MonoBehaviour {
 		// if it's time to do AI logic
 		if (timer <= 0) {
 			StopDoing (currentTask);
-			PlanSomethingNewToDo ();
+			currentTask = PlanSomethingNewToDo ();
 			StartDoing (currentTask);
 			timer = secondsBetweenThinking;
 		}
 		//print (currentTask.code);
-		if (currentTask.IsSomething() && ShouldKeepDoing(currentTask)) {
+		if (currentTask.IsSomething () && ShouldKeepDoing (currentTask)) {
 			KeepDoing (currentTask);
+		} else {
+			currentTask = AITask.none;
 		}
 	}
 }

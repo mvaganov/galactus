@@ -4,13 +4,24 @@ using System.Collections.Generic;
 
 public class Agent_Properties : MonoBehaviour {
 
-	public delegate void ResourceChangeListener(Agent_Properties res, string resourceName, float oldValue, float newValue);
+//	public delegate void ResourceChangeListener(Agent_Properties res, string resourceName, float oldValue, float newValue);
 
 	public string typeName;
 
 	[SerializeField]
-	private Dictionary_string_float numericValues = new Dictionary_string_float();
-	private Dictionary<string,ResourceChangeListener[]> changeListeners = null;
+	private Dictionary_string_float values = new Dictionary_string_float();
+	private ValueCalculator<Agent_Properties> vc = null;
+//	private TightBucketsOfUniques<string,ResourceChangeListener> changeListeners = null;
+
+	void EnsureValueCalculations() {
+		if (vc == null) {
+			vc = new ValueCalculator<Agent_Properties> (this, values);
+		}
+	}
+
+	void Start() {
+		EnsureValueCalculations ();
+	}
 
 	public void Reset() {
 		Dictionary_string_float defaults = Singleton.Get<GameRules> ().GetDefaultEnergyFor(typeName);
@@ -22,19 +33,22 @@ public class Agent_Properties : MonoBehaviour {
 		}
 	}
 
-	public float Energy { get { return numericValues["energy"]; } set { SetValue("energy", value); } }
+	public float Energy { 
+		get { return GetValue("energy"); }
+		set { SetValue("energy", value); }
+	}
 
-	public float SpeedPts { get { return numericValues["+speed"]; } }
+	public float SpeedPts { get { return values["+speed"]; } }
 
 	public float this[string i]
 	{
-		get { return numericValues[i]; }
-		set { SetValue(i, value); }
+		get { return vc.Get (i); } //return GetValue(i); }
+		set { vc.Set (i, value); } //SetValue(i, value); }
 	}
 
 	public float LoseValue(string name, float amountTaken) {
 		float whatIsLeft;
-		if (numericValues.TryGetValue (name, out whatIsLeft)) {
+		if (values.TryGetValue (name, out whatIsLeft)) {
 			if (whatIsLeft >= amountTaken) {
 				whatIsLeft -= amountTaken;
 				SetValue (name, whatIsLeft);
@@ -47,89 +61,65 @@ public class Agent_Properties : MonoBehaviour {
 	}
 
 	public Dictionary_string_float GetProperties() {
-		return numericValues;
+		return values;
 	}
 
 	public void AddToValue(string resourceName, float amountToAdd) {
 		if (amountToAdd != 0) { 
 			float current = 0;
-			if (!numericValues.TryGetValue (resourceName, out current)) { current = 0; }
+			if (!values.TryGetValue (resourceName, out current)) { current = 0; }
 			SetValue (resourceName, current + amountToAdd);
 		}
 	}
 
-	private void ActivateChangeListeners(string resourceName, ResourceChangeListener[] listeners, float oldValue, float newValue) {
-		for (int i = 0; i < listeners.Length; ++i) {
-			listeners [i] (this, resourceName, oldValue, newValue);
-		}
-	}
-
 	public void SetValue(string resourceName, float newValue) {
-		if (changeListeners != null) {
-			float oldValue = 0;
-			if (!numericValues.TryGetValue (resourceName, out oldValue)) {
-				oldValue = 0;
-			}
-			numericValues [resourceName] = newValue;
-			ResourceChangeListener[] listeners;
-			if (changeListeners.TryGetValue (resourceName, out listeners)) {
-				ActivateChangeListeners (resourceName, listeners, oldValue, newValue);
-			}
-			if (changeListeners.TryGetValue ("", out listeners)) {
-				ActivateChangeListeners (resourceName, listeners, oldValue, newValue);
-			}
-		} else {
-			numericValues [resourceName] = newValue;
-		}
+//		if (changeListeners != null) {
+//			float oldValue = 0;
+//			if (!values.TryGetValue (resourceName, out oldValue)) {
+//				oldValue = 0;
+//			}
+//			values [resourceName] = newValue;
+//			changeListeners.ForEachUniqueInBucket (resourceName, thing => thing (this, resourceName, oldValue, newValue));
+//			changeListeners.ForEachUniqueInBucket ("", thing => thing (this, resourceName, oldValue, newValue));
+//		} else {
+//			values [resourceName] = newValue;
+//		}
+		EnsureValueCalculations();
+		vc.Set(resourceName, newValue);
 	}
 
 	public float GetValue(string resourceName) {
-		float amnt = 0;
-		if (numericValues.TryGetValue (resourceName, out amnt)) {
-			return amnt;
-		}
-		return 0;
+//		float amnt = 0;
+//		if (values.TryGetValue (resourceName, out amnt)) {
+//			return amnt;
+//		}
+//		return 0;
+		return vc.Get(resourceName);
 	}
 
-	public void Clear() { numericValues.Clear (); }
+	public void Clear() { values.Clear (); }
 
-	public void AddValueChangeListener(ResourceChangeListener listener) {
-		AddValueChangeListener ("", listener);
+	public void AddValueChangeListener(ValueCalculator<Agent_Properties>.ChangeListener listener) {
+		vc.AddValueChangeListener ("", listener);
 	}
 
 	/// <summary>Adds the value change listener.</summary>
 	/// <param name="resourceName">Resource name. if an empty string, this listener will trigger for *every* change</param>
 	/// <param name="listener">Listener.</param>
-	public bool AddValueChangeListener(string resourceName, ResourceChangeListener listener) {
-		ResourceChangeListener[] listeners;
-		if (changeListeners == null) {
-			changeListeners = new Dictionary<string, ResourceChangeListener[]> ();
-		}
-		if (changeListeners.TryGetValue (resourceName, out listeners)) {
-			if (System.Array.IndexOf (listeners, listener) >= 0) {
-				return false;
-			}
-			System.Array.Resize (ref listeners, listeners.Length + 1);
-			listeners [listeners.Length - 1] = listener;
-		} else {
-			listeners = new ResourceChangeListener[1]{listener};
-		}
-		changeListeners [resourceName] = listeners;
-		return true;
+	public bool AddValueChangeListener(string resourceName, ValueCalculator<Agent_Properties>.ChangeListener listener) {
+//		if (changeListeners == null) {
+//			changeListeners = new TightBucketsOfUniques<string, ResourceChangeListener> (); //new Dictionary<string, ResourceChangeListener[]> ();
+//		}
+//		return changeListeners.AddUniqueBucketItem(resourceName, listener);
+		EnsureValueCalculations();
+		return vc.AddValueChangeListener(resourceName, listener);
 	}
 
-	public bool RemoveValueChangeListener(string resourceName, ResourceChangeListener listener) {
-		if (changeListeners != null) {
-			ResourceChangeListener[] listeners;
-			if (changeListeners.TryGetValue (resourceName, out listeners)) {
-				int index = System.Array.IndexOf (listeners, listener);
-				if (index >= 0) {
-					listeners [index] = listeners [listeners.Length - 1];
-					System.Array.Resize (ref listeners, listeners.Length - 1);
-					return true;
-				}
-			}
-		}
-		return false;
+	public bool RemoveValueChangeListener(string resourceName, ValueCalculator<Agent_Properties>.ChangeListener listener) {
+//		if (changeListeners != null) {
+//			return changeListeners.RemoveUniqueBucketItem(resourceName, listener);
+//		}
+//		return false;
+		return vc.RemoveValueChangeListener(resourceName, listener);
 	}
 }

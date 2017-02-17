@@ -146,7 +146,10 @@ public class ResourceEater : MonoBehaviour {
 
     public void SetColor(Color color) {
         this.currentColor = color;
-        if(halo) halo.startColor = color;
+		if (halo) {
+			//halo.startColor = color;
+			halo.SetColor(color);
+		}
         TrailRenderer trail = FindComponent<TrailRenderer>(false, true);
         if (trail) {
             SetTrailRendererColor(trail, new Color(color.r, color.g, color.b, 0.25f));
@@ -204,7 +207,8 @@ public class ResourceEater : MonoBehaviour {
         effectsSize = n;
         if (halo) {
             halo.Emit(1);
-            halo.startSize = effectsSize;
+			//halo.startSize = effectsSize;
+			halo.SetParticleSize(effectsSize);
             halo.Emit(1);
             halo.Play();
         }

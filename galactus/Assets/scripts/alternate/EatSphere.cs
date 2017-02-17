@@ -6,25 +6,38 @@ public class EatSphere : MonoBehaviour {
 	public Agent_Properties owner;
 
 	public string resourceName;
-	public float amount = 1;
+	public float power = 1;
 	public float conversionRate = .5f;
 
 	private Material m;
 
 	public float cooldown = .75f;
 	[Tooltip("After the warmup, how long can the 'ready' state be kept before activation is lost?")]
-	public float holdDuringActivate = 1;
+	public float holdDuringActivate = .25f;
 	public float warmup = .25f;
 	public string warmupEffect, activateEffect, cooledEffect;
 	private Effects.Effect effect_warmup;
 	private Effects.Effect effect_activate;
 	private Effects.Effect effect_cooled;
+	/// <summary>what to set a held eat-sphere transparency to, to reduce obstruction of visibility</summary>
+	[HideInInspector]
+	public float holdTransparency = 1;
 
 	private float waiting = 0;
 	private enum WaitingFor { nothing, warmup, activate, cooldown };
 	private WaitingFor waitState = WaitingFor.nothing;
 
-	public Agent_Properties eating;
+	public bool autoActivateResource = true, autoActivateAgent = true, maintainActivation = false;
+
+	public Agent_SizeAndEffects eating;
+
+	public float GetRadius() { return transform.lossyScale.z; }
+	public void SetRadius(float rad) {
+		Transform p = transform.parent;
+		transform.parent = null;
+		transform.localScale = new Vector3 (rad, rad, rad);
+		transform.parent = p;
+	}
 
 	void Start() {
 		m = GetComponent<Renderer> ().material;
@@ -39,6 +52,7 @@ public class EatSphere : MonoBehaviour {
 		effect_warmup = e.Get (warmupEffect);
 		effect_activate = e.Get (activateEffect);
 		effect_cooled = e.Get (cooledEffect);
+		SetSphereVisual (0);
 	}
 
 	void FixedUpdate () {
@@ -67,7 +81,7 @@ public class EatSphere : MonoBehaviour {
 					SetSphereVisual ((warmup - Mathf.Max(0,waiting)) / warmup);
 					break;
 				case WaitingFor.activate:
-					SetSphereVisual (1);
+					SetSphereVisual (maintainActivation?holdTransparency:1);
 					break;
 				case WaitingFor.cooldown:
 					SetSphereVisual (waiting / cooldown);
@@ -77,19 +91,29 @@ public class EatSphere : MonoBehaviour {
 			// because an eaten object doesnt go away (it's just hidden by the memory pool), this is how we know we've stopped eating.
 			if (eating && !eating.gameObject.activeInHierarchy) { eating = null; }
 		}
+		if (maintainActivation) { Activate (); }
 	}
 
-	public void StartActivation() {
-		if (waitState == WaitingFor.nothing) {
-			waiting = warmup;
-			waitState = WaitingFor.warmup;
-			if (effect_warmup != null) {
-				effect_warmup.Emit (5, transform.position, transform);
+	public bool IsActive() { return waitState != WaitingFor.nothing; }
+
+	public void Activate() {
+		switch (waitState) {
+		case WaitingFor.nothing:
+			if (waitState == WaitingFor.nothing) {
+				waiting = warmup;
+				waitState = WaitingFor.warmup;
+				if (effect_warmup != null) {
+					effect_warmup.Emit (5, transform.position, transform);
+				}
 			}
+			break;
+		case WaitingFor.activate:
+			waiting = holdDuringActivate;
+			break;
 		}
 	}
 
-	public Agent_Properties GetMeal() { return eating; }
+	public Agent_SizeAndEffects GetMeal() { return eating; }
 
 	void OnTriggerExit(Collider c) {
 		eating = null;
@@ -109,21 +133,25 @@ public class EatSphere : MonoBehaviour {
 	}
 
 	void OnTriggerStay(Collider c) {
-		Agent_Properties caught = c.gameObject.GetComponent<Agent_Properties> ();
+		Agent_SizeAndEffects caught = c.gameObject.GetComponent<Agent_SizeAndEffects> ();
 		if (!caught) return;
 		eating = caught;
 		switch (waitState) {
 		case WaitingFor.nothing:
-			if (warmup == 0) {
-				waitState = WaitingFor.activate;
-				OnTriggerStay (c);
-				return;
+			if (autoActivateResource && !caught.GetEatSphere()
+				|| autoActivateAgent && caught.GetEatSphere()) {
+				if (warmup == 0) {
+					waitState = WaitingFor.activate;
+					OnTriggerStay (c);
+					return;
+				}
+				Activate ();
 			}
-			StartActivation ();
 			break;
 		case WaitingFor.activate:
 			if (caught && caught != owner) {
-				float whatIsLeft = caught.LoseValue (resourceName, amount);
+				Agent_Properties props = caught.GetComponent<Agent_Properties> ();
+				float whatIsLeft = props.LoseValue (resourceName, power);
 				if (whatIsLeft != 0) {
 					//print ("draining " + caught + " " + whatIsLeft + " " + resourceName);
 					owner.AddToValue (resourceName, whatIsLeft * conversionRate);

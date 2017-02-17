@@ -17,6 +17,7 @@ public class Group : MonoBehaviour {
 		}
 		return false;
 	}
+
 	public bool RemoveMember(GroupMember member) {
 		if (members.Remove (member)) {
 			if (members.Count == 0 && autoDisbandIfEmpty) {

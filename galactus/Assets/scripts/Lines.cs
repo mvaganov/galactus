@@ -39,8 +39,9 @@ public class Lines : MonoBehaviour {
 		if(lineObject == null) { lineObject = new GameObject(); }
 		LineRenderer lr = lineObject.GetComponent<LineRenderer>();
 		if(lr == null) { lr = lineObject.AddComponent<LineRenderer>(); }
-		lr.SetWidth(startSize, endSize);
-		lr.SetVertexCount(2);
+		lr.startWidth = startSize;
+		lr.endWidth = endSize;
+		lr.numPositions = 2;
 		lr.SetPosition(0, start); lr.SetPosition(1, end);
 		SetColor(lr, color);
 		return lr;
@@ -59,8 +60,9 @@ public class Lines : MonoBehaviour {
 		if(lineObject == null) { lineObject = new GameObject(); }
 		LineRenderer lr = lineObject.GetComponent<LineRenderer>();
 		if(lr == null) { lr = lineObject.AddComponent<LineRenderer>(); }
-		lr.SetWidth(startSize, endSize);
-		lr.SetVertexCount(pointCount);
+		lr.startWidth = startSize;
+		lr.endWidth = endSize;
+		lr.numPositions = pointCount;
 		for(int i = 0; i < pointCount; ++i) { lr.SetPosition(i, points[i]); }
 		SetColor(lr, color);
 		return lr;

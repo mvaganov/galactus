@@ -18,8 +18,8 @@ public class ResourceCollection : MonoBehaviour {
 	Queue<Suppression> suppression = new Queue<Suppression>();
 
 	public void AddSuppression(Vector3 loc) {
-		waste.ps.startLifetime = resourceSettings.suppressionDuration;
-		waste.ps.startSize = resourceSettings.suppressionRange;
+		waste.ps.SetParticleLifetime (resourceSettings.suppressionDuration);
+		waste.ps.SetParticleSize(resourceSettings.suppressionRange);
 		waste.Emit (5, loc, null);
 		suppression.Enqueue(new Suppression(loc, Time.time + resourceSettings.suppressionDuration));
 	}
@@ -44,7 +44,7 @@ public class ResourceCollection : MonoBehaviour {
 			() => Instantiate(pfab_resource.gameObject),
 			(obj) => { obj.SetActive(true); },
 			(obj) => {
-				EnergyAgent n = obj.GetComponent<EnergyAgent>();
+				Agent_SizeAndEffects n = obj.GetComponent<Agent_SizeAndEffects>();
 				Harvest(n);
                 bool moving = false;
                 Rigidbody rb = obj.GetComponent<Rigidbody>();
@@ -64,7 +64,7 @@ public class ResourceCollection : MonoBehaviour {
 		harvest = e.Get ("harvest");
 	}
 
-	public void Harvest(EnergyAgent rn) {
+	public void Harvest(Agent_SizeAndEffects rn) {
 		float v = rn.GetEnergy();
 		// if this is the energy nodes last moment...
 		if (v == 0) { 
@@ -73,9 +73,9 @@ public class ResourceCollection : MonoBehaviour {
 			int count = ps.particleCount;
 			ParticleSystem.Particle[] parts = new ParticleSystem.Particle[count];
 			ps.GetParticles (parts);
-			harvest.ps.startColor = rn.GetColor();
-			harvest.ps.startSize = count;
-			harvest.ps.startSpeed = count;
+			harvest.ps.SetColor (rn.GetColor ());
+			harvest.ps.SetParticleSize (count);
+			harvest.ps.SetParticleSpeed (count);
 			for (int i = 0; i < parts.Length; ++i) {
 				harvest.Emit (1, parts [i].position, null);
 			}
@@ -87,9 +87,9 @@ public class ResourceCollection : MonoBehaviour {
 
     public void ResourcePoof(Vector3 position, Color color, float size) {
 		print (size);
-		harvest.ps.startColor = color;
-		harvest.ps.startSize = size;
-		harvest.ps.startSpeed = size;
+		harvest.ps.SetColor (color);
+		harvest.ps.SetParticleSize(size);
+		harvest.ps.SetParticleSpeed(size);
 		harvest.Emit ((int)(Mathf.Sqrt (size) * 10), position, null);
     }
 
@@ -101,7 +101,7 @@ public class ResourceCollection : MonoBehaviour {
 		return false;
 	}
 
-	public EnergyAgent CreateRandomResourceNode() {
+	public Agent_SizeAndEffects CreateRandomResourceNode() {
 		Vector3 loc = Vector3.zero;
 		bool supressed = false;
 		int iterations = 0;
@@ -117,9 +117,9 @@ public class ResourceCollection : MonoBehaviour {
 			new Color(Random.Range(0, 1.0f), Random.Range(0, 1.0f), Random.Range(0, 1.0f)), resourceName);
 	}
 
-	public EnergyAgent CreateResourceNode(Vector3 loc, float value, Color color, string resourceName)
+	public Agent_SizeAndEffects CreateResourceNode(Vector3 loc, float value, Color color, string resourceName)
     {
-		EnergyAgent rn = resourceNodes.Alloc().GetComponent<EnergyAgent>();
+		Agent_SizeAndEffects rn = resourceNodes.Alloc().GetComponent<Agent_SizeAndEffects>();
 		Agent_Properties h = rn.GetComponent<Agent_Properties> ();
 		h.SetValue (resourceName, value);
         rn.SetColor(color);

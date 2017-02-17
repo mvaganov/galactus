@@ -6,7 +6,7 @@ using System.Collections;
 public class Agent_MOB : MonoBehaviour {
 
 	// TODO add obstacle avoidance, flocking, and path-finding code
-	public float accelerationForce = 10, maxSpeed = 20, turnSpeed = 180;
+	public float acceleration = 5, maxSpeed = 20, turnSpeed = 180;
 	public enum AccelerationApplies {inAnyDirection, onlyForwardAndStop};
 	public AccelerationApplies accelerationApplies = AccelerationApplies.inAnyDirection;
 	private Vector3 accelerationDirection;
@@ -42,7 +42,7 @@ public class Agent_MOB : MonoBehaviour {
 
 	void FixedUpdate () {
 		currentSpeed = rb.velocity.magnitude;
-		brakeDistance = BrakeDistance(currentSpeed, accelerationForce/rb.mass)-(currentSpeed*Time.deltaTime);
+		brakeDistance = BrakeDistance(currentSpeed, acceleration/rb.mass)-(currentSpeed*Time.deltaTime);
 		if (brakesOn) {
 			brakesOnLastFrame = true;
 			brakesOn = false;
@@ -101,7 +101,7 @@ public class Agent_MOB : MonoBehaviour {
 		if (rb.velocity != Vector3.zero) {
 			float speed = rb.velocity.magnitude;
 			// just stop if the acceleration force required is small enough.
-			if (speed < accelerationForce * Time.deltaTime) {
+			if (speed < acceleration * Time.deltaTime) {
 				rb.velocity = Vector3.zero;
 				#if SHOWVECTORS
 				Lines.Make (ref directionLine, transform.position, transform.position, Color.cyan);
@@ -143,6 +143,11 @@ public class Agent_MOB : MonoBehaviour {
 		ApplyForceToward (directionToMoveToward);
 	}
 
+	public void RandomLook() {
+		Vector3 direction = Random.onUnitSphere;
+		UpdateLookDirection (direction);
+	}
+
 	public void RandomWalk() {
 		Vector3 direction = Random.onUnitSphere;
 		UpdateLookDirection (direction);
@@ -158,7 +163,7 @@ public class Agent_MOB : MonoBehaviour {
 		// apply change to velocity
 		if(directionToMoveToward == Vector3.zero) { return; };
 		//rb.velocity += direction * accelerationForce * Time.deltaTime;
-		rb.AddForce (directionToMoveToward * accelerationForce);
+		rb.AddForce (directionToMoveToward * acceleration);
 		// enforce speed limit
 		float currentSpeed = rb.velocity.magnitude;
 		if (currentSpeed > maxSpeed) {

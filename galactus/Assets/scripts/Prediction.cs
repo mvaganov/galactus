@@ -44,7 +44,7 @@ public class Prediction : MonoBehaviour {
         public void Iterate(ref ParticleSystem.Particle particle) {
             particle.position = predictedLocation;
             particle.startSize = re.effectsSize;
-            particle.lifetime = 1;
+            particle.remainingLifetime = 1;
             particle.startLifetime = 2;
             particle.startColor = re.GetCurrentColor();
             //particle.rotation3D = gameObject.transform.rotation.eulerAngles;

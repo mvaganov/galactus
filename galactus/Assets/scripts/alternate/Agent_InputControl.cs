@@ -12,6 +12,8 @@ public class Agent_InputControl : MonoBehaviour {
 
 	/// <summary>movement decision making (user input)</summary>
 	private float inputFore = 1, inputSide;
+	/// <summary>what to set a held eat-sphere transparency to, to reduce obstruction of visibility</summary>
+	private const float userEatSphereTransparencyDuringHold = 0.125f;
 
 	Vector3 CalculateUserAcceleration () {
 		Vector3 directionToMoveToward = Vector3.zero;
@@ -31,14 +33,22 @@ public class Agent_InputControl : MonoBehaviour {
 
 	public bool IsControllingAgent() { return controlled != null; }
 
+	public bool IsBraking() { return useBrakes; }
+
 	void Start () {
 		Posess (controlled);
 	}
 
+	// TODO make some kind of "undoable value change" object, and a manager for it. or better yet, make a "user controlled" effect that adjusts the transparency
+	private float oldTransparency;
 	public void Posess(Agent_MOB toBeControlled) {
 		if (controlled) {
 			// re-enable old mob
 			Agent_TargetFinder tf = controlled.GetComponent<Agent_TargetFinder> ();
+			Agent_SizeAndEffects sizeAndEffects = controlled.GetComponent<Agent_SizeAndEffects> ();
+			if (sizeAndEffects) {
+				sizeAndEffects.GetEatSphere ().holdTransparency = oldTransparency;
+			}
 			if (tf) {
 				tf.enabled = true;
 			} else {
@@ -54,7 +64,7 @@ public class Agent_InputControl : MonoBehaviour {
 			controlled.EnsureRigidBody ();
 		}
 		if (controlled) {
-			EnergyAgent ea = controlled.GetComponent<EnergyAgent> ();
+//			EnergyAgent ea = controlled.GetComponent<EnergyAgent> ();
 			Agent_Prediction prediction = GetComponent<Agent_Prediction> ();
 			if (prediction) {
 				List<Agent_MOB> body = new List<Agent_MOB> ();
@@ -64,9 +74,14 @@ public class Agent_InputControl : MonoBehaviour {
 				if (ui) {
 					ui.SetSubject(controlled.gameObject);
 				}
+				Agent_SizeAndEffects sizeAndEffects = controlled.GetComponent<Agent_SizeAndEffects> ();
+				if (sizeAndEffects) {
+					this.oldTransparency = sizeAndEffects.GetEatSphere ().holdTransparency;
+					sizeAndEffects.GetEatSphere ().holdTransparency = userEatSphereTransparencyDuringHold;
+				}
 			}
-			AgentSensor asense = GetComponent<AgentSensor> ();
-			asense.RefreshSensorOwner (ea);
+			Agent_SensorLabeler asense = GetComponent<Agent_SensorLabeler> ();
+			asense.RefreshSensorOwner (controlled.gameObject);
 		}
 	}
 	

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public class Agent_Prediction : MonoBehaviour {
 	// TODO if an object is in the path defined by Prediction, put some things around it's name. like "name" vs ">name<"
 	public ParticleSystem predictionParticle;
+	public Agent_InputControl controls;
 
 	ParticleSystem.Particle[] particles = new ParticleSystem.Particle[50];
 
@@ -14,7 +15,7 @@ public class Agent_Prediction : MonoBehaviour {
     private struct CalcSpace {
         public int maxPredictions; // TODO do maxDistancePredicted, where the distance is the stop distance.
 		public Agent_MOB pf;
-		public EnergyAgent re;
+		public Agent_SizeAndEffects re;
         public Rigidbody rb;
         public float speed;
         public float tMod;
@@ -24,7 +25,7 @@ public class Agent_Prediction : MonoBehaviour {
 
 		public void StartCalc(Agent_MOB pf, int maxParticles) {
             this.pf = pf;
-			re = pf.GetComponent<EnergyAgent>();
+			re = pf.GetComponent<Agent_SizeAndEffects>();
             rb = pf.GetComponent<Rigidbody>();
             predictedLocation = pf.transform.position;
             float speed = rb.velocity.magnitude;
@@ -38,13 +39,13 @@ public class Agent_Prediction : MonoBehaviour {
             //accelForce = pf.accelDirection * pf.maxAcceleration;
 			Vector3 dir = pf.GetAccelerationDirection();
             if (dir == Vector3.zero) dir = rb.transform.forward;
-			accelForce = Steering.SeekDirection(dir * pf.maxSpeed, rb.velocity, pf.accelerationForce, tMod);
+			accelForce = Steering.SeekDirection(dir * pf.maxSpeed, rb.velocity, pf.acceleration, tMod);
         }
 
         public void Iterate(ref ParticleSystem.Particle particle) {
             particle.position = predictedLocation;
-			particle.startSize = re.GetRadius() / 2;
-            particle.lifetime = 1;
+			particle.startSize = re.GetRadius();
+            particle.remainingLifetime = 1;
             particle.startLifetime = 2;
 			particle.startColor = re.GetColor();
             //particle.rotation3D = gameObject.transform.rotation.eulerAngles;
@@ -59,19 +60,23 @@ public class Agent_Prediction : MonoBehaviour {
             predictedLocation += v * tMod;
 			Vector3 dir = pf.GetAccelerationDirection();
             if(dir == Vector3.zero) dir = rb.transform.forward;
-			accelForce = Steering.SeekDirection(dir * pf.maxSpeed, rb.velocity, pf.accelerationForce, tMod);
+			accelForce = Steering.SeekDirection(dir * pf.maxSpeed, rb.velocity, pf.acceleration, tMod);
         }
 
 		public void StopLocation(ref ParticleSystem.Particle particle) {
 			particle.position = pf.transform.position + rb.velocity.normalized * pf.GetBrakeDistance();
-			particle.startSize = re.GetRadius();
-			particle.lifetime = 1;
+			particle.startSize = re.GetSize();
+			particle.remainingLifetime = 1;
 			particle.startLifetime = 2;
-			particle.startColor = re.GetColor();
+			particle.startColor = re.GetEffectColor();
 		}
     }
 
     private CalcSpace[] calc;
+
+	void Start() {
+		this.controls = GetComponent<Agent_InputControl> ();
+	}
 
     void FixedUpdate () {
         //Transform p = toPredict;
@@ -91,16 +96,18 @@ public class Agent_Prediction : MonoBehaviour {
 				calc[i].StopLocation(ref particles[predictionsTotal]);
 				predictionsTotal++;
 			}
-			// calculate the stop location
-            while (predictionsTotal < particles.Length && iterations < maxPrediction) {
-                for(int i = 0; i < bodies.Count; ++i) {
-					if(iterations < calc[i].maxPredictions && !calc[i].pf.IsBraking()) {
-		                calc[i].Iterate(ref particles[predictionsTotal]);
-		                predictionsTotal++;
-		            }
-                }
-                iterations++;
-            }
+			if (!controls.IsBraking ()) {
+				// calculate the stop location
+				while (predictionsTotal < particles.Length && iterations < maxPrediction) {
+					for (int i = 0; i < bodies.Count; ++i) {
+						if (iterations < calc [i].maxPredictions && !calc [i].pf.IsBraking () && calc[i].pf.rb.velocity != Vector3.zero) {
+							calc [i].Iterate (ref particles [predictionsTotal]);
+							predictionsTotal++;
+						}
+					}
+					iterations++;
+				}
+			}
             for (int i = predictionsTotal; i < particles.Length; ++i) {
 				particles [i].startSize = 0;
 			}

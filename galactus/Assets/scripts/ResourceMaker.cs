@@ -19,8 +19,8 @@ public class ResourceMaker : MonoBehaviour {
 
 	public void AddSuppression(Vector3 loc) {
 		resourceSuppressVisual.transform.position = loc;
-		resourceSuppressVisual.startLifetime = resourceSettings.suppressionDuration;
-		resourceSuppressVisual.startSize = resourceSettings.suppressionRange;
+//		resourceSuppressVisual.startLifetime = resourceSettings.suppressionDuration;
+//		resourceSuppressVisual.startSize = resourceSettings.suppressionRange;
 		resourceSuppressVisual.Emit(5);
 		suppression.Enqueue(new Suppression(loc, Time.time + resourceSettings.suppressionDuration));
 	}
@@ -76,9 +76,9 @@ public class ResourceMaker : MonoBehaviour {
 
     public void ResourcePoof(Vector3 position, Color color, float size) {
         resourceNodeHarvest.transform.position = position;
-        resourceNodeHarvest.startColor = color;
-        resourceNodeHarvest.startSize = size;
-        resourceNodeHarvest.startSpeed = size;
+//        resourceNodeHarvest.startColor = color;
+//        resourceNodeHarvest.startSize = size;
+//        resourceNodeHarvest.startSpeed = size;
         resourceNodeHarvest.Emit((int)(Mathf.Sqrt(size) * 10));
     }
 

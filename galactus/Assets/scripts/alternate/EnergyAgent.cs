@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+// TODO make an EnergyHeart or something for: resources, regular agents (minimal game logic), player agents (with the cool stat adjust stuff)
 [RequireComponent(typeof(Agent_Properties))]
 public class EnergyAgent : MonoBehaviour {
 
@@ -11,24 +12,12 @@ public class EnergyAgent : MonoBehaviour {
 	protected Agent_Properties resh;
 	protected Agent_MOB mob;
 
-	[SerializeField]
-	private EatSphere eatSphere;
-	public EatSphere GetEatSphere() { return eatSphere; }
-
-	public float GetRadius() {
-		return rad;
-	}
-
-	public float GetEnergy() {
-		return GetComponent<Agent_Properties> ().Energy;
-	}
-
-	public static Agent_Properties.ResourceChangeListener resizeAndReleaseWithEnergy = delegate(Agent_Properties res, string resourceName, float oldValue, float newValue) {
+	public static ValueCalculator<Agent_Properties>.ChangeListener resizeAndReleaseWithEnergy = delegate(Agent_Properties res, string resourceName, float oldValue, float newValue) {
 		if(newValue <= 0) {
 			MemoryPoolItem.Destroy(res.gameObject);
 		} else {
-			EnergyAgent asbe = res.GetComponent<EnergyAgent>();
-			asbe.SetSize(newValue);
+			Agent_SizeAndEffects asbe = res.GetComponent<Agent_SizeAndEffects>();
+			asbe.SetSizeFromEnergy(newValue);
 		}
 	};
 
@@ -41,7 +30,8 @@ public class EnergyAgent : MonoBehaviour {
 		resh.AddValueChangeListener ("energy", resizeAndReleaseWithEnergy);
 		energyDrainPercentagePerSecondDuringMove = Singleton.Get<GameRules> ().EnergyDrainPercentageFor(this);
 		float e = resh.Energy;
-		SetSize (e);
+		Agent_SizeAndEffects asbe = GetComponent<Agent_SizeAndEffects>();
+		asbe.SetSizeFromEnergy(e);
 	}
 
 	void FixedUpdate() {
@@ -54,42 +44,5 @@ public class EnergyAgent : MonoBehaviour {
 				if (drained <= expectToDrain) return;
 			}
 		}
-	}
-
-	void SetRadius(float radius) {
-		this.rad = radius;
-		transform.localScale = new Vector3 (rad, rad, rad);
-		TrailRenderer trail = transform.GetComponent<TrailRenderer>();
-		if (trail) trail.startWidth = rad;
-		if (mob) {
-			mob.rb.mass = radius;
-		} else {
-			GetComponent<ParticleSystem>().startSize = radius*10;
-		}
-
-	}
-	public float CalculateRadiusFromEnergy(float energy) {
-		float radius = (mob == null) ? Mathf.Sqrt (energy) : energy;
-		// TODO create mechanism to modify calculations for different types, including this calculation
-		radius *= Singleton.Get<GameRules> ().sizeToEnergyRatio;
-		radius += 1;
-		return radius;
-	}
-
-	void SetSize(float energy) {
-		SetRadius (CalculateRadiusFromEnergy(energy));
-	}
-
-	public void SetColor(Color c) {
-		ParticleSystem ps = GetComponent<ParticleSystem>();
-		ps.startColor = c;
-		TrailRenderer tr = gameObject.GetComponent<TrailRenderer>();
-		if (tr) {
-			tr.material.SetColor("_TintColor", new Color(c.r, c.g, c.b, 0.25f));
-		}
-	}
-
-	public Color GetColor() {
-		return GetComponent<ParticleSystem>().startColor;
 	}
 }

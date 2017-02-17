@@ -34,15 +34,15 @@ public class ResourceNode : MonoBehaviour {
         Rigidbody rb = GetComponent<Rigidbody>();
         bool moving = rb && rb.velocity != Vector3.zero;
         if (moving) {
-            GetComponent<ParticleSystem>().startSize = Mathf.Sqrt(value);
+//            GetComponent<ParticleSystem>().startSize = Mathf.Sqrt(value);
         } else {
-            GetComponent<ParticleSystem>().startSize = value;
+//            GetComponent<ParticleSystem>().startSize = value;
         }
     }
 
 	public void SetColor(Color c) {
-		ParticleSystem ps = GetComponent<ParticleSystem>();
-		ps.startColor = c;
+//		ParticleSystem ps = GetComponent<ParticleSystem>();
+//		ps.startColor = c;
         TrailRenderer tr = gameObject.GetComponent<TrailRenderer>();
         if (tr)
         {
@@ -51,7 +51,8 @@ public class ResourceNode : MonoBehaviour {
     }
 
     public Color GetColor() {
-		return GetComponent<ParticleSystem>().startColor;
+		return Color.white;
+//		return GetComponent<ParticleSystem>().startColor;
 	}
 
 	void OnTriggerStay(Collider c) {
