@@ -1,5 +1,4 @@
 ﻿#define PREVENT_STACK_OVERFLOW
-#define SHOW_DEPENDENCIES
 #define FAIL_ON_CALCULATED_VALUE_ASSIGNMENT
 using System.Collections;
 using System.Collections.Generic;
@@ -11,7 +10,7 @@ public class ValueCalculator<TARGET> {
 	[HideInInspector]
 	public TARGET target;
 
-	public delegate T ValueRules<T>(TARGET a);
+	public delegate T ValueCalculation<T>(TARGET a);
 	public delegate T Adjustment<T>(T originalValue, object modifyingValue);
 	public delegate void ChangeListener(TARGET res, string resourceName, float oldValue, float newValue);
 
@@ -21,57 +20,84 @@ public class ValueCalculator<TARGET> {
 	[SerializeField]
 	private Dictionary_string_float values;// = new Dictionary_string_float();
 	private TightBucketsOfUniques<string,ChangeListener> changeListeners = null;
+	private Dictionary<string,ChangeListener> staticChangeListeners = null;
+
+	private System.Collections.Generic.HashSet<string> needsCalculation = new HashSet<string>(); 
 
 	/// <summary>how to calculate values</summary>
-	public Dictionary<string,ValueRules<float>> valueCalculationRules = new Dictionary<string, ValueRules<float>>();
+	public Dictionary<string,ValueCalculation<float>> valueCalculationRules = new Dictionary<string, ValueCalculation<float>>();
 	/// <summary>identify which values have an impact on which other values. If a Key value is changed, invalidate each of the Value[] values</summary>
 	private TightBucketsOfUniques<string, string> valueDependencies = null;
 
 	/// <summary>which value is being watched --- FINISHME</summary>
 	private string watchingDependency = null;
+	private int dependencyDepth = -1;
 	#if PREVENT_STACK_OVERFLOW
 	private List<string> dependenciesBeingCalculated = new List<string>();
 	#endif
+	// TODO is this needed? should Modifiers be removed? this feature may be useful in the future... ?
 	/// <summary>modifiers for variables, which are applied after variables are calculated</summary>
 	public TightBucketsOfUniques<string,Modifier<float>> modifiers = null;
 
 	/// <param name="target">Target. an object passed to each calculation function, likely relevant to the values stored in this structure.</param>
+	/// <param name="dict">the dictionary store to use for storing values. will be heavily modified.</param>
+	/// <param name="staticRuleset">an optional dictionary of ChangeListeners, which will not be modified by this structure</param> 
 	public ValueCalculator(TARGET target, Dictionary_string_float dict) {
 		this.target = target;
 		this.values = dict;
 	}
+	/// <returns><c>true</c> if this instance has the specified value; otherwise, <c>false</c>.</returns>
+	public bool HasValue(string valueName) { return values.ContainsKey (valueName); }
 
-	public void SetValueRules(Dictionary<string,ValueRules<float>> rules) {
-		valueCalculationRules = rules;
+	/// <returns>The cached value for the given value name.</returns>
+	public float GetCached(string valueName) { return values [valueName]; }
+
+	/// <summary>Sets the value rules.</summary>
+	/// <param name="calculationRules">Calculation rules. how each automatically-calculated variable is calculated</param>
+	/// <param name="staticChangeListeners">Static change listeners. an immutable list of how variables should notify when calculated/changed</param>
+	/// <param name="valueDependencies">Value dependencies. a table of which values are dependencies for which other variables</param>
+	public void SetValueRules(
+		Dictionary<string,ValueCalculation<float>> calculationRules,
+		Dictionary<string,ChangeListener> staticChangeListeners,
+		TightBucketsOfUniques<string, string> valueDependencies
+	) {
+		this.valueCalculationRules = calculationRules;
+		this.staticChangeListeners = staticChangeListeners;
+		this.valueDependencies = valueDependencies;
+		if (valueDependencies == null) {
+			CalculateValueDependencies ();
+		}
+	}
+
+	public TightBucketsOfUniques<string, string> GetDependencies () {
+		return valueDependencies;
 	}
 
 	void CalculateValueDependency(string valueName) {
 		watchingDependency = valueName;
+		dependencyDepth = 0;
 		Get (valueName);
 		watchingDependency = null;
+		dependencyDepth = -1;
 	}
 
-	// TODO only calculate value dependency table once, and store that in a static place, reference-able by other Agent_Adjust of the same type...
 	public TightBucketsOfUniques<string, string> CalculateValueDependencies() {
 		valueDependencies = new TightBucketsOfUniques<string, string> ();
 		foreach (var kvp in valueCalculationRules) {
 			CalculateValueDependency (kvp.Key);
 		}
-		#if SHOW_DEPENDENCIES
-		string dependencyChart = "";
-		foreach(var d in valueDependencies) {
-			string str = "[";
-			if(d.Value != null) {
-				for(int i=0;i<d.Value.Length;++i){
-					if(i>0)str+=", ";
-					str+=d.Value[i];
-				}
-			}
-			str+="]";
-			dependencyChart += ((dependencyChart.Length > 0)?"\n":"") + d.Key + ": " + str;
-		}
-		Debug.Log (dependencyChart);
-		#endif
+//		string dependencyChart = "";
+//		foreach(var d in valueDependencies) {
+//			string str = "";
+//			if(d.Value != null) {
+//				for(int i=0;i<d.Value.Length;++i){
+//					if(i>0)str+=", ";
+//					str+=d.Value[i];
+//				}
+//			}
+//			dependencyChart += ((dependencyChart.Length > 0)?"\n":"") + d.Key + ": " + str;
+//		}
+//		Debug.Log ("dependencies for "+target+": ["+dependencyChart+"]");
 		return valueDependencies;
 	}
 
@@ -132,10 +158,26 @@ public class ValueCalculator<TARGET> {
 		return modifiers;
 	}
 
+	public string DEBUG_GetDependenciesBeingCalculated() {
+		string str = "";
+		foreach (string s in dependenciesBeingCalculated) {
+			str += ((str.Length > 0) ? ", " : "") + s;
+		}
+		return "[" + str + "]";
+	}
+
+	public string DEBUG_GetWhatNeedsCalculation(){
+		string str = "";
+		foreach (string s in needsCalculation) {
+			str += ((str.Length > 0) ? ", " : "") + s;
+		}
+		return "[" + str + "]";
+	}
+
 	public float Calculate(string valueName, float startingPoint) {
 		#if PREVENT_STACK_OVERFLOW
 		if(dependenciesBeingCalculated.Contains(valueName)) {
-			throw new UnityException("dependency stack recursion: "+dependenciesBeingCalculated+" "+valueName);
+			throw new UnityException("dependency stack recursion: "+DEBUG_GetDependenciesBeingCalculated()+" "+valueName);
 		}
 		dependenciesBeingCalculated.Add(valueName);
 		#endif
@@ -161,14 +203,48 @@ public class ValueCalculator<TARGET> {
 		return result;
 	}
 
+	/// <summary>if there are invalid values that need to be recalculated, recalculate those, and execute value listeners</summary>
+	public void DoCalculations() {
+//		float value;
+//		ChangeListener[] listeners = null;
+//		// find which elements are calculated
+//		foreach (var calc in valueCalculationRules) {
+//			// and have change listeners
+//			if (changeListeners.TryGetValue (calc.Key, out listeners) && listeners != null && listeners.Length > 0
+//				// if these are invalid
+//				&& !values.TryGetValue(calc.Key, out value)) {
+//				// then get the new value, and execute those listeners
+//				value = Get (calc.Key);
+//				changeListeners.ForEachUniqueInBucket (calc.Key, listener => listener (target, calc.Key, 0, value));
+//			}
+//		}
+		float value, oldValue;
+		//foreach (string s in needsCalculation) {
+		string[] arr= new string[40];
+		while(needsCalculation.Count > 0) {
+			needsCalculation.CopyTo(arr);
+			string s = arr [0];
+			if (!values.TryGetValue (s, out oldValue)) {
+				oldValue = 0;
+			}
+			value = Get (s);
+			if (changeListeners != null) {
+				changeListeners.ForEachUniqueInBucket (s, listener => listener (target, s, oldValue, value));
+			}
+			needsCalculation.Remove (s);
+		}
+	}
+
 	public void InvalidateCache(string valueName) {
-		values.Remove (valueName);
+		needsCalculation.Add (valueName);
+		//values.Remove (valueName);
 	}
 
 	public void InvalidateAllCalculatedValues() {
 		foreach(var kvp in valueCalculationRules) {
 			if (kvp.Value != null) {
-				values.Remove (kvp.Key);
+				needsCalculation.Add (kvp.Key);
+				//values.Remove (kvp.Key);
 			}
 		}
 	}
@@ -182,41 +258,64 @@ public class ValueCalculator<TARGET> {
 		// if we need this value while we're looking for another (watched) value
 		if (valueDependencies != null && watchingDependency != null && watchingDependency != valueName) {
 			// mark that this value is a dependency of the watched value
-			valueDependencies.AddUniqueBucketItem (valueName, watchingDependency);
+			if (dependencyDepth == 1) {
+				valueDependencies.AddUniqueBucketItem (valueName, watchingDependency);
+			}
 		}
 		float result;
-		if (!values.TryGetValue (valueName, out result) || watchingDependency != null) {
-			ValueRules<float> initFunc;
+		if (!values.TryGetValue (valueName, out result) || watchingDependency != null || needsCalculation.Contains(valueName)) {
+			ValueCalculation<float> initFunc;
 			if (valueCalculationRules.TryGetValue (valueName, out initFunc)) {
+				if (dependencyDepth >= 0) { dependencyDepth++; }
 				result = Calculate (valueName, initFunc (target));
-				values [valueName] = result; // NOTE: explicitly do not trigger changeListeners. that would be madness.
+//				values [valueName] = result;
+//				invalids.Remove(valueName);
+				Set(valueName, result);
+				if (dependencyDepth >= 0) { dependencyDepth--; }
 			}
 		}
 		return result;
 	}
 
 	public void Set(string valueName, float newValue) {
-		#if FAIL_ON_CALCULATED_VALUE_ASSIGNMENT
-		// if this value is calculated, fail.
-		ValueRules<float> initFunc;
-		if (valueCalculationRules.TryGetValue (valueName, out initFunc)) {
-			throw new UnityException ("Cannot assign to automatically-calculated value \'"+valueName+"\'");
-		}
-		#endif
-		if (changeListeners != null) {		// if there are change listeners
+//		#if FAIL_ON_CALCULATED_VALUE_ASSIGNMENT
+//		// if this value is calculated, fail.
+//		ValueCalculation<float> initFunc;
+//		if (valueCalculationRules.TryGetValue (valueName, out initFunc)) {
+//			throw new UnityException ("Cannot assign to automatically-calculated value \'"+valueName+"\'");
+//		}
+//		#endif
+		if (changeListeners != null || staticChangeListeners != null) {		// if there are change listeners
 			float oldValue = 0;
 			if (!values.TryGetValue (valueName, out oldValue)) {
 				oldValue = 0;
 			}
 			values [valueName] = newValue;
-			changeListeners.ForEachUniqueInBucket (valueName, thing => thing (target, valueName, oldValue, newValue));
-			changeListeners.ForEachUniqueInBucket ("", thing => thing (target, valueName, oldValue, newValue));
+			needsCalculation.Remove(valueName);
+			if (changeListeners != null) {
+				changeListeners.ForEachUniqueInBucket (valueName, thing => thing (target, valueName, oldValue, newValue));
+				changeListeners.ForEachUniqueInBucket ("", thing => thing (target, valueName, oldValue, newValue));
+			}
+			if (staticChangeListeners != null) {
+				ChangeListener listener;
+				if (staticChangeListeners.TryGetValue (valueName, out listener)) { listener (target, valueName, oldValue, newValue); }
+			}
 		} else {
 			values [valueName] = newValue;
+			needsCalculation.Remove(valueName);
 		}
 		if (valueDependencies != null) { // if other values might depend on this one
+//			string str = "";
 			// invalidate values that depend on this one, which will cause them to re-calculate next time they are checked.
-			valueDependencies.ForEachUniqueInBucket (valueName, (dependency) => { InvalidateCache (dependency); });
+			valueDependencies.ForEachUniqueInBucket (valueName, (dependency) => { 
+//				str += ((str.Length > 0)?", ":"")+dependency;
+				InvalidateCache (dependency); 
+			});
+			// don't update depending members if we're calculating dependency
+			if (watchingDependency == null) {
+				//Debug.Log(valueName+" invalidated ["+str+"] for "+target.ToString()+"\ninvalid: "+DEBUG_GetWhatNeedsCalculation());
+				DoCalculations ();
+			}
 		}
 	}
 

@@ -31,11 +31,12 @@ public class EatSphere : MonoBehaviour {
 
 	public Agent_SizeAndEffects eating;
 
-	public float GetRadius() { return transform.lossyScale.z; }
+	public float GetRadius() { return transform.lossyScale.z/2; }
 	public void SetRadius(float rad) {
+		float s = rad * 2;
 		Transform p = transform.parent;
 		transform.parent = null;
-		transform.localScale = new Vector3 (rad, rad, rad);
+		transform.localScale = new Vector3 (s, s, s);
 		transform.parent = p;
 	}
 
@@ -56,6 +57,9 @@ public class EatSphere : MonoBehaviour {
 	}
 
 	void FixedUpdate () {
+		if(Input.GetKeyDown(KeyCode.Alpha7)) {
+			owner.AddToValue (resourceName, 1);
+		}
 		if (waiting > 0) { 
 			waiting -= Time.deltaTime;
 			if (waiting <= 0) {
@@ -150,8 +154,9 @@ public class EatSphere : MonoBehaviour {
 			break;
 		case WaitingFor.activate:
 			if (caught && caught != owner) {
-				Agent_Properties props = caught.GetComponent<Agent_Properties> ();
-				float whatIsLeft = props.LoseValue (resourceName, power);
+				Agent_Properties other = caught.GetComponent<Agent_Properties> ();
+				float effectivePower = Mathf.Max(0,power - other ["defense"]);
+				float whatIsLeft = other.LoseValue (resourceName, effectivePower);
 				if (whatIsLeft != 0) {
 					//print ("draining " + caught + " " + whatIsLeft + " " + resourceName);
 					owner.AddToValue (resourceName, whatIsLeft * conversionRate);

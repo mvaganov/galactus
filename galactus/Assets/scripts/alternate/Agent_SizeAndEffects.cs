@@ -20,6 +20,7 @@ public class Agent_SizeAndEffects : MonoBehaviour {
 		return transform.localScale.z;
 	}
 
+	// TODO remove?
 	public float GetEnergy() {
 		return GetComponent<Agent_Properties> ().Energy;
 	}
@@ -73,5 +74,9 @@ public class Agent_SizeAndEffects : MonoBehaviour {
 
 	public Color GetEffectColor() {
 		return GetComponent<ParticleSystem>().main.startColor.color;
+	}
+
+	public void SetParticleSpeed(float speed) {
+		GetComponent<ParticleSystem> ().SetParticleSpeed (speed);
 	}
 }

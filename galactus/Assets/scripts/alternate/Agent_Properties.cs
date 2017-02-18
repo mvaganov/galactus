@@ -3,27 +3,77 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class Agent_Properties : MonoBehaviour {
-
-//	public delegate void ResourceChangeListener(Agent_Properties res, string resourceName, float oldValue, float newValue);
-
 	public string typeName;
+
+	[HideInInspector]
+	public Agent_MOB mob;
+	[HideInInspector]
+	public Agent_SizeAndEffects sizeNeffects;
+	[HideInInspector]
+	public EatSphere eatS;
 
 	[SerializeField]
 	private Dictionary_string_float values = new Dictionary_string_float();
 	private ValueCalculator<Agent_Properties> vc = null;
-//	private TightBucketsOfUniques<string,ResourceChangeListener> changeListeners = null;
+
+	public string DEBUG_OUT() {
+		return vc.DEBUG_GetDependenciesBeingCalculated ();
+	}
 
 	void EnsureValueCalculations() {
 		if (vc == null) {
-			vc = new ValueCalculator<Agent_Properties> (this, values);
+			// if there are rules for this sort of thing
+			GameRules.ValueRules vr;
+			if (GameRules.AGENT_RULES.TryGetValue (typeName, out vr)) {
+				// prepare to implement those rules
+				vc = new ValueCalculator<Agent_Properties> (this, values);
+//				print ("getting rules for " + typeName);
+				// apply those rules to this thing!
+				vc.SetValueRules (vr.calculation, vr.changeListeners, vr.dependencies);
+				// if the dependencies havent been calculated for these rules yet
+				if (vr.dependencies == null) {
+					// use the dependency calculation just done here as the standard for the rule set
+					vr.dependencies = vc.GetDependencies ();
+				}
+			}
+//			else {
+//				print ("MISSING RULES FOR TYPE \'"+typeName+"\'");
+//			}
 		}
 	}
 
-	void Start() {
+	public bool HasValue(string valueName) {
+		return vc.HasValue (valueName);
+	}
+
+	public float GetCached(string valueName) {
+		return vc.GetCached(valueName);
+	}
+
+	public void EnsureComponents() {
+		if (!mob) {
+			mob = GetComponent<Agent_MOB> ();
+			sizeNeffects = GetComponent<Agent_SizeAndEffects> ();
+			eatS = sizeNeffects.GetEatSphere ();
+		}
 		EnsureValueCalculations ();
 	}
 
+	void Start() {
+		EnsureComponents ();
+	}
+
+	float energyDrainTimer = 1;
+	void FixedUpdate() {
+		energyDrainTimer -= Time.deltaTime;
+		if (energyDrainTimer <= 0) {
+			energyDrainTimer += 1;
+			LoseValue ("energy", this ["energyDrain"]);
+		}
+	}
+
 	public void Reset() {
+		EnsureComponents ();
 		Dictionary_string_float defaults = Singleton.Get<GameRules> ().GetDefaultEnergyFor(typeName);
 		Clear ();
 		if (defaults != null) {
@@ -38,12 +88,10 @@ public class Agent_Properties : MonoBehaviour {
 		set { SetValue("energy", value); }
 	}
 
-	public float SpeedPts { get { return values["+speed"]; } }
-
 	public float this[string i]
 	{
-		get { return vc.Get (i); } //return GetValue(i); }
-		set { vc.Set (i, value); } //SetValue(i, value); }
+		get { return vc.Get (i); }
+		set { vc.Set (i, value); }
 	}
 
 	public float LoseValue(string name, float amountTaken) {
@@ -73,28 +121,22 @@ public class Agent_Properties : MonoBehaviour {
 	}
 
 	public void SetValue(string resourceName, float newValue) {
-//		if (changeListeners != null) {
-//			float oldValue = 0;
-//			if (!values.TryGetValue (resourceName, out oldValue)) {
-//				oldValue = 0;
-//			}
-//			values [resourceName] = newValue;
-//			changeListeners.ForEachUniqueInBucket (resourceName, thing => thing (this, resourceName, oldValue, newValue));
-//			changeListeners.ForEachUniqueInBucket ("", thing => thing (this, resourceName, oldValue, newValue));
-//		} else {
-//			values [resourceName] = newValue;
-//		}
 		EnsureValueCalculations();
-		vc.Set(resourceName, newValue);
+		if (vc != null) {
+			vc.Set (resourceName, newValue);
+		} else {
+			print ("missing VC for "+typeName+" "+name);
+			values [resourceName] = newValue;
+		}
 	}
 
 	public float GetValue(string resourceName) {
-//		float amnt = 0;
-//		if (values.TryGetValue (resourceName, out amnt)) {
-//			return amnt;
-//		}
-//		return 0;
-		return vc.Get(resourceName);
+		if (vc != null) {
+			return vc.Get (resourceName);
+		}
+		print ("missing VC for "+typeName+" "+name);
+		float valu;
+		return values.TryGetValue (resourceName, out valu) ? valu : 0;
 	}
 
 	public void Clear() { values.Clear (); }
@@ -107,19 +149,15 @@ public class Agent_Properties : MonoBehaviour {
 	/// <param name="resourceName">Resource name. if an empty string, this listener will trigger for *every* change</param>
 	/// <param name="listener">Listener.</param>
 	public bool AddValueChangeListener(string resourceName, ValueCalculator<Agent_Properties>.ChangeListener listener) {
-//		if (changeListeners == null) {
-//			changeListeners = new TightBucketsOfUniques<string, ResourceChangeListener> (); //new Dictionary<string, ResourceChangeListener[]> ();
-//		}
-//		return changeListeners.AddUniqueBucketItem(resourceName, listener);
-		EnsureValueCalculations();
-		return vc.AddValueChangeListener(resourceName, listener);
+		EnsureComponents ();
+		if (vc != null) {
+			return vc.AddValueChangeListener (resourceName, listener);
+		} else {
+			return false;
+		}
 	}
 
 	public bool RemoveValueChangeListener(string resourceName, ValueCalculator<Agent_Properties>.ChangeListener listener) {
-//		if (changeListeners != null) {
-//			return changeListeners.RemoveUniqueBucketItem(resourceName, listener);
-//		}
-//		return false;
 		return vc.RemoveValueChangeListener(resourceName, listener);
 	}
 }

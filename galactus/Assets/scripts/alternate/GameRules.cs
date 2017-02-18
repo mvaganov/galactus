@@ -11,6 +11,7 @@ public class GameRules : MonoBehaviour {
 	public float cooldownToSizeRatio = 0.75f;
     public float agentSpeedLimit = 150;
 	public float costToCreateAgent = 100;
+	public float timeCostToCreateAgent = 100;
     public float projectileSpeedLimit = 350;
     /// <summary>when a damage particle is sent, it costs X*DAMAGE_ENERGY_COST_RATIO energy to send</summary>
     public float damageToEnergyRatio = 0.5f;
@@ -24,11 +25,12 @@ public class GameRules : MonoBehaviour {
 
     SphereCollider sc;
 
-	public float EnergyDrainPercentageFor(EnergyAgent go) {
-		if (go.GetComponent<Agent_MOB> ()) return energyDrainPercentagePerSecond_MOB;
-		return energyDrainPercentagePerSecond_Collectable;
-	}
+//	public float EnergyDrainPercentageFor(EnergyAgent go) {
+//		if (go.GetComponent<Agent_MOB> ()) return energyDrainPercentagePerSecond_MOB;
+//		return energyDrainPercentagePerSecond_Collectable;
+//	}
 
+	// TODO rename ResourceHolder to Properties
 	public void RegisterResourceHolderPrefab(GameObject go) {
 		Agent_Properties ap = go.GetComponent<Agent_Properties> ();
 		if (!ap)
@@ -62,26 +64,92 @@ public class GameRules : MonoBehaviour {
         return loc;
     }
 
-	// TODO replace Agent_StateGameplay with Agent_Properties, and remove the need for AgentSateGameplay
-	public static Dictionary<string, Dictionary<string,ValueCalculator<Agent_StatGameplay>.ValueRules<float>>> AGENT_RULES = 
-		new Dictionary<string, Dictionary<string,ValueCalculator<Agent_StatGameplay>.ValueRules<float>>>{
-		{"agent", new Dictionary<string,ValueCalculator<Agent_StatGameplay>.ValueRules<float>>() {
-			{"baseRadius",(a)=>	{	return Mathf.Sqrt (a.props["energy"]*Singleton.Get<GameRules>().sizeToEnergyRatio);}},
-			{"rad", (a) =>		{	float r=a.props["radCtrl"];	return Mathf.Max(r, a.adj["baseRadius"]-r);}},
-			{"speed", (a) =>	{	float s=a.props["+speed"];	return a.baseSpeed / Mathf.Max(1,a.adj["rad"]-s);}},
-			{"turn", (a) =>		{	float t=a.props["+turn"];	return a.baseTurn / Mathf.Max(1,a.adj["rad"]-t);}},
-			{"accel", (a) =>	{	float c=a.props["+accel"];	return a.baseAccel + a.adj["rad"] + c; }},
-			{"eatSize", (a) =>	{	return a.adj["rad"]*a.baseEatRadRatio+a.props["+eatRadius"];}},
-			{"eatRange", (a) =>	{	return a.adj["rad"]/2+(a.props["+eatRange"])*a.props["eatSize"];}},
-			{"eatPower", (a) =>	{	return a.adj["rad"]+a.props["+eatPower"];}},
-			{"eatWarmup", (a)=>	{	return Mathf.Max(0, a.adj["rad"]-a.props["+eatWarmup"]) * Singleton.Get<GameRules>().warmupToSizeRatio;}},
-			{"eatCooldown",(a)=>{	return Mathf.Max(0, a.adj["rad"]-a.props["+eatCooldown"]) * Singleton.Get<GameRules>().cooldownToSizeRatio;}},
-			{"defense", (a)=>	{	return a.adj["rad"]/2 + a.props["+defense"];}},// TODO implement defense, TODO gamerules.defense cost
-			{"share", (a)=>		{	return Mathf.Sqrt(a.adj["rad"]);}},// TODO implement sharing
-			{"birthCost", (a)=>	{	return Singleton.Get<GameRules>().costToCreateAgent/(a.props["+birthCost"]+1) - a.adj["rad"];}}, // TODO implement birth
-		}}
-	};
+	public class ValueRules {
+		public Dictionary<string,string> descriptions;
+		/// <summary>define how variables are calculated</summary>
+		public Dictionary<string,ValueCalculator<Agent_Properties>.ValueCalculation<float>> calculation;
+		/// <summary>define code that runs in response to values being set</summary>
+		public Dictionary<string,ValueCalculator<Agent_Properties>.ChangeListener> changeListeners;
+		/// <summary>is filled with calculated structure identifying which values depend on which other values, and thus when values should be recalculated</summary>
+		public TightBucketsOfUniques<string, string> dependencies;
 
-	public static Dictionary<string, TightBucketsOfUniques<string, string>> VALUE_DEPENDENCIES = 
-		new Dictionary<string, TightBucketsOfUniques<string, string>>();
+		public ValueRules(Dictionary<string,ValueCalculator<Agent_Properties>.ValueCalculation<float>> calculation,
+			Dictionary<string,ValueCalculator<Agent_Properties>.ChangeListener> changeListeners,
+			Dictionary<string,string> descriptions) {
+			this.calculation = calculation;
+			this.changeListeners = changeListeners;
+			this.descriptions = descriptions;
+		}
+	}
+
+	private static ValueRules agentRules = new ValueRules(
+		new Dictionary<string,ValueCalculator<Agent_Properties>.ValueCalculation<float>>() {
+			{"baseSpeed",	(a)=>{	return a.HasValue("baseSpeed")?a.GetCached("baseSpeed"):a.mob.maxSpeed;}},
+			{"baseAccel",	(a)=>{	return a.HasValue("baseAccel")?a.GetCached("baseAccel"):a.mob.acceleration;}},
+			{"baseTurn",	(a)=>{	return a.HasValue("baseTurn")?a.GetCached("baseTurn"):a.mob.turnSpeed;}},
+			{"baseEatRadRatio",(a)=>{return a.HasValue("baseEatRadRatio")?a.GetCached("baseEatRadRatio"):(a.eatS.GetRadius()/a.sizeNeffects.GetRadius());}},
+			{"baseRadius",	(a)=>{	return Mathf.Sqrt (a["energy"]*Singleton.Get<GameRules>().sizeToEnergyRatio);}},
+			{"rad",			(a)=>{	float r=a["radControl_"];	return Mathf.Max(r, a["baseRadius"]-r);}},
+			{"speed",		(a)=>{	float s=a["speed_"],r=a["rad"],b=a["baseSpeed"];	return (s<=r)?(b / (r-s)):(b+(s-r));}},
+			{"turn",		(a)=>{	float t=a["turn_"],r=a["rad"],b=a["baseTurn"];	return (t<=r)?(b / (r-t)):(b+(t-r));}},
+			{"accel",		(a)=>{	return a["baseAccel"] + a["rad"] + a["accel_"]; }},
+			{"eatSize",		(a)=>{	return a["rad"]*a["baseEatRadRatio"]+a["eatRadius_"];}},
+			{"eatRange",	(a)=>{	return 0.75f+(a["eatRange_"]-a["eatSize"])/2;}},
+			{"eatPower",	(a)=>{	return a["rad"]+a["eatPower_"];}},
+			{"eatWarmup",	(a)=>{	return Mathf.Max(0, a["rad"]-a["eatWarmup_"]) * Singleton.Get<GameRules>().warmupToSizeRatio;}},
+			{"eatCooldown",	(a)=>{	return Mathf.Max(0, a["rad"]-a["eatCooldown_"]) * Singleton.Get<GameRules>().cooldownToSizeRatio;}},
+			{"defense",		(a)=>{	return a["rad"]/2 + a["defense_"];}},
+			{"share",		(a)=>{	return Mathf.Sqrt(a["rad"]) + a["energyShare_"];}},// TODO implement sharing
+			{"birthCost",	(a)=>{	return (Singleton.Get<GameRules>().costToCreateAgent/(a["birthcost_"]+1)) - a["rad"];}}, // TODO implement birth
+			{"energyDrain",	(a)=>{	return Mathf.Max(0,a["rad"]-a["energySustain_"])*Singleton.Get<GameRules>().energyDrainPercentagePerSecond_MOB; }}
+		},
+		new Dictionary<string,ValueCalculator<Agent_Properties>.ChangeListener>(){
+			{"rad",(a,name,old,val)=>{a.sizeNeffects.SetRadius(val);}},
+			{"accel",(a,name,old,val)=>{a.mob.acceleration = val;}},
+			{"turn",(a,name,old,val)=>{a.mob.turnSpeed = val;}},
+			{"speed",(a,name,old,val)=>{a.mob.maxSpeed = val;}},
+			{"eatSize",(a,name,old,val)=>{a.eatS.SetRadius(val);}},
+			{"eatRange",(a,name,old,val)=>{a.eatS.transform.localPosition=new Vector3(0,0,val);}},
+			{"eatPower",(a,name,old,val)=>{a.eatS.power = val;}}, // TODO use props["eatPower"]
+			{"eatWarmup",(a,name,old,val)=>{a.eatS.warmup = val;}}, // TODO use props["eatWarmup"]
+			{"eatCooldown",(a,name,old,val)=>{a.eatS.cooldown = val;}}, // TODO use props["eatCooldown"]
+			{"energy",(a,name,old,val)=>{ if(val <= 0) { MemoryPoolItem.Destroy(a.gameObject); } }}
+		},
+		new Dictionary<string,string>(){
+			{"speed_", "Movement Speed\nIncrease max speed, as though smaller."},
+			{"turn_", "Turn Speed\nTurn as though smaller."},
+			{"accel_", "Acceleration Power\nAccelerate with the force of being bigger."},
+			{"radControl_", "Radius Control\nSet the size of your radius if small, decrease if large."},
+			{"eatRadius_", "Eat Sphere Radius\nYour Eat Sphere as though you were bigger"},
+			{"eatRange_", "Eat Sphere Range\nMove your eat sphere further away"},
+			{"eatPower_", "Eat Power\nEat as though you were bigger"},
+			{"eatWarmup_", "Eat Readiness\nGet ready to eat faster, as though you were smaller"},
+			{"eatCooldown_", "Eat Speed\nRecover from eating faster, as though you were smaller"},
+			{"defense_", "Defense\nDefend against eating and attacks better, as though you were bigger"},
+			{"birthcost_", "Birth Cost Reduction\nReduce the energy requirement of creating another team member"},
+			{"energySustain_", "Energy Sustain\nReduce your energy decay rate, as though you were smaller"},
+			{"energyShare_","Energy Share\nIncrease the amount of energy shared"}
+		}
+	);
+	private static ValueRules resourceRules = new ValueRules(
+		new Dictionary<string,ValueCalculator<Agent_Properties>.ValueCalculation<float>>() {
+			{"rad",			(a)=>{	return a["energy"];}},
+		}, 
+		new Dictionary<string,ValueCalculator<Agent_Properties>.ChangeListener>(){
+			{"rad",(a,name,old,val)=>{
+					float v = Mathf.Sqrt(val);
+					a.sizeNeffects.SetRadius(v);
+					a.sizeNeffects.SetParticleSpeed(val);
+				}},
+			{"energy",(a,name,old,val)=>{ if(val <= 0) { MemoryPoolItem.Destroy(a.gameObject); } }}
+		},null
+	);
+
+	// TODO replace Agent_StateGameplay with Agent_Properties, and remove the need for AgentSateGameplay
+	public static Dictionary<string, ValueRules> AGENT_RULES = 
+		new Dictionary<string, ValueRules>{
+		{"hunter", agentRules},
+		{"agent", agentRules},
+		{"resource", resourceRules}
+	};
 }

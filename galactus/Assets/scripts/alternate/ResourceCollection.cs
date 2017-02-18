@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class ResourceCollection : MonoBehaviour {
 
 	MemoryPool<GameObject> resourceNodes;
-	public EnergyAgent pfab_resource;
+	public Agent_Properties pfab_resource;
 	public string resourceName = "energy";
 	private Effects.Effect harvest, waste;
 
@@ -117,10 +117,10 @@ public class ResourceCollection : MonoBehaviour {
 			new Color(Random.Range(0, 1.0f), Random.Range(0, 1.0f), Random.Range(0, 1.0f)), resourceName);
 	}
 
-	public Agent_SizeAndEffects CreateResourceNode(Vector3 loc, float value, Color color, string resourceName)
-    {
+	public Agent_SizeAndEffects CreateResourceNode(Vector3 loc, float value, Color color, string resourceName) {
 		Agent_SizeAndEffects rn = resourceNodes.Alloc().GetComponent<Agent_SizeAndEffects>();
 		Agent_Properties h = rn.GetComponent<Agent_Properties> ();
+		h.EnsureComponents ();
 		h.SetValue (resourceName, value);
         rn.SetColor(color);
         rn.transform.position = loc;

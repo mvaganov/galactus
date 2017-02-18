@@ -12,37 +12,37 @@ public class EnergyAgent : MonoBehaviour {
 	protected Agent_Properties resh;
 	protected Agent_MOB mob;
 
-	public static ValueCalculator<Agent_Properties>.ChangeListener resizeAndReleaseWithEnergy = delegate(Agent_Properties res, string resourceName, float oldValue, float newValue) {
-		if(newValue <= 0) {
-			MemoryPoolItem.Destroy(res.gameObject);
-		} else {
-			Agent_SizeAndEffects asbe = res.GetComponent<Agent_SizeAndEffects>();
-			asbe.SetSizeFromEnergy(newValue);
-		}
-	};
-
-	// Use this for initialization
-	void Start () {
-		mob = GetComponent<Agent_MOB> ();
-		if (mob) { mob.EnsureRigidBody (); }
-		resh = GetComponent<Agent_Properties> ();
-		// add listener to the resource holder
-		resh.AddValueChangeListener ("energy", resizeAndReleaseWithEnergy);
-		energyDrainPercentagePerSecondDuringMove = Singleton.Get<GameRules> ().EnergyDrainPercentageFor(this);
-		float e = resh.Energy;
-		Agent_SizeAndEffects asbe = GetComponent<Agent_SizeAndEffects>();
-		asbe.SetSizeFromEnergy(e);
-	}
-
-	void FixedUpdate() {
-		if (mob && energyDrainPercentagePerSecondDuringMove != 0 && mob.rb.velocity != Vector3.zero) {
-			shortTimer += Time.deltaTime;
-			if (shortTimer >= 1) {
-				shortTimer -= 1;
-				float expectToDrain = rad * energyDrainPercentagePerSecondDuringMove;
-				float drained = resh.LoseValue ("energy", expectToDrain);
-				if (drained <= expectToDrain) return;
-			}
-		}
-	}
+//	public static ValueCalculator<Agent_Properties>.ChangeListener resizeAndReleaseWithEnergy = delegate(Agent_Properties res, string resourceName, float oldValue, float newValue) {
+//		if(newValue <= 0) {
+//			MemoryPoolItem.Destroy(res.gameObject);
+//		} else {
+//			Agent_SizeAndEffects asbe = res.GetComponent<Agent_SizeAndEffects>();
+//			asbe.SetSizeFromEnergy(newValue);
+//		}
+//	};
+//
+//	// Use this for initialization
+//	void Start () {
+//		mob = GetComponent<Agent_MOB> ();
+//		if (mob) { mob.EnsureRigidBody (); }
+//		resh = GetComponent<Agent_Properties> ();
+//		// add listener to the resource holder
+//		resh.AddValueChangeListener ("energy", resizeAndReleaseWithEnergy);
+//		energyDrainPercentagePerSecondDuringMove = Singleton.Get<GameRules> ().EnergyDrainPercentageFor(this);
+//		float e = resh.Energy;
+//		Agent_SizeAndEffects asbe = GetComponent<Agent_SizeAndEffects>();
+//		asbe.SetSizeFromEnergy(e);
+//	}
+//
+//	void FixedUpdate() {
+//		if (mob && energyDrainPercentagePerSecondDuringMove != 0 && mob.rb.velocity != Vector3.zero) {
+//			shortTimer += Time.deltaTime;
+//			if (shortTimer >= 1) {
+//				shortTimer -= 1;
+//				float expectToDrain = rad * energyDrainPercentagePerSecondDuringMove;
+//				float drained = resh.LoseValue ("energy", expectToDrain);
+//				if (drained <= expectToDrain) return;
+//			}
+//		}
+//	}
 }
