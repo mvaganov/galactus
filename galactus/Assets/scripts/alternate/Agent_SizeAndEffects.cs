@@ -34,8 +34,9 @@ public class Agent_SizeAndEffects : MonoBehaviour {
 		if (trail) trail.startWidth = s;
 		if (mob) {
 			mob.rb.mass = s * Singleton.Get<GameRules>().massToEnergyRatio;
+			GetComponent<ParticleSystem> ().SetParticleSize(1);
 		} else {
-			GetComponent<ParticleSystem> ().SetParticleSize(s*10);
+			GetComponent<ParticleSystem> ().SetParticleSize(s*5);
 		}
 	}
 

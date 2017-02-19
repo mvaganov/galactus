@@ -34,10 +34,10 @@ public class EatSphere : MonoBehaviour {
 	public float GetRadius() { return transform.lossyScale.z/2; }
 	public void SetRadius(float rad) {
 		float s = rad * 2;
-		Transform p = transform.parent;
-		transform.parent = null;
+		//Transform p = transform.parent;
+		//transform.parent = null;
 		transform.localScale = new Vector3 (s, s, s);
-		transform.parent = p;
+		//transform.parent = p;
 	}
 
 	void Start() {
