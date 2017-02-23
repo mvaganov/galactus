@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class GameRules : MonoBehaviour {
 
+	public static float MINIMUM_PREY_SIZE = 0.75f;
+
 	public float maxResourceLifetime = 120;
     public float sizeToEnergyRatio = 1 / 32.0f;
     public float massToEnergyRatio = 0.25f;
@@ -90,16 +92,17 @@ public class GameRules : MonoBehaviour {
 			{"baseEatRad",	(a)=>{return a.HasValue("baseEatRad")?a.GetCached("baseEatRad"):(a.eatS.GetRadius());}},
 			{"baseRadius",	(a)=>{	return Mathf.Sqrt (a["energy"]*Singleton.Get<GameRules>().sizeToEnergyRatio);}},
 			{"rad",			(a)=>{	float r=a["radControl_"];	return Mathf.Max(r, a["baseRadius"]-r);}},
-			{"speed",		(a)=>{	float s=a["speed_"],r=a["rad"],b=a["baseSpeed"];	return (s<=r)?(b / (r-s)):(b+(s-r));}},
+			{"speed",		(a)=>{	float s=a["speed_"],r=a["rad"],b=a["baseSpeed"];	return (s<=r)?(b / Mathf.Max(1,r-s)):(b+(s-r));}},
 			{"turn",		(a)=>{	float t=a["turn_"],r=a["rad"],b=a["baseTurn"];	return (t<=r)?(b / (r-t)):(b+(t-r));}},
 			{"accel",		(a)=>{	return a["baseAccel"] + a["rad"] + a["accel_"]; }},
 			{"eatSize",		(a)=>{	return a["baseEatRad"]*(a["eatSize_"]+1);}},
-			{"eatRange",	(a)=>{	return 0.75f+(a["eatRange_"]-a["eatSize"])/2;}},
-			{"eatPower",	(a)=>{	return a["rad"]+a["eatPower_"]*10;}},
-			{"eatWarmup",	(a)=>{	return Mathf.Max(1/1024f, a["rad"]-a["eatWarmup_"]) * Singleton.Get<GameRules>().warmupToSizeRatio;}},
-			{"eatCooldown",	(a)=>{	return Mathf.Max(1/1024f, a["rad"]-a["eatCooldown_"]) * Singleton.Get<GameRules>().cooldownToSizeRatio;}},
-			{"defense",		(a)=>{	return a["rad"]/2 + a["defense_"];}},
-			{"share",		(a)=>{	return Mathf.Sqrt(a["rad"]) + a["energyShare_"];}},// TODO implement sharing
+			{"eatRange",	(a)=>{	return Mathf.Max(0,0.75f+(a["eatRange_"]-a["eatSize"])/2);}},
+			{"eatPower",	(a)=>{	return a["rad"]+a["eatPower_"];}},
+			{"eatWarmup",	(a)=>{	return Mathf.Max(Time.fixedDeltaTime, a["rad"]-a["eatWarmup_"]) * Singleton.Get<GameRules>().warmupToSizeRatio;}},
+			{"eatCooldown",	(a)=>{	return Mathf.Max(Time.fixedDeltaTime, a["rad"]-a["eatCooldown_"]) * Singleton.Get<GameRules>().cooldownToSizeRatio;}},
+			{"defense",		(a)=>{	return a["rad"] + (a["defense_"]);}},
+			{"penetration",	(a)=>{	return a["rad"] + (a["penetration_"]*1.5f);}},
+			{"share",		(a)=>{	return Mathf.Min(a["energy"]-10, Mathf.Sqrt(a["rad"]) + a["energyShare_"]);}},// TODO implement sharing
 			{"birthCost",	(a)=>{	return (Singleton.Get<GameRules>().costToCreateAgent/(a["birthcost_"]+1)) - a["rad"];}}, // TODO implement birth
 			{"energyDrain",	(a)=>{	return Mathf.Max(0,a["rad"]-a["energySustain_"])*Singleton.Get<GameRules>().energyDrainPercentagePerSecond_MOB; }}
 		},
@@ -110,25 +113,25 @@ public class GameRules : MonoBehaviour {
 			{"speed",(a,name,old,val)=>{a.mob.maxSpeed = val;}},
 			{"eatSize",(a,name,old,val)=>{a.eatS.SetRadius(val);}},
 			{"eatRange",(a,name,old,val)=>{a.eatS.transform.localPosition=new Vector3(0,0,val);}},
-			{"eatPower",(a,name,old,val)=>{a.eatS.power = val;}}, // TODO use props["eatPower"]
 			{"eatWarmup",(a,name,old,val)=>{a.eatS.warmup = val;}}, // TODO use props["eatWarmup"]
 			{"eatCooldown",(a,name,old,val)=>{a.eatS.cooldown = val;}}, // TODO use props["eatCooldown"]
 			{"energy",(a,name,old,val)=>{ if(val <= 0) { MemoryPoolItem.Destroy(a.gameObject); } }}
 		},
 		new Dictionary<string,string>(){
-			{"speed_", "Movement Speed\nIncrease max speed, as though smaller."},
-			{"turn_", "Turn Speed\nTurn as though smaller."},
-			{"accel_", "Acceleration Power\nAccelerate with the force of being bigger."},
-			{"radControl_", "Radius Control\nSet the size of your radius if small, decrease if large."},
-			{"eatSize_", "Eat Sphere Radius\nYour Eat Sphere as though you were bigger"},
-			{"eatRange_", "Eat Sphere Range\nMove your eat sphere further away"},
-			{"eatPower_", "Eat Power\nEat as though you were bigger"},
-			{"eatWarmup_", "Eat Readiness\nGet ready to eat faster, as though you were smaller"},
-			{"eatCooldown_", "Eat Speed\nRecover from eating faster, as though you were smaller"},
-			{"defense_", "Defense\nDefend against eating and attacks better, as though you were bigger"},
-			{"birthcost_", "Birth Cost Reduction\nReduce the energy requirement of creating another team member"},
-			{"energySustain_", "Energy Sustain\nReduce your energy decay rate, as though you were smaller"},
-			{"energyShare_","Energy Share\nIncrease the amount of energy shared"}
+			{"speed_", "Movement Speed\nIncrease maximum-speed"},
+			{"turn_", "Turn Speed\nTurn faster"},
+			{"accel_", "Acceleration Power\nAccelerate with more force"},
+			{"radControl_", "Radius Control\nIf small: set the size of your radius; if large: decrease it"},
+			{"eatSize_", "Eat Sphere Radius\nBigger eat-sphere"},
+			{"eatRange_", "Eat Sphere Range\nMove your eat-sphere further away"},
+			{"eatPower_", "Eat Power\nEat more at once"},
+			{"eatWarmup_", "Eat Readiness\nGet-ready-to-eat faster"},
+			{"eatCooldown_", "Eat Speed\nRecover-from-eating faster"},
+			{"defense_", "Defense\nDefend against attacks better"},
+			{"penetration_","Penetration\nBreak through the others\' defenses"},
+			{"birthcost_", "Birth Cost Reduction\nReduce energy requirement of creating team members"},
+			{"energySustain_", "Energy Sustain\nReduce energy decay rate"},
+			{"energyShare_","Energy Share\nIncrease amount of energy shared at once"}
 		}
 	);
 	private static ValueRules resourceRules = new ValueRules(

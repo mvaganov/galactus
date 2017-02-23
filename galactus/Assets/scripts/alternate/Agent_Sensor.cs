@@ -4,16 +4,14 @@ using System.Collections;
 [RequireComponent(typeof(Agent_SizeAndEffects))]
 public class Agent_Sensor : MonoBehaviour {
 
-	public float range = 500;
-	public float radiusExtra = 20;
+	public float range = 200;
+	public float radiusExtra = 10;
 	public float sensorUpdateTime = 1.0f / 32;
 	private float sensorTimer = 0;
-	// TODO rename owner->sizeAndEffects
-	[HideInInspector]
-	public Agent_SizeAndEffects owner;
-	public float randomSensorBeamSpread = 0;
 
-//	private GameObject testRay;
+	[HideInInspector]
+	public Agent_SizeAndEffects sizeAndEffects;
+	public float randomSensorBeamSpread = 0;
 
 	public struct SensorSnapshot
 	{
@@ -24,30 +22,40 @@ public class Agent_Sensor : MonoBehaviour {
 			this.sensed=data;
 		}
 	}
+
 	private SensorSnapshot recent;
 
 	public SensorSnapshot GetSnapshot() {
 		return recent;
 	}
 
+	public Transform GetSensedThatIsnt(Transform t) {
+		for (int i = 0; i < recent.sensed.Length; ++i) {
+			if (recent.sensed [i].transform != t) {
+				return recent.sensed [i].transform;
+			}
+		}
+		return null;
+	}
+
 	public SensorSnapshot TakeSnapshot(Vector3 origin, Vector3 direction) {
 		Ray r = new Ray (origin, direction);
-		RaycastHit[] hits = Physics.SphereCastAll (r, owner.GetRadius () + radiusExtra, range + owner.GetRadius (), owner.gameObject.layer);
+		RaycastHit[] hits = Physics.SphereCastAll (r, sizeAndEffects.GetRadius () + radiusExtra, range, 1 << sizeAndEffects.gameObject.layer);
 		return new SensorSnapshot (Time.time, hits);
 	}
 
+	private GameObject testRay;
 	public SensorSnapshot TakeSnapshot() {
 		Vector3 dir = transform.forward;
 		if (randomSensorBeamSpread != 0) {
 			dir = Quaternion.AngleAxis (Random.Range (0, randomSensorBeamSpread), Random.onUnitSphere) * dir;
-
 		}
-//		Lines.Make (ref testRay, transform.position, transform.position + dir * range, Color.white);
+		Lines.Make (ref testRay, transform.position, transform.position + dir * range, Color.white);
 		return TakeSnapshot(transform.position, dir);
 	}
 
 	public void EnsureOwnerIsKnown() {
-		owner = GetComponent<Agent_SizeAndEffects> ();
+		sizeAndEffects = GetComponent<Agent_SizeAndEffects> ();
 	}
 
 	// Use this for initialization

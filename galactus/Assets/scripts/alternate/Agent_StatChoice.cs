@@ -19,6 +19,7 @@ public class Agent_StatChoice : MonoBehaviour {
 		{"defense_", 0},
 		{"birthcost_", 0},
 		{"energySustain_", 0},
+		{"penetration_", 0},
 		{"energyShare_", 0}
 	};
 

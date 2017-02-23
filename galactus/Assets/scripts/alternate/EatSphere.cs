@@ -6,7 +6,6 @@ public class EatSphere : MonoBehaviour {
 	public Agent_Properties owner;
 
 	public string resourceName;
-	public float power = 1;
 	public float conversionRate = .5f;
 
 	private Material m;
@@ -155,7 +154,9 @@ public class EatSphere : MonoBehaviour {
 		case WaitingFor.activate:
 			if (caught && caught != owner) {
 				Agent_Properties other = caught.GetComponent<Agent_Properties> ();
-				float effectivePower = Mathf.Max(0,power - other ["defense"]);
+				float otherD = other ["defense"];
+				otherD = Mathf.Max(0, otherD-owner["penetration"]);
+				float effectivePower = Mathf.Max(0,owner["eatPower"] - otherD);
 				float whatIsLeft = other.LoseValue (resourceName, effectivePower);
 				if (whatIsLeft != 0) {
 					//print ("draining " + caught + " " + whatIsLeft + " " + resourceName);

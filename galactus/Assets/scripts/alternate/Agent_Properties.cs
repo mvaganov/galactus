@@ -12,6 +12,12 @@ public class Agent_Properties : MonoBehaviour {
 	[HideInInspector]
 	public EatSphere eatS;
 
+	public EatSphere GetEatSphere() { return eatS; }
+	public Agent_SizeAndEffects GetSizeAndEffects() { return sizeNeffects; }
+	public Agent_MOB GetMOB() { return mob; }
+	public float GetRadius() { return sizeNeffects.GetRadius (); }
+	public float GetSize() { return sizeNeffects.GetSize (); }
+
 	[SerializeField]
 	private Dictionary_string_float values = new Dictionary_string_float();
 	private ValueCalculator<Agent_Properties> vc = null;
@@ -35,10 +41,9 @@ public class Agent_Properties : MonoBehaviour {
 					// use the dependency calculation just done here as the standard for the rule set
 					vr.dependencies = vc.GetDependencies ();
 				}
+			} else {
+				Debug.LogError ("MISSING RULES FOR TYPE \'"+typeName+"\'");
 			}
-//			else {
-//				print ("MISSING RULES FOR TYPE \'"+typeName+"\'");
-//			}
 		}
 	}
 
@@ -80,6 +85,11 @@ public class Agent_Properties : MonoBehaviour {
 			foreach (KeyValuePair<string, float> current in defaults) {
 				SetValue (current.Key, current.Value);
 			}
+		}
+		// TODO if this agent has an Agent_TargetFinder, reset the AI to .none
+		Agent_TargetFinder tf = GetComponent<Agent_TargetFinder>();
+		if (tf) {
+			tf.Reset ();
 		}
 	}
 
@@ -159,5 +169,19 @@ public class Agent_Properties : MonoBehaviour {
 
 	public bool RemoveValueChangeListener(string resourceName, ValueCalculator<Agent_Properties>.ChangeListener listener) {
 		return vc.RemoveValueChangeListener(resourceName, listener);
+	}
+
+	public bool AI_IsDangerous() { return eatS != null; }
+
+	public float AI_CalculateDangerEstimate() { return this ["eatPower"]; }
+
+	/// <returns>negative for how badly I would be beaten, positive for how handily I would win. 0 for unknown.</returns>
+	/// <param name="him">Him.</param>
+	public float AI_CalculateHowIWouldDoInAFightAgainst(Agent_Properties him) {
+		EatSphere mine = GetEatSphere (), his = him.GetEatSphere();
+		// TODO factor in agent speed, turn speed, range, and compare that to this agent
+		float hisDamage = his?his.GetRadius():0;
+		float myDamage = mine?mine.GetRadius ():0;
+		return myDamage - hisDamage;
 	}
 }

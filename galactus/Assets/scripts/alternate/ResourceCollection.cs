@@ -48,9 +48,7 @@ public class ResourceCollection : MonoBehaviour {
 				Harvest(n);
                 bool moving = false;
                 Rigidbody rb = obj.GetComponent<Rigidbody>();
-				if (rb) { moving = rb.velocity != Vector3.zero; rb.velocity = Vector3.zero; }
-                ResourceOrbit s = obj.GetComponent<ResourceOrbit>();
-                if (s) Destroy(s);
+				if (rb) { moving = (rb.velocity != Vector3.zero); rb.velocity = Vector3.zero; }
                 obj.SetActive(false);
 				if(!moving)
     				AddSuppression(obj.transform.position);
@@ -119,6 +117,14 @@ public class ResourceCollection : MonoBehaviour {
 
 	public Agent_SizeAndEffects CreateResourceNode(Vector3 loc, float value, Color color, string resourceName) {
 		Agent_SizeAndEffects rn = resourceNodes.Alloc().GetComponent<Agent_SizeAndEffects>();
+		if (rn.name.EndsWith ("(Clone)")) {
+			rn.name = rn.name.Substring (0, rn.name.Length - "(Clone)".Length);
+		}
+		int incarnationDelimeterIndex = rn.name.LastIndexOf ("#");
+		if (incarnationDelimeterIndex >= 0) {
+			rn.name = rn.name.Substring (0, incarnationDelimeterIndex);
+		}
+		rn.name += "#"+rn.GetInstanceID()+"."+ MemoryPoolItem.GetIncarnation (rn.gameObject);
 		Agent_Properties h = rn.GetComponent<Agent_Properties> ();
 		h.EnsureComponents ();
 		h.SetValue (resourceName, value);

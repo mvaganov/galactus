@@ -126,9 +126,8 @@ public class Agent_MOB : MonoBehaviour {
 	public void Flee(Vector3 target) {
 		Vector3 directionToMoveToward = Vector3.zero, directionToLookToward = Vector3.zero;
 		CalculateSeek (target, ref directionToMoveToward, ref directionToLookToward);
-		directionToLookToward *= -1;
 		UpdateLookDirection (directionToLookToward);
-		ApplyForceToward (directionToMoveToward);
+		ApplyForceToward (-directionToMoveToward);
 	}
 
 	public void Arrive(Vector3 target) {
@@ -152,6 +151,19 @@ public class Agent_MOB : MonoBehaviour {
 		Vector3 direction = Random.onUnitSphere;
 		UpdateLookDirection (direction);
 		ApplyForceToward (transform.forward+direction);
+		#if SHOWVECTORS
+		Lines.Make (ref targetLine, transform.position, transform.position+direction*maxSpeed, Color.red);
+		targetLine.transform.parent = transform;
+		#endif
+	}
+
+	public void RandomWalk(Vector3 weightedToward, float weight) {
+		Vector3 dir = weightedToward - transform.position;
+		dir.Normalize ();
+		dir = (dir * weight) + (Random.onUnitSphere * (1 - weight));
+		dir.Normalize ();
+		UpdateLookDirection (dir);
+		ApplyForceToward (transform.forward+dir);
 		#if SHOWVECTORS
 		Lines.Make (ref targetLine, transform.position, transform.position+direction*maxSpeed, Color.red);
 		targetLine.transform.parent = transform;

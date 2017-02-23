@@ -14,10 +14,10 @@ public class Agent_SizeAndEffects : MonoBehaviour {
 	}
 
 	public float GetRadius() {
-		return transform.localScale.z/2;
+		return transform.lossyScale.z/2;
 	}
 	public float GetSize() {
-		return transform.localScale.z;
+		return transform.lossyScale.z;
 	}
 
 	// TODO remove?
@@ -29,6 +29,7 @@ public class Agent_SizeAndEffects : MonoBehaviour {
 	/// <param name="radius">Radius.</param>
 	public void SetRadius(float radius) {
 		float s = radius * 2;
+		if (transform.parent) { s /= transform.parent.lossyScale.z; }
 		transform.localScale = new Vector3 (s,s,s);
 		TrailRenderer trail = transform.GetComponent<TrailRenderer>();
 		if (trail) trail.startWidth = s;

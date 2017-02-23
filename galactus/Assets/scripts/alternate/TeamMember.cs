@@ -1,19 +1,19 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class GroupMember : MonoBehaviour {
-	public Group team;
+public class TeamMember : MonoBehaviour {
+	public Team team;
 
 	public bool createOwnTeam = true;
 
 	void Start() {
 		this.name = NameGen.RandomName ();
 		if (createOwnTeam) {
-			JoinTeam(Singleton.Get<GroupManager> ().NewGroup (this.name));
+			JoinTeam(Singleton.Get<TeamManager> ().NewGroup (this.name));
 		}
 	}
 
-	public void JoinTeam(Group team) {
+	public void JoinTeam(Team team) {
 		this.team = team;
 		if (team) {
 			GetComponent<Agent_SizeAndEffects> ().SetEffectColor (team.color);

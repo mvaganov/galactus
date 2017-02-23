@@ -133,6 +133,7 @@ public class MemoryPool<T> where T : class {
 
 public class MemoryPoolItem : MonoBehaviour {
 	private MemoryPool<GameObject> gameObjectPool;
+	private int incarnation = 0;
 	public MemoryPoolItem SetPool(MemoryPool<GameObject> pool) { gameObjectPool = pool; return this; }
 	static private bool shuttingDown = false;
 	static public void SetShutdown(bool sceneIsEnding) { shuttingDown = sceneIsEnding; }
@@ -144,7 +145,10 @@ public class MemoryPoolItem : MonoBehaviour {
 			+ "When changing levels, call MemoryPoolItem.SetShutdown(true) first");
 	}
 #endif
-	public void FreeSelf() { if(gameObjectPool != null) gameObjectPool.Free(gameObject); }
+	public static int GetIncarnation(GameObject go) {
+		MemoryPoolItem i = go.GetComponent<MemoryPoolItem>(); return (i)?i.incarnation:-1;
+	}
+	public void FreeSelf() { if(gameObjectPool != null) gameObjectPool.Free(gameObject); incarnation++; }
 	/// <summary>If the given GameObject belongs to a memory pool, mark it as free in that pool. Otherwise, Object.Destroy()</summary>
 	static public void Destroy(GameObject go) {
         MemoryPoolRelease r = go.GetComponent<MemoryPoolRelease>();

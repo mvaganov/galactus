@@ -2,37 +2,38 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class GroupManager : MonoBehaviour {
+public class TeamManager : MonoBehaviour {
 	[SerializeField]
 	private Sprite[] groupIcons;
 
 	[SerializeField]
-	private List<Group> allGroups = new List<Group>();
+	private List<Team> allGroups = new List<Team>();
 
 	public Sprite[] GetIcons() { return groupIcons; }
 
-	public bool Add(Group t) {
+	public bool Add(Team t) {
 		if (!allGroups.Contains (t)) {
 			allGroups.Add (t);
+			t.transform.parent = transform;
 			return true;
 		}
 		return false;
 	}
 
-	public bool Remove(Group t) {
+	public bool Remove(Team t) {
 		return allGroups.Remove (t);
 	}
 
-	public Group NewGroup(string name) {
+	public Team NewGroup(string name) {
 		GameObject team = new GameObject();
-		Group g = team.AddComponent<Group>();
+		Team g = team.AddComponent<Team>();
 		g.Startup(name);
 		Add(g);
 		return g;
 	}
 
 	// TODO create a random name generator for groups...
-	public Group NewGroup() { return NewGroup(NameGen.RandomName()); }
+	public Team NewGroup() { return NewGroup(NameGen.RandomName()); }
 
 	void Start () { }
 	

@@ -1,15 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-public class Group : MonoBehaviour {
+public class Team : MonoBehaviour {
 
-	public List<GroupMember> members = new List<GroupMember>();
+	public List<TeamMember> members = new List<TeamMember>();
 	public Color color;
 	public Sprite icon;
 	[SerializeField]
 	private bool autoDisbandIfEmpty = true;
 
-	public bool AddMember(GroupMember member) {
+	public bool AddMember(TeamMember member) {
 		// TODO replace with a Set
 		if (!members.Contains (member)) {
 			members.Add (member);
@@ -18,10 +18,10 @@ public class Group : MonoBehaviour {
 		return false;
 	}
 
-	public bool RemoveMember(GroupMember member) {
+	public bool RemoveMember(TeamMember member) {
 		if (members.Remove (member)) {
 			if (members.Count == 0 && autoDisbandIfEmpty) {
-				Singleton.Get<GroupManager> ().Remove (this);
+				Singleton.Get<TeamManager> ().Remove (this);
 			}
 			return true;
 		}
@@ -30,7 +30,7 @@ public class Group : MonoBehaviour {
 
 	public void Startup(string name) {
 		this.name = name;
-		Sprite[] icons = Singleton.Get<GroupManager>().GetIcons();
+		Sprite[] icons = Singleton.Get<TeamManager>().GetIcons();
 		icon = icons[Random.Range(0, icons.Length)];
 		color = Random.ColorHSV();
 	}

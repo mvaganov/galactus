@@ -5,12 +5,9 @@ using UnityEngine.UI;
 
 public class Agent_SensorLabeler : MonoBehaviour
 {
-//	public EnergyAgent sensorOwner;
 	private Agent_Sensor sensor;
 	private Agent_MOB mob;
 	public Camera cam;
-//	public float range = 500;
-//	public float radiusExtra = 20;
 	public float sensorUpdateTime = 1.0f / 32;
 	private float sensorTimer = 0;
 
@@ -32,6 +29,7 @@ public class Agent_SensorLabeler : MonoBehaviour
 		if (iconPrefab == null) {
 			iconPrefab = new GameObject ("<icon prefab>");
 			iconPrefab.AddComponent<SpriteRenderer> ();
+			iconPrefab.transform.parent = Singleton.Get<TeamManager> ().transform;
 		}
 		textPool = new GameObjectPool (pfabText3D);
 		iconPool = new GameObjectPool (iconPrefab);
@@ -52,7 +50,7 @@ public class Agent_SensorLabeler : MonoBehaviour
 		sensor = whoIsSensing.GetComponent<Agent_Sensor> ();
 		sensor.EnsureOwnerIsKnown ();
 //		sensorOwner = whoIsSensing;
-		mob = sensor.owner.GetComponent<Agent_MOB> ();
+		mob = sensor.sizeAndEffects.GetComponent<Agent_MOB> ();
 	}
 	GameObject DBG_rad, DBG_otherRad, DBG_dist;
 
@@ -66,18 +64,18 @@ public class Agent_SensorLabeler : MonoBehaviour
 		Vector2 midScreen = new Vector2 (0.5f, 0.5f);
 		for (int i = 0; i < hits.Length; ++i) {
 			Agent_SizeAndEffects nrg = hits [i].collider.gameObject.GetComponent<Agent_SizeAndEffects> ();
-			if (!nrg || nrg == sensor.owner)
+			if (!nrg || nrg == sensor.sizeAndEffects)
 				continue;
-			GroupMember grp = nrg.GetComponent<GroupMember> ();
+			TeamMember grp = nrg.GetComponent<TeamMember> ();
 			if (nrg) {
 				Collider c = hits [i].collider;
 				if (!c)
 					continue;
 				float distCamera = Vector3.Distance (cam.transform.position, c.transform.position);
-				Vector3 delta = c.transform.position - sensor.owner.transform.position;
+				Vector3 delta = c.transform.position - sensor.sizeAndEffects.transform.position;
 				float dist = delta.magnitude;
 
-				dist -= sensor.owner.GetRadius ();
+				dist -= sensor.sizeAndEffects.GetRadius ();
 				float s = 0.01f;
 				s *= distCamera / 2.0f;
 
@@ -87,14 +85,14 @@ public class Agent_SensorLabeler : MonoBehaviour
 				// name
 				string label;
 				if (nrg.GetEatSphere ()) {
-					if (nrg == sensor.owner) {
+					if (nrg == sensor.sizeAndEffects) {
 						color = selfColor;
 						fontStyle = FontStyle.Normal;
-					} else if (nrg.GetSize () * ResourceEater.MINIMUM_PREY_SIZE > sensor.owner.GetSize ()) {
+					} else if (nrg.GetSize () * GameRules.MINIMUM_PREY_SIZE > sensor.sizeAndEffects.GetSize ()) {
 						color = bigr;
 						//                            if (reat.team == sensorOwner.team) color = ally;
 						fontStyle = FontStyle.Italic;
-					} else if (nrg.GetSize () < sensor.owner.GetSize () * ResourceEater.MINIMUM_PREY_SIZE) {
+					} else if (nrg.GetSize () < sensor.sizeAndEffects.GetSize () * GameRules.MINIMUM_PREY_SIZE) {
 						color = lowr;
 						//                            if (reat.team == sensorOwner.team) color = ally;
 						fontStyle = FontStyle.Bold;
@@ -104,7 +102,7 @@ public class Agent_SensorLabeler : MonoBehaviour
 						fontStyle = FontStyle.Normal;
 					}
 					label = c.name + "\n" + ((int)nrg.GetSize ());
-					if (nrg == sensor.owner) {
+					if (nrg == sensor.sizeAndEffects) {
 						label += "  "+ ((int)nrg.GetEnergy ()) + "e";
 					}
 				} else {
@@ -131,7 +129,7 @@ public class Agent_SensorLabeler : MonoBehaviour
 						FontStyle fstyle = FontStyle.Normal;
 						float bDist = mob.GetBrakeDistance ();
 						string dText = ((int)dist).ToString();
-						if (dist >= (bDist - sensor.owner.GetRadius ()) && dist <= bDist + sensor.owner.GetRadius ()) {
+						if (dist >= (bDist - sensor.sizeAndEffects.GetRadius ()) && dist <= bDist + sensor.sizeAndEffects.GetRadius ()) {
 							dText = "{" + dText + "}";
 						}
 						distText = DoText ("\n\n\n" + dText, c.transform, s * 0.75f, distColor, fstyle);

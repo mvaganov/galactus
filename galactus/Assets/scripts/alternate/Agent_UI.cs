@@ -3,15 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class Agent_UI : MonoBehaviour {
-	// TODO rename owner->sizeAndEffects
-	private Agent_SizeAndEffects owner;
+	private Agent_SizeAndEffects sizeAndEffects;
 	private Agent_MOB mob;
 	private Agent_Properties props;
 	private ValueCalculator<Agent_Properties>.ChangeListener watcher;
-	private GroupMember membership;
+	private TeamMember membership;
 	public UnityEngine.UI.Text uiText, uiProperties, uiTeamInfo;
 	public UnityEngine.UI.Image uiTeamImage;
-	private Group currentTeam;
+	private Team currentTeam;
 	private bool refreshProps = true;
 
 	public void SetSubject(GameObject subject) {
@@ -19,14 +18,14 @@ public class Agent_UI : MonoBehaviour {
 			if (props) {
 				props.RemoveValueChangeListener ("", watcher);
 			}
-			owner = null;
+			sizeAndEffects = null;
 			mob = null;
 			props = null;
 		} else {
 			if (props) {
 				props.RemoveValueChangeListener ("", watcher);
 			}
-			owner = subject.GetComponent<Agent_SizeAndEffects> ();
+			sizeAndEffects = subject.GetComponent<Agent_SizeAndEffects> ();
 			mob = subject.GetComponent<Agent_MOB> ();
 			props = subject.GetComponent<Agent_Properties> ();
 			if (props) {
@@ -35,7 +34,7 @@ public class Agent_UI : MonoBehaviour {
 				};
 				props.AddValueChangeListener ("", watcher);
 			}
-			membership = owner.GetComponent<GroupMember> ();
+			membership = sizeAndEffects.GetComponent<TeamMember> ();
 		}
 	}
 
@@ -67,9 +66,10 @@ public class Agent_UI : MonoBehaviour {
 
 	void FixedUpdate () {
 		if (uiText) {
-			uiText.text = owner.name +
-				"\nsize: " + System.String.Format ("{0:0.##}", owner.GetSize ()) +
-				"\nenergy: " + System.String.Format("{0:0.##}", owner.GetEnergy ()) +
+			uiText.text = sizeAndEffects.name +
+				"\nsize: " + System.String.Format ("{0:0.##}", sizeAndEffects.GetSize ()) +
+				"\nenergy: " + System.String.Format("{0:0.##}", sizeAndEffects.GetEnergy ()) +
+				"\ncurrent speed: " + System.String.Format("{0:0.##}", mob.GetSpeed()) +
 				"\nbrake distance: " + System.String.Format("{0:0.##}", mob.GetBrakeDistance());
 		}
 		if (uiProperties && refreshProps) {
