@@ -9,20 +9,24 @@ public class Effects : MonoBehaviour {
 		public string name;
 		public ParticleSystem ps;
 		public AudioClip sound;
-		public void Emit(int particleCount, Vector3 loc, Transform parent) {
-			Transform oldParent = ps.transform.parent;
-			ps.transform.position = loc;
-			ps.transform.parent = parent;
-			ps.Emit(particleCount);
-			GameObject se = Singleton.Get<Effects> ().GetSoundPool ().Alloc ();
-			AudioSource asrc = se.GetComponent<AudioSource> ();
-			asrc.clip = sound;
-			asrc.transform.position = loc;
-			asrc.gameObject.SetActive (true);
-			asrc.enabled = true;
-			asrc.Play ();
-			asrc.transform.parent = parent;
-			ps.transform.parent = oldParent;
+		public void Emit(int particleCount, Vector3 loc, Transform parent, bool emitSoundToo = true) {
+			if (particleCount > 0) {
+				Transform oldParent = ps.transform.parent;
+				ps.transform.position = loc;
+				ps.transform.parent = parent;
+				ps.Emit (particleCount);
+				ps.transform.parent = oldParent;
+			}
+			if (emitSoundToo) {
+				GameObject se = Singleton.Get<Effects> ().GetSoundPool ().Alloc ();
+				AudioSource asrc = se.GetComponent<AudioSource> ();
+				asrc.clip = sound;
+				asrc.transform.position = loc;
+				asrc.gameObject.SetActive (true);
+				asrc.enabled = true;
+				asrc.Play ();
+				asrc.transform.parent = parent;
+			}
 		}
 	}
 

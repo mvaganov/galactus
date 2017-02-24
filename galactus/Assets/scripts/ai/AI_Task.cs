@@ -167,7 +167,7 @@ public class AI_Harvest : AI_TargetTask {
 		self.GetMob().Arrive (target.position - self.transform.forward*idealDist);
 	}
 	public float IdealDistanceToHarvest() {
-		return selfProps.GetRadius () + selfProps ["eatRange"] + props.GetRadius();				
+		return props.GetRadius () + selfProps ["eatRange"];				
 	}
 	public float dist, idealDist;
 	public Agent_Properties props, selfProps;
@@ -213,7 +213,7 @@ public class AI_Flee : AI_TargetTask {
 				if(d > idealDist) {
 					whyNot = "not afraid since "+target.name+" is far enough away ("+d+" > "+idealDist+")";
 					valid = false;
-					Debug.Log (whyNot);
+//					Debug.Log (whyNot);
 				}
 			}
 		}
@@ -270,7 +270,7 @@ public class AI_Attack : AI_TargetTask {
 				if(dist > threatRange) {
 					whyNot = "not aggressive since "+target.name+" is far enough away ("+dist+" > "+threatRange+")";
 					valid = false;
-					Debug.Log (whyNot);
+//					Debug.Log (whyNot);
 				}
 			}
 		}

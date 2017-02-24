@@ -44,13 +44,13 @@ public class Agent_Sensor : MonoBehaviour {
 		return new SensorSnapshot (Time.time, hits);
 	}
 
-	private GameObject testRay;
+//	private GameObject testRay;
 	public SensorSnapshot TakeSnapshot() {
 		Vector3 dir = transform.forward;
 		if (randomSensorBeamSpread != 0) {
 			dir = Quaternion.AngleAxis (Random.Range (0, randomSensorBeamSpread), Random.onUnitSphere) * dir;
 		}
-		Lines.Make (ref testRay, transform.position, transform.position + dir * range, Color.white);
+//		Lines.Make (ref testRay, transform.position, transform.position + dir * range, Color.white).name="testRay";
 		return TakeSnapshot(transform.position, dir);
 	}
 

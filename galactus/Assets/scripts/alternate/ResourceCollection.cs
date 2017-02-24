@@ -75,8 +75,9 @@ public class ResourceCollection : MonoBehaviour {
 			harvest.ps.SetParticleSize (count);
 			harvest.ps.SetParticleSpeed (count);
 			for (int i = 0; i < parts.Length; ++i) {
-				harvest.Emit (1, parts [i].position, null);
+				harvest.Emit (1, parts [i].position, null, false);
 			}
+			harvest.Emit (0, rn.transform.position, null, true);
 		}
         else if(v > 0) {
             ResourcePoof(rn.transform.position, rn.GetColor(), v);
