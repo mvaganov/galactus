@@ -4,6 +4,7 @@ using System.Collections;
 public class EatSphere : MonoBehaviour {
 	[Tooltip("where resources will get funneled into")]
 	public Agent_Properties owner;
+	Collider ownerCollider;
 
 	public string resourceName;
 	public float conversionRate = .5f;
@@ -28,7 +29,7 @@ public class EatSphere : MonoBehaviour {
 
 	public bool autoActivateResource = true, autoActivateAgent = true, maintainActivation = false;
 
-	public Agent_SizeAndEffects eating;
+	public Agent_Properties eating;
 
 	public float GetRadius() { return transform.lossyScale.z/2; }
 	public void SetRadius(float rad) {
@@ -48,6 +49,7 @@ public class EatSphere : MonoBehaviour {
 				t = t.parent;
 			} while(t != null && owner == null);
 		}
+		ownerCollider = owner.GetComponent<Collider> ();
 		Effects e = Singleton.Get<Effects> ();
 		effect_warmup = e.Get (warmupEffect);
 		effect_activate = e.Get (activateEffect);
@@ -116,7 +118,7 @@ public class EatSphere : MonoBehaviour {
 		}
 	}
 
-	public Agent_SizeAndEffects GetMeal() { return eating; }
+	public Agent_Properties GetMeal() { return eating; }
 
 	void OnTriggerExit(Collider c) {
 		eating = null;
@@ -135,14 +137,19 @@ public class EatSphere : MonoBehaviour {
 		}
 	}
 
+	Collider lastCollided = null;
+
 	void OnTriggerStay(Collider c) {
-		Agent_SizeAndEffects caught = c.gameObject.GetComponent<Agent_SizeAndEffects> ();
-		if (!caught) return;
-		eating = caught;
+		if (c == ownerCollider) return;
+		if (c != lastCollided) {
+			lastCollided = c;
+			eating = lastCollided.gameObject.GetComponent<Agent_Properties> ();
+		}
+		if (!eating) return;
 		switch (waitState) {
 		case WaitingFor.nothing:
-			if (autoActivateResource && !caught.GetEatSphere()
-				|| autoActivateAgent && caught.GetEatSphere()) {
+			if (autoActivateResource && !eating.GetEatSphere()
+				|| autoActivateAgent && eating.GetEatSphere()) {
 				if (warmup == 0) {
 					waitState = WaitingFor.activate;
 					OnTriggerStay (c);
@@ -152,8 +159,8 @@ public class EatSphere : MonoBehaviour {
 			}
 			break;
 		case WaitingFor.activate:
-			if (caught && caught != owner) {
-				Agent_Properties other = caught.GetComponent<Agent_Properties> ();
+			if (eating && eating != owner) {
+				Agent_Properties other = eating.GetComponent<Agent_Properties> ();
 				float otherD = other ["defense"];
 				otherD = Mathf.Max(0, otherD-owner["penetration"]);
 				float effectivePower = Mathf.Max(0,owner["eatPower"] - otherD);

@@ -7,6 +7,7 @@ public class Agent_TargetFinder : MonoBehaviour {
 	[SerializeField]
 	private AI_Task currentTask;
 	private Agent_Sensor sensor;
+	// TODO "anxiety" stat decreases time... secondsBetweenThinking = 2/(2^prop["anxiety"])?
 	public float secondsBetweenThinking = 2f;
 	private float timer;
 	private Agent_MOB mob;

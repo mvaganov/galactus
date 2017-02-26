@@ -59,6 +59,8 @@ public class AgentImagination {
 			new AI_Searching(self),
 			new AI_Plan (self),
 		};
+		// TODO write datastructure that figures out which personality traits map to which events.
+		// example: greed->ai_harvest, thread->ai_flee,ai_attack
 		for(int i=0;i<ai.Length;++i) {
 			imaginary [ai[i].GetType()] = ai[i];
 		}

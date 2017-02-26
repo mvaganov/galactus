@@ -7,6 +7,7 @@ public class Agent_Sensor : MonoBehaviour {
 	public float range = 200;
 	public float radiusExtra = 10;
 	public float sensorUpdateTime = 1.0f / 32;
+	private const float timerRandomness = 1;
 	private float sensorTimer = 0;
 
 	[HideInInspector]
@@ -67,7 +68,7 @@ public class Agent_Sensor : MonoBehaviour {
 	void FixedUpdate () {
 		sensorTimer -= Time.deltaTime;
 		if (sensorTimer <= 0) {
-			sensorTimer = sensorUpdateTime;
+			sensorTimer = sensorUpdateTime + Random.Range(-timerRandomness,timerRandomness);
 			recent = TakeSnapshot();
 		}
 	}

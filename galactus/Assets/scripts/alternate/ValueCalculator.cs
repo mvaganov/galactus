@@ -196,10 +196,10 @@ public class ValueCalculator<TARGET> {
 		}
 		dependenciesBeingCalculated.RemoveAt(dependenciesBeingCalculated.Count-1);
 		#endif
-		if (valueDependencies != null) {
-			// invalidate values that depend on this one, which will cause them to re-calculate next time they are checked.
-			valueDependencies.ForEachUniqueInBucket (valueName, (dependency) => { InvalidateCache (dependency); });
-		}
+//		if (valueDependencies != null) {
+//			// invalidate values that depend on this one, which will cause them to re-calculate next time they are checked.
+//			valueDependencies.ForEachUniqueInBucket (valueName, (dependency) => { InvalidateCache (dependency); });
+//		}
 		return result;
 	}
 
