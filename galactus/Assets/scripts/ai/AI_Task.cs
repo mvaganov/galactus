@@ -357,3 +357,12 @@ public class AI_Plan : AI_Task {
 		return fittest;
 	}
 }
+
+// TODO merged-steering-behavior positions, to allow mergers of seek/flee/evade/hide/flock behaviors
+// TODO AI_Flock - move with allies
+// TODO AI_Flank - move around target with allies, positioning at different directions
+// TODO AI_Swarm - attack with allies, while flanking
+// TODO AI_Lure - attempt to aggro and lead agent into ambush
+// TODO AI_Ambush - wait, unaggressively, till a target wanders into the ambush area
+// TODO AI_Evade - if an agent is seeking me, run away, but find energy rich targets nearby, especially allies
+// TODO AI_Hide - if an agent is scaring me, try to keep friendly targets between me and him

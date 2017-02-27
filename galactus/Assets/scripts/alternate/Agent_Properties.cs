@@ -17,6 +17,8 @@ public class Agent_Properties : MonoBehaviour {
 	public Agent_MOB GetMOB() { return mob; }
 	public float GetRadius() { return sizeNeffects.GetRadius (); }
 	public float GetSize() { return sizeNeffects.GetSize (); }
+	public Color GetColor() { return sizeNeffects.GetColor (); }
+	public Color GetEffectColor() { return sizeNeffects.GetEffectColor (); }
 
 	[SerializeField]
 	private Dictionary_string_float values = new Dictionary_string_float();

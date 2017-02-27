@@ -10,6 +10,9 @@ public class Effects : MonoBehaviour {
 		public ParticleSystem ps;
 		public AudioClip sound;
 		public void Emit(int particleCount, Vector3 loc, Transform parent, bool emitSoundToo = true) {
+			if (parent != null && !parent.gameObject.activeInHierarchy) {
+				parent = null;
+			}
 			if (particleCount > 0) {
 				Transform oldParent = ps.transform.parent;
 				ps.transform.position = loc;
@@ -31,16 +34,27 @@ public class Effects : MonoBehaviour {
 	}
 
 	private GameObjectPool soundEffects;
+	private GameObjectPool floatyTextEffects;
+	private GameObjectPool drainEffects;
 
 	public GameObjectPool GetSoundPool() {
-		if(soundEffects == null) {
-			soundEffects = new GameObjectPool (pfab_soundEffect.gameObject);
-		}
-		return soundEffects;
+		if(soundEffects == null) { soundEffects = new GameObjectPool (pfab_soundEffect.gameObject); } return soundEffects;
+	}
+
+	public GameObjectPool GetFloatyTextPool() {
+		if (floatyTextEffects == null) { floatyTextEffects = new GameObjectPool (pfab_floatyText.gameObject); } return floatyTextEffects;
+	}
+
+	public GameObjectPool GetParticleDrainPool() {
+		if (drainEffects == null) { drainEffects = new GameObjectPool (pfab_particleDrain.gameObject); } return drainEffects;
 	}
 
 	[SerializeField]
 	private TempSoundEffect pfab_soundEffect;
+	[SerializeField]
+	private FloatyText pfab_floatyText;
+	[SerializeField]
+	private ParticleDrain pfab_particleDrain;
 
 	private Dictionary<string, Effect> effectTable = null;
 
@@ -51,8 +65,27 @@ public class Effects : MonoBehaviour {
 		if (tr) { float oldTime = tr.time; tr.time = 0; TimeMS.TimerCallback(100, () => { tr.time = oldTime; }); }
 	}
 
-	void Start() {
+	public static FloatyText FloatyText(Vector3 position, Transform t, string text, Color color, float speed = 1f) {
+		Effects e = Singleton.Get<Effects> ();
+		FloatyText ft = e.GetFloatyTextPool ().Alloc ().GetComponent<FloatyText> ();
+		ft.transform.position = position;
+		ft.transform.SetParent(t);
+		ft.Reset (text, color, speed);
+		ft.transform.localScale = e.pfab_floatyText.transform.localScale;
+		return ft;
 	}
+
+	public static ParticleDrain ParticleDrain(Transform from_, Transform to_, Color color, int particleCount, float speed) {
+		Effects e = Singleton.Get<Effects> ();
+		ParticleDrain pd = e.GetParticleDrainPool ().Alloc ().GetComponent<ParticleDrain> ();
+		pd.transform.position = from_.position;
+		pd.transform.SetParent (from_);
+		pd.Setup (to_, particleCount, color, speed);
+		pd.transform.localScale = e.pfab_particleDrain.transform.localScale;
+		return pd;
+	}
+
+	void Start() { }
 
 	public Effect Get(string name) {
 		Effect e = null;

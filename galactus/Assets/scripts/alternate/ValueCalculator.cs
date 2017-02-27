@@ -174,7 +174,7 @@ public class ValueCalculator<TARGET> {
 		return "[" + str + "]";
 	}
 
-	public float Calculate(string valueName, float startingPoint) {
+	public float Calculate(string valueName, float value) {
 		#if PREVENT_STACK_OVERFLOW
 		if(dependenciesBeingCalculated.Contains(valueName)) {
 			throw new UnityException("dependency stack recursion: "+DEBUG_GetDependenciesBeingCalculated()+" "+valueName);
@@ -184,10 +184,9 @@ public class ValueCalculator<TARGET> {
 //		if (valueDependencies != null && watchingDependency != null && watchingDependency != valueName) {
 //			valueDependencies.AddUniqueBucketItem (valueName, watchingDependency);
 //		}
-		float result = startingPoint;
 		if (modifiers != null) {
 			modifiers.ForEachUniqueInBucket (valueName, (m) => {
-				result = m.Modify (result);
+				value = m.Modify (value);
 			});
 		}
 		#if PREVENT_STACK_OVERFLOW
@@ -200,7 +199,7 @@ public class ValueCalculator<TARGET> {
 //			// invalidate values that depend on this one, which will cause them to re-calculate next time they are checked.
 //			valueDependencies.ForEachUniqueInBucket (valueName, (dependency) => { InvalidateCache (dependency); });
 //		}
-		return result;
+		return value;
 	}
 
 	/// <summary>if there are invalid values that need to be recalculated, recalculate those, and execute value listeners</summary>
@@ -218,20 +217,18 @@ public class ValueCalculator<TARGET> {
 //				changeListeners.ForEachUniqueInBucket (calc.Key, listener => listener (target, calc.Key, 0, value));
 //			}
 //		}
-		float value, oldValue;
+
+//		float value, oldValue;
 		//foreach (string s in needsCalculation) {
 		string[] arr= new string[40];
 		while(needsCalculation.Count > 0) {
 			needsCalculation.CopyTo(arr);
-			string s = arr [0];
-			if (!values.TryGetValue (s, out oldValue)) {
-				oldValue = 0;
+			string dependency = arr [0];
+			ValueCalculation<float> initFunc;
+			if (valueCalculationRules.TryGetValue (dependency, out initFunc)) {
+				Set(dependency, Calculate (dependency, initFunc (target)));
 			}
-			value = Get (s);
-			if (changeListeners != null) {
-				changeListeners.ForEachUniqueInBucket (s, listener => listener (target, s, oldValue, value));
-			}
-			needsCalculation.Remove (s);
+			needsCalculation.Remove (dependency);
 		}
 	}
 
@@ -304,12 +301,18 @@ public class ValueCalculator<TARGET> {
 			values [valueName] = newValue;
 			needsCalculation.Remove(valueName);
 		}
-		if (valueDependencies != null) { // if other values might depend on this one
+		if (valueDependencies != null && watchingDependency == null) { // if other values might depend on this one
 //			string str = "";
 			// invalidate values that depend on this one, which will cause them to re-calculate next time they are checked.
 			valueDependencies.ForEachUniqueInBucket (valueName, (dependency) => { 
 //				str += ((str.Length > 0)?", ":"")+dependency;
-				InvalidateCache (dependency); 
+
+				ValueCalculation<float> initFunc;
+				if (valueCalculationRules.TryGetValue (dependency, out initFunc)) {
+					Set(dependency, Calculate (dependency, initFunc (target)));
+				}
+
+//				InvalidateCache (dependency); 
 			});
 			// don't update depending members if we're calculating dependency
 			if (watchingDependency == null) {

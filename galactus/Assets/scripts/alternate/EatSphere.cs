@@ -16,6 +16,7 @@ public class EatSphere : MonoBehaviour {
 	public float holdDuringActivate = .25f;
 	public float warmup = .25f;
 	public string warmupEffect, activateEffect, cooledEffect;
+	// TODO make these in some kind of settings class, accessible statically.
 	private Effects.Effect effect_warmup;
 	private Effects.Effect effect_activate;
 	private Effects.Effect effect_cooled;
@@ -160,17 +161,31 @@ public class EatSphere : MonoBehaviour {
 			break;
 		case WaitingFor.activate:
 			if (eating && eating != owner) {
-				Agent_Properties other = eating.GetComponent<Agent_Properties> ();
-				float otherD = other ["defense"];
-				otherD = Mathf.Max(0, otherD-owner["penetration"]);
-				float effectivePower = Mathf.Max(0,owner["eatPower"] - otherD);
-				float whatIsLeft = other.LoseValue (resourceName, effectivePower);
-				if (whatIsLeft != 0) {
-					//print ("draining " + caught + " " + whatIsLeft + " " + resourceName);
-					owner.AddToValue (resourceName, whatIsLeft * conversionRate);
-					if (effect_activate != null) {
-						effect_activate.Emit ((int)(whatIsLeft * 10), transform.position, transform);
+				float otherE = eating [resourceName];
+				if (otherE != 0) {
+					float otherD = eating ["defense"];
+					otherD = Mathf.Max(0, otherD-owner["penetration"]);
+					float effectivePower = Mathf.Max(0,owner["eatPower"] - otherD);
+					bool willBeAliveAfterDrain = otherE > effectivePower;
+					float drained = (willBeAliveAfterDrain)?effectivePower:otherE;
+					Vector3 u = Camera.main.transform.up;
+					FloatyText ft = Effects.FloatyText(eating.transform.position, transform, "-energy ("+drained.ToString("#.#")+")", Color.red, -2);
+					ParticleDrain pd = Effects.ParticleDrain (eating.transform, transform, eating.GetColor (), (int)(drained * 10), owner ["speed"]*2);
+					if (willBeAliveAfterDrain) {
+						ft.transform.SetParent (eating.transform);
+					} else {
+						pd.transform.SetParent (null);
 					}
+					float gained = drained * conversionRate;
+					Effects.FloatyText(transform.position+u, transform, "+energy ("+gained.ToString("#.#")+")", Color.white);
+					//print ("draining " + caught + " " + whatIsLeft + " " + resourceName);
+					owner.AddToValue (resourceName, gained);
+					if (effect_activate != null) {
+						effect_activate.ps.SetColor (owner.GetEffectColor ());
+						effect_activate.Emit ((int)(drained * 10), transform.position, transform);
+					}
+					// drain at the end, because this method might cause the eaten object to go away
+					eating.LoseValue (resourceName, drained);
 				}
 				waiting = cooldown;
 				waitState = WaitingFor.cooldown;
