@@ -6,6 +6,7 @@ public class Agent_TargetFinder : MonoBehaviour {
 
 	[SerializeField]
 	private AI_Task currentTask;
+	private AI_CompositeSteering multiSteer;
 	private Agent_Sensor sensor;
 	// TODO "anxiety" stat decreases time... secondsBetweenThinking = 2/(2^prop["anxiety"])?
 	public float secondsBetweenThinking = 2f;
@@ -89,12 +90,34 @@ public class Agent_TargetFinder : MonoBehaviour {
 		}
 	}
 
-
 	public void ReEvaluateTODO() {
 		ClearInvalidTasks ();
 		RecalculateTasks ();
 		SortTasks ();
+		MergeSteeringBehaviors ();
 //		print ("????:\n[\n" + PrintTasks("\n") + "\n]");
+	}
+
+	// TODO make steering visualizations to show which behaviors are having what impact...
+	public void MergeSteeringBehaviors() {
+		if (currentTask != null && currentTask != multiSteer && currentTask.IsSteering ()) {
+			if (multiSteer == null) {
+				multiSteer = new AI_CompositeSteering (this);
+			}
+			multiSteer.Clear ();
+			// go through all of the tasks, 
+			for (int i=todo.Count-1;i>=0;--i) {
+				AI_Task t = todo [i];
+				if (t.IsSteering ()) {
+					// add all steering behaviors to a locally kept AI_CompositeSteering,
+					multiSteer.AddBehavior(t);
+					todo.RemoveAt (i);
+				}
+			}
+			multiSteer.AddBehavior (currentTask);
+			// use that as the current task
+			currentTask = multiSteer;
+		}
 	}
 
 	public AI_Task CalculateMostImportantTask() {

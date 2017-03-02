@@ -33,6 +33,7 @@ public class EatSphere : MonoBehaviour {
 	public Agent_Properties eating;
 
 	public float GetRadius() { return transform.lossyScale.z/2; }
+	public float GetLocalRadius() { return transform.localScale.z/2; }
 	public void SetRadius(float rad) {
 		float s = rad * 2;
 		//Transform p = transform.parent;

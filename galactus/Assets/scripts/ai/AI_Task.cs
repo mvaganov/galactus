@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// TODO visualizations...
+
 public abstract class AI_Task {
 	/// <summary>what Agent should this task be calculated for?</summary>
 	protected Agent_TargetFinder self;
@@ -31,10 +33,10 @@ public abstract class AI_Task {
 	/// <summary></summary>
 	/// <returns>The fitness score. Very negative number by default. Not float.MIN, because that causes weird issues when scores are compared</returns>
 	public virtual float CalculateFitnessScore() { return -32768; }
-	public abstract void Execute ();
 	public virtual void Enter (){}
 	public virtual void Exit (){}
-	public abstract string GetDescription ();
+	public virtual bool IsSteering() { return false; }
+	public virtual void GetSteering(ref Vector3 move, ref Vector3 look) { }
 	public AI_Task Clone(){ return this.MemberwiseClone () as AI_Task; }
 
 	public override string ToString () {
@@ -44,6 +46,8 @@ public abstract class AI_Task {
 			+"<"+GetDescription()+">"
 			+"]";
 	}
+	public abstract void Execute ();
+	public abstract string GetDescription ();
 };
 
 public class AgentImagination {
@@ -100,7 +104,7 @@ public class AgentImagination {
 	}
 }
 
-public abstract class AI_TargetTask : AI_Task {
+public class AI_TargetTask : AI_Task {
 	public override AI_Task.Targetability GetTargetability() { return AI_Task.Targetability.yes; }
 	public AI_TargetTask(Agent_TargetFinder self, Transform target, float score):base(self,score){
 		this.target = target;
@@ -122,6 +126,13 @@ public abstract class AI_TargetTask : AI_Task {
 		return true;
 	}
 	public override Transform GetTarget () { return target; }
+	public override bool IsSteering() { return true; }
+	public override void GetSteering(ref Vector3 move, ref Vector3 look) { 
+		Vector3 d = (target.position - self.transform.position);
+		move = look = d.normalized;
+	}
+	public override void Execute(){}
+	public override string GetDescription () { return "target"; }
 }
 
 public class AI_Nothing : AI_Task {
@@ -135,9 +146,10 @@ public class AI_Nothing : AI_Task {
 public class AI_Harvest : AI_TargetTask {
 	public AI_Harvest(Agent_TargetFinder self, Transform target):base(self, target){}
 	public override float CalculateFitnessScore() {
-			dist = self.GetMob ().DistanceTo (target);
-			idealDist = IdealDistanceToHarvest ();
-			return -(dist+dist*self["laziness"]) + self["wanderlust"] + self["greed"] + self["harvest"];
+		dist = self.GetMob ().DistanceTo (target);
+		float d = self ["vision"] - dist;
+		idealDist = IdealDistanceToHarvest ();
+		return (d*d-dist*self["laziness"]) + self["wanderlust"] + self["greed"] + self["harvest"];
 	}
 	public override void SetTarget (Transform t) { 
 		if (t) {
@@ -165,7 +177,11 @@ public class AI_Harvest : AI_TargetTask {
 		}
 		return valid;
 	}
+	public override void GetSteering(ref Vector3 move, ref Vector3 look) { 
+		self.GetMob().CalculateArrive (target.position - self.transform.forward*idealDist, ref move, ref look);
+	}
 	public override void Execute() {
+		// TODO instead of using Execute for steering behaviors, use the steering behavior averaging thingy.
 		self.GetMob().Arrive (target.position - self.transform.forward*idealDist);
 	}
 	public float IdealDistanceToHarvest() {
@@ -184,8 +200,9 @@ public class AI_Flee : AI_TargetTask {
 		dist = rawDist - (targetProps.GetRadius () + self.GetRadius ());
 		Vector3 aScaryDir = delta / -rawDist;
 		float comingAtMe = Vector3.Dot(aScaryDir, targetProps.GetMOB().GetVelocity());
+		float d = (idealDist - dist);
 		// fleeing is a higher priority if the agent is heading toward us!
-		return (idealDist - dist) * (1+self["cowardice"]) + idealDist * comingAtMe;
+		return d * d * (1+self["cowardice"]) + idealDist * comingAtMe;
 	}
 	public override void SetTarget (Transform t) { 
 		if (t) {
@@ -222,7 +239,12 @@ public class AI_Flee : AI_TargetTask {
 		return valid;
 	}
 //	public static GameObject fleeViz;
+	public override void GetSteering(ref Vector3 move, ref Vector3 look) { 
+		self.GetMob().CalculateSeek (target.position, ref move, ref look);
+		move *= -1;
+	}
 	public override void Execute() {
+		// TODO instead of using Execute for steering behaviors, use the steering behavior averaging thingy.
 //		Lines.Make (ref fleeViz, self.transform.position, target.position, Color.yellow);
 		self.GetMob().Flee (target.position);
 	}
@@ -239,7 +261,8 @@ public class AI_Attack : AI_TargetTask {
 	public AI_Attack(Agent_TargetFinder self, Transform target):base(self, target){}
 	public override float CalculateFitnessScore() {
 		dist = self.GetMob ().DistanceTo (target);
-		return (threatRange-dist)*winability + self["aggession"] + self["desperation"] + self["attack"];
+		float d = (threatRange - dist);
+		return d*d*winability + self["aggession"] + self["desperation"] + self["attack"];
 	}
 	public override void SetTarget (Transform t) { 
 		if (t) {
@@ -355,6 +378,60 @@ public class AI_Plan : AI_Task {
 			}
 		}
 		return fittest;
+	}
+}
+
+public class AI_CompositeSteering : AI_Task {
+	public AI_CompositeSteering(Agent_TargetFinder self):base(self){}
+	private List<AI_Task> steering = new List<AI_Task>();
+	private float minPriority, maxPriority;
+	public void Clear() { steering.Clear (); }
+	public void AddBehavior(AI_Task b) { steering.Add (b); }
+	public void CalcPriorities(){
+		minPriority = float.MaxValue;
+		maxPriority = float.MinValue;
+		float s;
+		for (int i = steering.Count-1; i >= 0; --i) {
+			AI_Task t = steering[i];
+			if(t.IsValid()) {
+				t.SetScore ();
+				s = t.GetScore ();
+				if (s > maxPriority) { maxPriority = s; }
+				if (s < minPriority) { minPriority = s; }
+			} else {
+				steering.RemoveAt (i);
+			}
+		}
+	}
+	public override void GetSteering(ref Vector3 move, ref Vector3 look) {
+		float priorityDelta = maxPriority - minPriority;
+		Vector3 m, l;
+		foreach(AI_Task t in steering) {
+			m = Vector3.zero;
+			l = Vector3.zero;
+			t.GetSteering (ref m, ref l);
+			float p = (t.GetScore () - minPriority) / priorityDelta;
+			if (m != Vector3.zero) { move += m * p; }
+			if (l != Vector3.zero) { look += l * p; }
+		}
+		if (move != Vector3.zero) { move.Normalize (); }
+		if (look != Vector3.zero) { look.Normalize (); }
+	}
+	public override void Execute () {
+		Agent_MOB m = self.GetMob ();
+		Vector3 move = Vector3.zero, look = Vector3.zero;
+		CalcPriorities ();
+		GetSteering (ref move, ref look);
+		if (look != Vector3.zero) { m.UpdateLookDirection (look); }
+		if (move != Vector3.zero) { m.ApplyForceToward (move); }
+	}
+	public override string GetDescription () { return "steering behavior"; }
+	public override bool IsValid(ref string whyNot) {
+		if (steering.Count == 0) {
+			whyNot = "no valid steering behaviors";
+			return false;
+		}
+		return true;
 	}
 }
 

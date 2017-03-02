@@ -41,17 +41,17 @@ public class Agent_SizeAndEffects : MonoBehaviour {
 		}
 	}
 
-	public float CalculateSizeFromEnergy(float energy) {
-		float radius = (mob == null) ? Mathf.Sqrt (energy) : energy;
-		// TODO create mechanism to modify calculations for different types, including this calculation
-		radius *= Singleton.Get<GameRules> ().sizeToEnergyRatio;
-		radius += 1;
-		return radius;
-	}
+//	public float CalculateSizeFromEnergy(float energy) {
+//		float radius = (mob == null) ? Mathf.Sqrt (energy) : energy;
+//		// TODO create mechanism to modify calculations for different types, including this calculation
+//		radius *= Singleton.Get<GameRules> ().sizeToEnergyRatio;
+//		radius += 1;
+//		return radius;
+//	}
 
-	public void SetSizeFromEnergy(float energy) {
-		SetRadius (CalculateSizeFromEnergy(energy)/2);
-	}
+//	public void SetSizeFromEnergy(float energy) {
+//		SetRadius (CalculateSizeFromEnergy(energy)/2);
+//	}
 
 	public void SetModelColor(Color c) {
 		GetComponent<Renderer> ().material.color = c;

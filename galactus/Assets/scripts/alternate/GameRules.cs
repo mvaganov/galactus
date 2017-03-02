@@ -89,7 +89,7 @@ public class GameRules : MonoBehaviour {
 			{"baseSpeed",	(a)=>{	return a.HasValue("baseSpeed")?a.GetCached("baseSpeed"):a.mob.maxSpeed;}},
 			{"baseAccel",	(a)=>{	return a.HasValue("baseAccel")?a.GetCached("baseAccel"):a.mob.acceleration;}},
 			{"baseTurn",	(a)=>{	return a.HasValue("baseTurn")?a.GetCached("baseTurn"):a.mob.turnSpeed;}},
-			{"baseEatRad",	(a)=>{return a.HasValue("baseEatRad")?a.GetCached("baseEatRad"):(a.eatS.GetRadius());}},
+			{"baseEatRad",	(a)=>{	return a.HasValue("baseEatRad")?a.GetCached("baseEatRad"):(a.eatS.GetLocalRadius());}},
 			{"baseRadius",	(a)=>{	return Mathf.Sqrt (a["energy"]*Singleton.Get<GameRules>().sizeToEnergyRatio);}},
 			{"rad",			(a)=>{	float r=a["radControl_"];	return Mathf.Max(r, a["baseRadius"]-r);}},
 			{"speed",		(a)=>{	float s=a["speed_"],r=a["rad"],b=a["baseSpeed"];	return (s<=r)?(b / Mathf.Max(1,r-s)):(b+(s-r));}},
