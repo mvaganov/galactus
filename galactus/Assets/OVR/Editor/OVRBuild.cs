@@ -36,7 +36,7 @@ partial class OculusBuildApp
 #endif
 	if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android)
         {
-            EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTarget.Android);
+            EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
         }
     }
 }
