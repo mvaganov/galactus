@@ -84,7 +84,7 @@ public class OVRTrackerBounds : MonoBehaviour
 	/// </summary>
 	void ComputePlanes()
     {
-        OVRTracker.Frustum frustum = OVRManager.tracker.frustum;
+        OVRTracker.Frustum frustum = OVRManager.tracker.GetFrustum();
         float nearZ = frustum.nearZ;
         float farZ = frustum.farZ;
         float hFOV = Mathf.Deg2Rad * frustum.fov.x * 0.5f;
@@ -147,7 +147,7 @@ public class OVRTrackerBounds : MonoBehaviour
 
         ComputePlanes();
 
-        OVRPose trackerPose = OVRManager.tracker.GetPose(0f);
+        OVRPose trackerPose = OVRManager.tracker.GetPose(0);
         Matrix4x4 trackerMat = Matrix4x4.TRS(trackerPose.position, trackerPose.orientation, Vector3.one);
 
         // Transform point into volume space

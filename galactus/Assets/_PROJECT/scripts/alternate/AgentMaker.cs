@@ -14,7 +14,7 @@ public class AgentMaker : MonoBehaviour {
 	[Tooltip("what the AI get to control")]
 	public Agent_MOB[] pfab_agents;
 
-
+	public float minStartSize = 1, maxStartSize = 1;
 	int activeAgents = 0;
 
 	SphereCollider sc;
@@ -51,6 +51,7 @@ public class AgentMaker : MonoBehaviour {
                 obj.SetActive(true); activeAgents++;
 				Agent_Properties p = obj.GetComponent<Agent_Properties>();
 				p.Reset();
+				p.Energy = Random.Range(minStartSize, maxStartSize);
             },
 			(obj) => {
                 obj.SetActive(false); activeAgents--;

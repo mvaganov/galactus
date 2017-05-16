@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
+using UnityEngine.VR;
 using System.Collections.Generic;
 
 public class Agent_InputControl : MonoBehaviour {
@@ -9,9 +9,10 @@ public class Agent_InputControl : MonoBehaviour {
 	public float cameraDistance = 3;
 	public bool stopWithoutInput = true;
 	private bool useBrakes = false;
+    private VRControls vr;
 
-	/// <summary>movement decision making (user input)</summary>
-	private float inputFore = 1, inputSide;
+    /// <summary>movement decision making (user input)</summary>
+    private float inputFore = 1, inputSide;
 	/// <summary>what to set a held eat-sphere transparency to, to reduce obstruction of visibility</summary>
 	private const float userEatSphereTransparencyDuringHold = 0.125f;
 
@@ -36,7 +37,15 @@ public class Agent_InputControl : MonoBehaviour {
 	public bool IsBraking() { return useBrakes; }
 
 	void Start () {
-		Posess (controlled);
+        vr = Object.FindObjectOfType<VRControls>();
+        if(vr) {
+            if(!vr.enabled || !vr.gameObject.activeInHierarchy) {
+                vr = null;
+            } else {
+				vr.TakeUserInterfaceControl(gameObject);
+            }
+        }
+        Posess (controlled);
 	}
 
 	// TODO make some kind of "undoable value change" object, and a manager for it. or better yet, make a "user controlled" effect that adjusts the transparency
@@ -51,7 +60,6 @@ public class Agent_InputControl : MonoBehaviour {
 			}
 			if (tf) {
 				tf.enabled = true;
-			} else {
 			}
 		}
 		controlled = toBeControlled;
@@ -88,7 +96,9 @@ public class Agent_InputControl : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		// control with mouse-look
-		transform.Rotate (Input.GetAxis ("Mouse Y") * mouseSensitivityY, Input.GetAxis ("Mouse X") * mouseSensitivityX, 0);
+		if(vr == null) {
+			vr.transform.Rotate(Input.GetAxis("Mouse Y") * mouseSensitivityY, Input.GetAxis("Mouse X") * mouseSensitivityX, 0); ;
+		}
 		if (controlled) {
 			// control with forward/strafe keys
 			inputFore = Input.GetAxis ("Vertical");
@@ -123,5 +133,10 @@ public class Agent_InputControl : MonoBehaviour {
 		if (controlled) {
 			transform.position = controlled.transform.position - transform.forward * cameraDistance * controlled.transform.localScale.z;
 		}
+        if(vr) {
+            vr.transform.position = transform.position;
+            //transform.position = vr.head.transform.position;
+            transform.rotation = vr.head.transform.rotation;
+        }
 	}
 }
