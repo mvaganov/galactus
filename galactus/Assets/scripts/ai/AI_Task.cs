@@ -33,8 +33,6 @@ public abstract class AI_Task {
 	/// <summary></summary>
 	/// <returns>The fitness score. Very negative number by default. Not float.MIN, because that causes weird issues when scores are compared</returns>
 	public virtual float CalculateFitnessScore() { return -32768; }
-	public virtual void Enter (){}
-	public virtual void Exit (){}
 	public virtual bool IsSteering() { return false; }
 	public virtual void GetSteering(ref Vector3 move, ref Vector3 look) { }
 	public AI_Task Clone(){ return this.MemberwiseClone () as AI_Task; }
@@ -47,7 +45,41 @@ public abstract class AI_Task {
 			+"]";
 	}
 	public abstract void Execute ();
+	public virtual void Enter (){ }
+	public virtual void Exit (){
+		if (drawnElements != null) { ClearLineElementsBeyond (0); }
+	}
 	public abstract string GetDescription ();
+	public virtual void DrawLogic(ref List<GameObject> drawnElements) { }
+
+	private List<GameObject> drawnElements = null;
+	public GameObject LineElement(int index) {
+		if (drawnElements == null) { drawnElements = new List<GameObject> (); }
+		GameObject o = null;
+		if (index == drawnElements.Count) {
+			drawnElements.Add (Effects.Line (ref o));
+		} else { o = drawnElements [index]; }
+		return o;
+	}
+	public void SetLineElement(int index, GameObject g){
+		if (drawnElements [index] == null || g != drawnElements[index]) {
+			throw new UnityException ("["+g+"] seems bad bro. why didn't the draw object initialize here? ?"+drawnElements[index]+"?");
+		}
+		drawnElements [index] = g;
+	}
+	protected void ClearLineElementsBeyond(int index) {
+		for (int i = drawnElements.Count - 1; i >= index; --i) {
+			MemoryPoolItem.Destroy (drawnElements [i]);
+			drawnElements.RemoveAt (i);
+		}
+	}
+	public virtual void Draw() {
+		if (drawnElements == null) { drawnElements = new List<GameObject> (); }
+		DrawLogic (ref drawnElements);
+//		for(int a=0;a<drawnCount;++a){drawnElements[a].SetActive(true);}
+//		for(int a=drawnCount;a<drawnElements.Length;++a){drawnElements[a].SetActive(false);}
+//		return drawnCount;
+	}
 };
 
 public class AgentImagination {
@@ -133,6 +165,10 @@ public class AI_TargetTask : AI_Task {
 	}
 	public override void Execute(){}
 	public override string GetDescription () { return "target"; }
+	public override void DrawLogic(ref List<GameObject> drawnElements) {
+		Lines.MakeCircle_With (LineElement (0), target.position, Camera.main.transform.forward, Color.white, 
+			target.transform.lossyScale.z).name="<T>";
+	}
 }
 
 public class AI_Nothing : AI_Task {
@@ -181,14 +217,24 @@ public class AI_Harvest : AI_TargetTask {
 		self.GetMob().CalculateArrive (target.position - self.transform.forward*idealDist, ref move, ref look);
 	}
 	public override void Execute() {
-		// TODO instead of using Execute for steering behaviors, use the steering behavior averaging thingy.
 		self.GetMob().Arrive (target.position - self.transform.forward*idealDist);
 	}
 	public float IdealDistanceToHarvest() {
-		return props.GetRadius () + selfProps ["eatRange"];				
+		return props.GetRadius () + selfProps ["eatRange"]*self.transform.lossyScale.z;				
 	}
 	public float dist, idealDist;
 	public Agent_Properties props, selfProps;
+	public override void DrawLogic(ref List<GameObject> drawnElements) {
+		Vector3 targ = target.position - self.transform.forward * idealDist;
+		Lines.MakeCircle_With (LineElement (0), targ, Camera.main.transform.forward, Color.green,
+			self.GetRadius()).name="<H>";
+		Lines.Make_With (LineElement (1), 
+			target.position,
+			target.position - self.transform.forward * target.transform.lossyScale.z/2,
+//			self.transform.position + self.transform.forward * self.GetRadius (), 
+//			targ - self.transform.forward * self.GetRadius(), 
+			Color.green, self.GetProperties ().GetEatSphere ().GetRadius (), 0).name="<H.>";
+	}
 }
 
 // ?cowardice, ?threat(target)
@@ -244,7 +290,6 @@ public class AI_Flee : AI_TargetTask {
 		move *= -1;
 	}
 	public override void Execute() {
-		// TODO instead of using Execute for steering behaviors, use the steering behavior averaging thingy.
 //		Lines.Make (ref fleeViz, self.transform.position, target.position, Color.yellow);
 		self.GetMob().Flee (target.position);
 	}
@@ -254,6 +299,14 @@ public class AI_Flee : AI_TargetTask {
 	}
 	public float dist, idealDist;
 	public Agent_Properties targetProps, selfProps;
+	public override void DrawLogic(ref List<GameObject> drawnElements) {
+		float r = target.transform.lossyScale.z / 2;
+		Vector3 d = (target.position - self.transform.position).normalized;
+		Lines.Make_With (LineElement(0), target.transform.position - d * r, target.position - d * (idealDist - self.GetRadius()),
+			Color.yellow, r*2, 0).name="<F.t>";
+		Lines.MakeCircle_With (LineElement(1), target.position - d * idealDist, Camera.main.transform.forward, 
+			Color.yellow, self.GetRadius ()).name="<F.e>";
+	}
 }
 
 // ?aggression, ?threat(target), ?desparation
@@ -305,13 +358,20 @@ public class AI_Attack : AI_TargetTask {
 		return self.GetRadius() + (selfProps["speed"]*(1+self["aggression"]+winability));
 	}
 
-	public override void Enter () { selfProps.GetEatSphere ().maintainActivation = true; }
-	public static GameObject attackLine;
+	public override void Enter () { selfProps.GetEatSphere ().maintainActivation = true; base.Enter (); }
 	public override void Execute() {
-		Lines.Make (ref attackLine, self.transform.position, target.position, Color.red);
 		self.GetMob().Seek (target.position - self.transform.forward*selfProps["eatRange"]);
 	}
-	public override void Exit () { selfProps.GetEatSphere ().maintainActivation = false; }
+	public override void Exit () { selfProps.GetEatSphere ().maintainActivation = false; base.Exit (); }
+	public override void DrawLogic(ref List<GameObject> drawnElements) {
+		float r = target.transform.lossyScale.z / 2;
+		Vector3 d = (target.position - self.transform.position).normalized;
+		Lines.Make_With (LineElement(0), self.transform.position+d*self.GetRadius(), target.position-d*r, 
+			Color.red, self.transform.lossyScale.z, 0).name="<A.t>";
+		Lines.Make_With (LineElement(1), self.transform.position + d * threatRange, target.transform.position + d*r,
+			Color.red, target.transform.lossyScale.z, 0).name="<A.e>";
+//		Lines.MakeCircle (DrawElement(2), self.transform.position, Camera.main.transform.forward, Color.red, threatRange).name="<A.r>";
+	}
 
 	public float dist, threatRange, winability;
 	public Agent_Properties props, selfProps;
@@ -332,7 +392,12 @@ public class AI_Searching : AI_Task {
 			self.SwitchActivityTo (new AI_Plan (self));
 		}
 	}
-	public static AI_Searching zero = new AI_Searching (null);
+	public override void DrawLogic(ref List<GameObject> drawnElements) {
+		Agent_Sensor.SensorSnapshot s = self.GetSensor().GetSnapshot ();
+		Lines.Make_With (LineElement(0), s.origin, s.origin + s.direction * s.range, Color.gray).name="<S.l>";
+		Lines.MakeCircle_With (LineElement(1), s.origin, Camera.main.transform.forward, Color.gray).name="<S.s>";
+		Lines.MakeCircle_With (LineElement(2), s.origin + s.direction * s.range, Camera.main.transform.forward, Color.gray).name="<S.e>";
+	}
 }
 
 public class AI_Plan : AI_Task {
@@ -379,18 +444,44 @@ public class AI_Plan : AI_Task {
 		}
 		return fittest;
 	}
+	public override void DrawLogic(ref List<GameObject> drawnElements) {
+		Agent_Sensor.SensorSnapshot s = self.GetSensor().GetSnapshot ();
+		RaycastHit[] hits = s.sensed;
+		for (int i = 0; i < hits.Length; ++i) {
+			Lines.Make_With (LineElement(i), hits [i].transform.position, self.transform.position, Color.gray, hits[i].transform.lossyScale.z, 0).name="<P.l>";
+		}
+		ClearLineElementsBeyond (hits.Length);
+	}
 }
 
 public class AI_CompositeSteering : AI_Task {
 	public AI_CompositeSteering(Agent_TargetFinder self):base(self){}
 	private List<AI_Task> steering = new List<AI_Task>();
-	private float minPriority, maxPriority;
+	private float minPriority, priorityDelta;
 	public void Clear() { steering.Clear (); }
-	public void AddBehavior(AI_Task b) { steering.Add (b); }
+	bool isActive = false;
+	public override void Enter() {
+		isActive = true;
+		base.Enter ();
+	}
+	public override void Exit (){
+		isActive = false;
+		steering.ForEach (i => i.Exit ());
+		base.Exit ();
+	}
+
+	public void AddBehavior(AI_Task b) {
+		if (!b.IsSteering ()) {
+			throw new UnityException ("should not accept non-steering behavior");
+		}
+		steering.Add (b);
+		if (isActive) {
+			b.Enter ();
+		}
+	}
 	public void CalcPriorities(){
 		minPriority = float.MaxValue;
-		maxPriority = float.MinValue;
-		float s;
+		float maxPriority = float.MinValue, s;
 		for (int i = steering.Count-1; i >= 0; --i) {
 			AI_Task t = steering[i];
 			if(t.IsValid()) {
@@ -399,20 +490,31 @@ public class AI_CompositeSteering : AI_Task {
 				if (s > maxPriority) { maxPriority = s; }
 				if (s < minPriority) { minPriority = s; }
 			} else {
+				steering [i].Exit ();
 				steering.RemoveAt (i);
 			}
 		}
+		priorityDelta = maxPriority - minPriority;
 	}
+
+	private float GetWeightOf(AI_Task t) { return (t.GetScore () - minPriority) / priorityDelta; }
+
+	/// <summary>keeps track of calculated steering forces from each steering behavior</summary>
+	private Vector3[,] steerCalc;
+
 	public override void GetSteering(ref Vector3 move, ref Vector3 look) {
-		float priorityDelta = maxPriority - minPriority;
+		if (steerCalc == null || steerCalc.GetLength (0) < steering.Count) { steerCalc = new Vector3[steering.Count, 2]; }
 		Vector3 m, l;
-		foreach(AI_Task t in steering) {
+		for(int i=0;i<steering.Count;++i) {
+			AI_Task t = steering[i];
 			m = Vector3.zero;
 			l = Vector3.zero;
 			t.GetSteering (ref m, ref l);
-			float p = (t.GetScore () - minPriority) / priorityDelta;
+			float p = GetWeightOf (t);//(t.GetScore () - minPriority) / priorityDelta;
 			if (m != Vector3.zero) { move += m * p; }
 			if (l != Vector3.zero) { look += l * p; }
+			steerCalc [i, 0] = m;
+			steerCalc [i, 1] = l;
 		}
 		if (move != Vector3.zero) { move.Normalize (); }
 		if (look != Vector3.zero) { look.Normalize (); }
@@ -433,6 +535,22 @@ public class AI_CompositeSteering : AI_Task {
 		}
 		return true;
 	}
+
+	// TODO draw line and arrow heads pointing out of the target move and look, the thickness indicates priority.
+	public override void DrawLogic(ref List<GameObject> drawnElements) {
+		for (int i = 0; i < steering.Count; ++i) {
+			steering [i].Draw ();
+		}
+		Vector3[] p = new Vector3[3];
+		for (int i = 0; i < steerCalc.GetLength(0) && i < steering.Count; ++i) {
+			// TODO draw an arrow, with a width based on the weight.
+			p [0] = self.transform.position + steerCalc[i,0] * (self.transform.lossyScale.z/2);
+			p [1] = p [0] + steerCalc [i, 0];
+			p [2] = p [1] + steerCalc [i, 1];
+			float w = GetWeightOf (steering [i]);
+			Lines.Make_With(LineElement(i), p, p.Length, steering[i].LineElement(0).GetComponent<Renderer>().material.color, w, 0).name = "<?."+steering[i].GetDescription()+">";
+		}
+	}
 }
 
 // TODO merged-steering-behavior positions, to allow mergers of seek/flee/evade/hide/flock behaviors
@@ -443,3 +561,5 @@ public class AI_CompositeSteering : AI_Task {
 // TODO AI_Ambush - wait, unaggressively, till a target wanders into the ambush area
 // TODO AI_Evade - if an agent is seeking me, run away, but find energy rich targets nearby, especially allies
 // TODO AI_Hide - if an agent is scaring me, try to keep friendly targets between me and him
+// TODO make UI for point allocaiton
+// TODO use OBS to make a video showing gameplay

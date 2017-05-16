@@ -145,7 +145,6 @@ public class OVRTrackerBounds : MonoBehaviour
 			return;
 		}
 
-        // TODO - probably don't have to do this every frame!
         ComputePlanes();
 
         OVRPose trackerPose = OVRManager.tracker.GetPose(0f);

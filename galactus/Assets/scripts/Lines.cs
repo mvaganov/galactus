@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public class Lines : MonoBehaviour {
 	[Tooltip("Used to draw lines. Ideally a white Self-Illumin/Diffuse shader.")]
 	public Material lineMaterial;
+	public bool autoParentLinesToGlobalObject = true;
 
 	/// <summary>The singleton instance.</summary>
 	static Lines instance;
@@ -36,15 +37,21 @@ public class Lines : MonoBehaviour {
 	/// <param name="endSize">How wide the line is at the end</param>
 	public static LineRenderer Make(ref GameObject lineObject, Vector3 start, Vector3 end,
 		Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f) {
-		if(lineObject == null) { lineObject = new GameObject(); }
+		if (lineObject == null) { lineObject = new GameObject(); }
+		if (Instance().autoParentLinesToGlobalObject) { lineObject.transform.SetParent (instance.transform); }
 		LineRenderer lr = lineObject.GetComponent<LineRenderer>();
 		if(lr == null) { lr = lineObject.AddComponent<LineRenderer>(); }
 		lr.startWidth = startSize;
 		lr.endWidth = endSize;
-		lr.numPositions = 2;
+		lr.positionCount = 2;
 		lr.SetPosition(0, start); lr.SetPosition(1, end);
 		SetColor(lr, color);
 		return lr;
+	}
+	/// <summary>As Make, but using an assured GameObject</summary>
+	public static LineRenderer Make_With(GameObject lineObject, Vector3 start, Vector3 end,
+		Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f) {
+		return Make (ref lineObject, start, end, color, startSize, endSize);
 	}
 
 	/// <summary>Make the specified Line from a list of points</summary>
@@ -57,15 +64,20 @@ public class Lines : MonoBehaviour {
 	/// <param name="endSize">How wide the line is at the end</param>
 	public static LineRenderer Make(ref GameObject lineObject, Vector3[] points, int pointCount,
 		Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f) {
-		if(lineObject == null) { lineObject = new GameObject(); }
+		if (lineObject == null) { lineObject = new GameObject(); }
+		if (Instance().autoParentLinesToGlobalObject) { lineObject.transform.SetParent (instance.transform); }
 		LineRenderer lr = lineObject.GetComponent<LineRenderer>();
 		if(lr == null) { lr = lineObject.AddComponent<LineRenderer>(); }
 		lr.startWidth = startSize;
 		lr.endWidth = endSize;
-		lr.numPositions = pointCount;
+		lr.positionCount = pointCount;
 		for(int i = 0; i < pointCount; ++i) { lr.SetPosition(i, points[i]); }
 		SetColor(lr, color);
 		return lr;
+	}
+	public static LineRenderer Make_With(GameObject lineObject, Vector3[] points, int pointCount,
+		Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f) {
+		return Make (ref lineObject, points, pointCount, color, startSize, endSize);
 	}
 
 	public static void SetColor(LineRenderer lr, Color color) {
@@ -144,6 +156,11 @@ public class Lines : MonoBehaviour {
 		Vector3 r = Vector3.Cross(normal, crossDir).normalized;
 		return Lines.MakeArc(ref lineObj, 360, 24, normal, r * radius, center, color,
 			linesize, linesize);
+	}
+	/// <summary>As MakeCircle, but using an assured GameObject</summary>
+	public static LineRenderer MakeCircle_With(GameObject lineObj,
+		Vector3 center, Vector3 normal, Color color = default(Color), float radius = 1, float linesize = 0.125f) {
+		return MakeCircle (ref lineObj, center, normal, color, radius, linesize);
 	}
 
 	/// <returns>a line renderer in the shape of a sphere made of 3 circles, for the x.y.z axis</returns>

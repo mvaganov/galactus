@@ -44,7 +44,7 @@ public class Agent_UI : MonoBehaviour {
 
 	void Start() {
 		if (!HaveAllUiElements()) {
-			print ("looking for UI elements...");
+//			print ("looking for UI elements...");
 			Canvas[] canvases = GameObject.FindObjectsOfType<Canvas> ();
 			UnityEngine.UI.Text t;
 			UnityEngine.UI.Image img;

@@ -63,6 +63,7 @@ public class Agent_SensorLabeler : MonoBehaviour
 		Sprite icon = null;
 		Vector2 midScreen = new Vector2 (0.5f, 0.5f);
 		for (int i = 0; i < hits.Length; ++i) {
+			// TODO this seems weird that it isn't Agent_Properties...
 			Agent_SizeAndEffects nrg = hits [i].collider.gameObject.GetComponent<Agent_SizeAndEffects> ();
 			if (!nrg || nrg == sensor.sizeAndEffects)
 				continue;

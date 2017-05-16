@@ -36,6 +36,9 @@ public class Effects : MonoBehaviour {
 	private GameObjectPool soundEffects;
 	private GameObjectPool floatyTextEffects;
 	private GameObjectPool drainEffects;
+	private GameObjectPool lineEffects;
+	private static Effects s_effects;
+	public static Effects Get() { if (!s_effects) { s_effects = Singleton.Get<Effects> (); } return s_effects; }
 
 	public GameObjectPool GetSoundPool() {
 		if(soundEffects == null) { soundEffects = new GameObjectPool (pfab_soundEffect.gameObject); } return soundEffects;
@@ -47,6 +50,14 @@ public class Effects : MonoBehaviour {
 
 	public GameObjectPool GetParticleDrainPool() {
 		if (drainEffects == null) { drainEffects = new GameObjectPool (pfab_particleDrain.gameObject); } return drainEffects;
+	}
+
+	public GameObjectPool GetLinePool() {
+		if (lineEffects == null) {
+			GameObject newLine = null;
+			Lines.Make (ref newLine, Vector3.zero, Vector3.zero);
+			lineEffects = new GameObjectPool (newLine);
+		} return lineEffects;
 	}
 
 	[SerializeField]
@@ -66,7 +77,7 @@ public class Effects : MonoBehaviour {
 	}
 
 	public static FloatyText FloatyText(Vector3 position, Transform t, string text, Color color, float speed = 1f) {
-		Effects e = Singleton.Get<Effects> ();
+		Effects e = Get();
 		FloatyText ft = e.GetFloatyTextPool ().Alloc ().GetComponent<FloatyText> ();
 		ft.transform.position = position;
 		ft.transform.SetParent(t);
@@ -76,7 +87,7 @@ public class Effects : MonoBehaviour {
 	}
 
 	public static ParticleDrain ParticleDrain(Transform from_, Transform to_, Color color, int particleCount, float speed) {
-		Effects e = Singleton.Get<Effects> ();
+		Effects e = Get ();
 		ParticleDrain pd = e.GetParticleDrainPool ().Alloc ().GetComponent<ParticleDrain> ();
 		pd.transform.position = from_.position;
 		pd.transform.SetParent (from_);
@@ -85,7 +96,14 @@ public class Effects : MonoBehaviour {
 		return pd;
 	}
 
-	void Start() { }
+	public static GameObject Line(ref GameObject obj, Vector3 start = default(Vector3), Vector3 end = default(Vector3), Color color = default(Color), float startWidth = 0.125f, float endWidth = 0.125f) {
+		Effects e = Get ();
+		if (obj == null) { obj = e.GetLinePool ().Alloc (); }
+		Lines.Make(ref obj, start, end, color, startWidth, endWidth);
+		return obj;
+	}
+
+	void Start() { Lines.Instance ().transform.SetParent (transform); }
 
 	public Effect Get(string name) {
 		Effect e = null;

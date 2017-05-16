@@ -15,6 +15,7 @@ public class Agent_TargetFinder : MonoBehaviour {
 	private Agent_Properties props;
 	private Agent_SizeAndEffects sizeAndEffects;
 	private List<AI_Task> todo = null;
+	public bool showAI = false;
 
 	public bool ConsiderAddingToDo(AI_Task t) {
 		if (t == null) return false;
@@ -141,7 +142,7 @@ public class Agent_TargetFinder : MonoBehaviour {
 	}
 
 	public float GetRadius() {
-		return transform.localScale.z;
+		return transform.localScale.z/2;
 	}
 
 	public void Reset() { currentTask = null; }
@@ -184,6 +185,9 @@ public class Agent_TargetFinder : MonoBehaviour {
 		// if we're doing something, keep doing it
 		if (currentTask != null && currentTask.IsValid()) {
 			currentTask.Execute ();
+			if (showAI) {
+				currentTask.Draw ();
+			}
 		} else {
 			if (currentTask != null) { SwitchActivityTo (null); }
 			// otherwise, do the most important thing we know we have to do.

@@ -390,7 +390,6 @@ public static class OVRInputControl
 	/// </summary>
 	public static float GetJoystickAxis(int joystickNumber, string name)
 	{
-		// TODO: except for the joystick prefix this could be a table lookup
 		// with a table-per-joystick this could be a lookup.
 #if UNITY_ANDROID && !UNITY_EDITOR
 		// on the Samsung gamepad, the left and right triggers are actually buttons
@@ -439,7 +438,6 @@ public static class OVRInputControl
 	/// </summary>
 	public static bool GetJoystickButton(int joystickNumber, string name)
 	{
-		// TODO: except for the joystick prefix this could be a table lookup
 		// with a table-per-joystick this could be a lookup.
 		string fullName = platformPrefix + "Joy " + joystickNumber + ":" + name;
 		return Input.GetButton(fullName);

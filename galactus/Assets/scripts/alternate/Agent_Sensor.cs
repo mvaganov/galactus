@@ -18,9 +18,14 @@ public class Agent_Sensor : MonoBehaviour {
 	{
 		public RaycastHit[] sensed;
 		public float timestamp;
-		public SensorSnapshot(float time, RaycastHit[] data){
+		public Vector3 origin, direction;
+		public float range;
+		public SensorSnapshot(float time, RaycastHit[] data, Vector3 origin, Vector3 direction, float range){
 			this.timestamp=time;
 			this.sensed=data;
+			this.origin=origin;
+			this.direction=direction;
+			this.range=range;
 		}
 	}
 
@@ -42,7 +47,7 @@ public class Agent_Sensor : MonoBehaviour {
 	public SensorSnapshot TakeSnapshot(Vector3 origin, Vector3 direction) {
 		Ray r = new Ray (origin, direction);
 		RaycastHit[] hits = Physics.SphereCastAll (r, sizeAndEffects.GetRadius () + radiusExtra, range, 1 << sizeAndEffects.gameObject.layer);
-		return new SensorSnapshot (Time.time, hits);
+		return new SensorSnapshot (Time.time, hits, origin, direction, range);
 	}
 
 //	private GameObject testRay;

@@ -156,14 +156,12 @@ public class MemoryPoolItem : MonoBehaviour {
         MemoryPoolItem i = go.GetComponent<MemoryPoolItem>();
         if (i != null) { i.FreeSelf(); } else { Debug.LogWarning("destroying unmanaged object "+go); Object.Destroy(go); }
 	}
-	// TODO use this instead of MemoryPoolRelease, since MemoryPoolRelease doesn't really work without MemoryPoolItem
-	public void AddOnDecommissionCode(MemoryPool<GameObject>.DelegateEndUse decommissionCode) {
+	public void AddOnFreeCode(MemoryPool<GameObject>.DelegateEndUse decommissionCode) {
 		MemoryPoolRelease.Add (gameObject, decommissionCode);
 	}
 }
 
-public class MemoryPoolRelease : MonoBehaviour
-{
+public class MemoryPoolRelease : MonoBehaviour {
     public static void Add(GameObject obj, MemoryPool<GameObject>.DelegateEndUse decommissionCode) {
         MemoryPoolRelease mpr = obj.GetComponent<MemoryPoolRelease>();
         if(!mpr) mpr = obj.AddComponent<MemoryPoolRelease>();
@@ -190,7 +188,7 @@ public class MemoryPoolRelease : MonoBehaviour
 //  TODO add methods to make this easy.
 public class GameObjectPool : MemoryPool<GameObject> {
 	public void Setup(GameObject prefab) {
-		Setup( // TODO use MemoryPoolItem and MemoryPoolRelease in here...?
+		Setup(
 			()    => GameObject.Instantiate(prefab),
 			(obj) => obj.SetActive(true),
 			(obj) => obj.SetActive(false),
