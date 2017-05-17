@@ -7,8 +7,6 @@ public class Agent_MOB : MonoBehaviour {
 
 	// TODO add obstacle avoidance, flocking, and path-finding code
 	public float acceleration = 5, maxSpeed = 20, turnSpeed = 180;
-	public enum AccelerationApplies {inAnyDirection, onlyForwardAndStop};
-	public AccelerationApplies accelerationApplies = AccelerationApplies.inAnyDirection;
 	private Vector3 accelerationDirection;
 	/// <summary>cached variables required for a host of calculations</summary>
 	private float currentSpeed, brakeDistance;
