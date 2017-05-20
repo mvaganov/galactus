@@ -57,38 +57,6 @@ public class Agent_MOB : MonoBehaviour {
 		return brakeDistance;
 	}
 
-	private Vector3 SeekMath(Vector3 directionToLookToward) {
-		Vector3 desiredVelocity = directionToLookToward * maxSpeed;
-		Vector3 desiredChangeToVelocity = desiredVelocity - rb.velocity;
-		Vector3 steerDirection = desiredChangeToVelocity.normalized;
-		return steerDirection;
-	}
-
-	public void CalculateSeek(Vector3 target, ref Vector3 directionToMoveToward, ref Vector3 directionToLookToward) {
-		Vector3 delta = target - transform.position;
-		if (delta == Vector3.zero) { return; }
-		float desiredDistance = delta.magnitude;
-		directionToLookToward = delta / desiredDistance;
-		directionToMoveToward = SeekMath (directionToLookToward);
-	}
-
-	public void CalculateArrive (Vector3 target, ref Vector3 directionToMoveToward, ref Vector3 directionToLookToward) {
-		Vector3 delta = target - transform.position;
-		if (delta == Vector3.zero) { return; }
-		float desiredDistance = delta.magnitude;
-		if (desiredDistance > 1.0 / 1024) {
-//			float currentSpeed = rb.velocity.magnitude;
-//			float brakeDistance = BrakeDistance (currentSpeed, accelerationForce);
-//			float spaceToBrakeIn = desiredDistance-(currentSpeed*Time.deltaTime);
-			if (brakeDistance < desiredDistance) {
-				directionToLookToward = delta / desiredDistance;
-				directionToMoveToward = SeekMath (directionToLookToward);
-				return;
-			}
-		}
-		directionToMoveToward = ApplyBrakes ();
-	}
-
 	public static float BrakeDistance(float speed, float acceleration) {
 		return (speed * speed) / (2 * acceleration);
 	}
@@ -112,6 +80,35 @@ public class Agent_MOB : MonoBehaviour {
 			}
 		}
 		return directionToMoveToward;
+	}
+
+	private Vector3 SeekMath(Vector3 directionToLookToward) {
+		Vector3 desiredVelocity = directionToLookToward * maxSpeed;
+		Vector3 desiredChangeToVelocity = desiredVelocity - rb.velocity;
+		Vector3 steerDirection = desiredChangeToVelocity.normalized;
+		return steerDirection;
+	}
+
+	public void CalculateSeek(Vector3 target, ref Vector3 directionToMoveToward, ref Vector3 directionToLookToward) {
+		Vector3 delta = target - transform.position;
+		if (delta == Vector3.zero) { return; }
+		float desiredDistance = delta.magnitude;
+		directionToLookToward = delta / desiredDistance;
+		directionToMoveToward = SeekMath (directionToLookToward);
+	}
+
+	public void CalculateArrive (Vector3 target, ref Vector3 directionToMoveToward, ref Vector3 directionToLookToward) {
+		Vector3 delta = target - transform.position;
+		if (delta == Vector3.zero) { return; }
+		float desiredDistance = delta.magnitude;
+		if (desiredDistance > 1.0 / 1024) {
+			if (brakeDistance < desiredDistance) {
+				directionToLookToward = delta / desiredDistance;
+				directionToMoveToward = SeekMath (directionToLookToward);
+				return;
+			}
+		}
+		directionToMoveToward = ApplyBrakes ();
 	}
 
 	public void Seek(Vector3 target) {

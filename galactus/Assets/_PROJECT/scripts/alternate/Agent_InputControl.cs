@@ -97,7 +97,7 @@ public class Agent_InputControl : MonoBehaviour {
 	void Update () {
 		// control with mouse-look
 		if(vr == null) {
-			vr.transform.Rotate(Input.GetAxis("Mouse Y") * mouseSensitivityY, Input.GetAxis("Mouse X") * mouseSensitivityX, 0); ;
+			transform.Rotate(Input.GetAxis("Mouse Y") * mouseSensitivityY, Input.GetAxis("Mouse X") * mouseSensitivityX, 0); ;
 		}
 		if (controlled) {
 			// control with forward/strafe keys

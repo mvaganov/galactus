@@ -22,7 +22,7 @@ public class GravitySource : MonoBehaviour {
 		if(entangleOnTrigger) { EntanglePlayer(col.GetComponent<PlayerControl>()); }
 	}
 	public void EntanglePlayer(PlayerControl p) {
-		if(p && p.UseGravity) {
+		if(p && p.ApplyGravity) {
 			GravityPuller gp = p.gameObject.GetComponent<GravityPuller>();
 			if(!gp) { gp = p.gameObject.AddComponent<GravityPuller>(); }
 			if(gp.gravitySource != this) { gp.Init(this); } else { gp.Refresh(); }
@@ -491,27 +491,14 @@ public class GravityPuller : MonoBehaviour {
 	}
 	public void Refresh() {
 		Vector3 nextDir = gravitySource.CalculateGravityDirectionFrom(transform.position);
-		if(velocityFollowsGravity && nextDir != p.gravity.dir) {
-			Rigidbody rb = p.rb;
-			Vector3 forward, right;
-			PlayerControl.CalculatePlanarMoveVectors(transform.forward, p.gravity.dir, out forward, out right);
-			Vector3 relativeVelocity = new Vector3(
-				Vector3.Dot(right, rb.velocity),
-				Vector3.Dot(p.gravity.dir, rb.velocity),
-				Vector3.Dot(forward, rb.velocity));
-			PlayerControl.CalculatePlanarMoveVectors(transform.forward, nextDir, out forward, out right);
-			rb.velocity =
-				right   * relativeVelocity.x +
-				nextDir * relativeVelocity.y +
-				forward * relativeVelocity.z;
+		Rigidbody rb = p.rb;
+		if(velocityFollowsGravity && nextDir != p.gravity.dir && rb != null) {
+			Vector3 localVelocity = p.transform.InverseTransformDirection(rb.velocity);
 			float angle = Vector3.Angle(nextDir, p.gravity.dir);
 			Vector3 axis = Vector3.Cross(p.gravity.dir, nextDir).normalized;
 			Quaternion q = Quaternion.AngleAxis(angle, axis);
 			p.transform.rotation = Quaternion.LookRotation(q*transform.forward, q*transform.up);
-		}
-		if(p.gravity.dir != nextDir) {
-			p.IsCollidingWithGround = false;
-			p.IsStableOnGround = false;
+			rb.velocity = p.transform.TransformDirection (localVelocity);
 		}
 		p.gravity.dir = nextDir;
 		p.gravity.power = gravitySource.power;
