@@ -15,7 +15,7 @@ public class MobileEntity : MonoBehaviour {
 	[Tooltip("how quickly the PlayerControl transform rotates to match the intended direction, measured in degrees-per-second")]
 	public float TurnSpeed = 180;
 	[Tooltip("how quickly the PlayerControl reaches MoveSpeed. If less-than zero, jump straight to move speed.")]
-	public float acceleration = -1;
+	public float acceleration = -1;  // TODO capitalize
 	[Tooltip("if true, mouse controls and WASD function to move around the player. Otherwise, uses Non Player Control settings")]
 	public bool PlayerControlled = true;
 	[Tooltip("if true, automatically bring velocity to zero if there is no user-input or NonPlayerControlledDirection")]
@@ -26,9 +26,9 @@ public class MobileEntity : MonoBehaviour {
 
 	/// <summary>cached variables required for a host of calculations</summary>
 	public float CurrentSpeed { get; protected set; }
-	public float brakeDistance { get; protected set; }
+	public float BrakeDistance { get; protected set; } // TODO capitalize
 	[HideInInspector]
-	public bool brakesOn = false;
+	public bool IsBrakeOn = false;
 	protected bool brakesOnLastFrame = false;
 	public bool IsMovingIntentionally { get; protected set; }
 
@@ -135,9 +135,9 @@ public class MobileEntity : MonoBehaviour {
 	}
 	#endregion // Camera Control
 	#region movement and directional control
-	public bool IsBraking() { return brakesOn || brakesOnLastFrame; }
+	public bool IsBraking() { return IsBrakeOn || brakesOnLastFrame; }
 	public virtual void MoveLogic() {
-		if(!brakesOn) {
+		if(!IsBrakeOn) {
 			IsMovingIntentionally = false;
 			if (PlayerControlled) {
 				float inputF = Input.GetAxis ("Vertical"), inputR = Input.GetAxis ("Horizontal");
@@ -157,7 +157,7 @@ public class MobileEntity : MonoBehaviour {
 	}
 
 	protected bool TurnToFace(Vector3 forward, Vector3 up) {
-		if(transform.forward != forward || (up != transform.up && up != Vector3.zero)) {
+		if((forward != Vector3.zero && transform.forward != forward) || (up != transform.up && up != Vector3.zero)) {
 			if(up == Vector3.zero) {
 				Vector3 r = (forward == transform.right) ? -transform.forward : ((forward == -transform.right) ? transform.forward : transform.right);
 				up = Vector3.Cross(forward, r);
@@ -173,20 +173,22 @@ public class MobileEntity : MonoBehaviour {
 		Transform importantT = (PlayerControlled) ? cameraControl.myCamera.transform : transform;
 		right = importantT.right; forward = importantT.forward;
 	}
+	protected virtual void EnforceSpeedLimit() {
+		float actualSpeed = rb.velocity.magnitude;
+		if(actualSpeed > MoveSpeed) {
+			rb.velocity = rb.velocity.normalized*MoveSpeed;
+		}
+	}
 	/// <summary>Applies AccelerationDirection to the velocity. if brakesOn, slows things down.</summary>
 	protected void ApplyMove() {
 		if(acceleration <= 0) {
-			rb.velocity = (!brakesOn) ? (MoveDirection * MoveSpeed) : Vector3.zero;
+			rb.velocity = (!IsBrakeOn) ? (MoveDirection * MoveSpeed) : Vector3.zero;
 		} else {
 			float amountToMove = acceleration * Time.deltaTime;
-			if(!brakesOn && IsMovingIntentionally) {
+			if(!IsBrakeOn && IsMovingIntentionally) {
 				rb.velocity += MoveDirection * amountToMove;
-				float actualSpeed = Vector3.Dot(MoveDirection, rb.velocity);
-				if (actualSpeed > MoveSpeed) {
-					rb.velocity -= MoveDirection * actualSpeed;
-					rb.velocity += MoveDirection * MoveSpeed;
-				}
-			} else if(brakesOn || AutoSlowdown) {
+				EnforceSpeedLimit();
+			} else if(IsBrakeOn || AutoSlowdown) {
 				MoveDirection = -rb.velocity.normalized;
 				float actualSpeed = rb.velocity.magnitude;
 				if(actualSpeed > acceleration * amountToMove) {
@@ -197,7 +199,7 @@ public class MobileEntity : MonoBehaviour {
 			}
 		}
 	}
-	public static float BrakeDistance(float speed, float acceleration) { return (speed * speed) / (2 * acceleration); }
+	public static float CalculateBrakeDistance(float speed, float acceleration) { return (speed * speed) / (2 * acceleration); }
 	#endregion // movement and directional control
 	#region Steering Behaviors
 	protected Vector3 SeekMath(Vector3 directionToLookToward) {
@@ -224,12 +226,12 @@ public class MobileEntity : MonoBehaviour {
 		if (delta == Vector3.zero) { directionToMoveToward = Vector3.zero; return; }
 		float desiredDistance = delta.magnitude;
 		directionToLookToward = delta / desiredDistance;
-		if (desiredDistance > 1.0f / 1024 && desiredDistance > brakeDistance) {
+		if (desiredDistance > 1.0f / 1024 && desiredDistance > BrakeDistance) {
 			directionToMoveToward = SeekMath (directionToLookToward);
 			return;
 		}
 		directionToMoveToward = -directionToLookToward;
-		brakesOn = true;
+		IsBrakeOn = true;
 	}
 	/// <summary>call this during a FixedUpdate process to give this agent simple AI movement</summary>
 	public void Seek(Vector3 target) {
@@ -272,10 +274,10 @@ public class MobileEntity : MonoBehaviour {
 	}
 	public void UpdateMotionVariables() {
 		CurrentSpeed = rb.velocity.magnitude;
-		brakeDistance = (acceleration > 0)?BrakeDistance (CurrentSpeed,acceleration/rb.mass)-(CurrentSpeed*Time.deltaTime):0;
-		if (brakesOn) {
+		BrakeDistance = (acceleration > 0)?CalculateBrakeDistance (CurrentSpeed,acceleration/rb.mass)-(CurrentSpeed*Time.deltaTime):0;
+		if (IsBrakeOn) {
 			brakesOnLastFrame = true;
-			brakesOn = false;
+			IsBrakeOn = false;
 		} else {
 			brakesOnLastFrame = false;
 		}
@@ -358,6 +360,24 @@ public class PlayerControl : MobileEntity {
 	public static void CalculatePlanarMoveVectors(Vector3 generalForward, Vector3 upVector, out Vector3 forward, out Vector3 right) {
 		right = Vector3.Cross(upVector, generalForward).normalized;
 		forward = Vector3.Cross(right, upVector).normalized;
+	}
+	public float DistanceTo(Vector3 loc) {
+		return Vector3.Distance(transform.position, loc) - ExpectedHorizontalRadius;
+	}
+	public float DistanceTo(Transform mob) {
+		float otherRad = mob.transform.localScale.z;
+		Collider c = mob.GetComponent<Collider>();
+		if(c != null) { otherRad *= c.bounds.extents.z; }
+		return Vector3.Distance(transform.position, mob.transform.position) - (ExpectedHorizontalRadius + otherRad);
+	}
+	public Vector3 GetVelocity() { return rb.velocity; }
+	/// <summary>if a null pointer happens while trying to access a rigidbody variable, call this first.</summary>
+	public void EnsureRigidBody() {
+		if(rb == null) {
+			rb = GetComponent<Rigidbody>();
+			if(!rb) { rb = gameObject.AddComponent<Rigidbody>(); }
+			rb.useGravity = false; rb.freezeRotation = true;
+		}
 	}
 	#endregion // Public API
 	#region Grounded Camera Control
@@ -575,6 +595,17 @@ public class PlayerControl : MobileEntity {
 			}
 		}
 	}
+	protected override void EnforceSpeedLimit() {
+		if(ApplyGravity) {
+			float actualSpeed = Vector3.Dot(MoveDirection, rb.velocity);
+			if(actualSpeed > MoveSpeed) {
+				rb.velocity -= MoveDirection * actualSpeed;
+				rb.velocity += MoveDirection * MoveSpeed;
+			}
+		} else {
+			base.EnforceSpeedLimit();
+		}
+	}
 	#endregion // Core Controller Logic
 	#region Jumping
 	public Jumping jump = new Jumping();
@@ -683,9 +714,7 @@ public class PlayerControl : MobileEntity {
 	#region MonoBehaviour
 	void Start() {
 		GroundNormal = Vector3.up;
-		rb = GetComponent<Rigidbody>();
-		if(!rb) { rb = gameObject.AddComponent<Rigidbody>(); }
-		rb.useGravity = false; rb.freezeRotation = true;
+		EnsureRigidBody();
 		if(PlayerControlled) {
 			if (!(cameraControl is GroundedCameraControl)) {
 				cameraControl = new GroundedCameraControl (cameraControl);

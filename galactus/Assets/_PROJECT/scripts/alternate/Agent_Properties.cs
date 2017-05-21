@@ -6,7 +6,7 @@ public class Agent_Properties : MonoBehaviour {
 	public string typeName;
 
 	[HideInInspector]
-	public Agent_MOB mob;
+	public Agent_MOB mob; // TODO replace with PlayerControl
 	[HideInInspector]
 	public Agent_SizeAndEffects sizeNeffects;
 	[HideInInspector]

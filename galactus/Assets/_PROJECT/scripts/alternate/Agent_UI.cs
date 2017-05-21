@@ -68,10 +68,9 @@ public class Agent_UI : MonoBehaviour {
 	void FixedUpdate () {
 		if (uiText) {
 			uiText.text = sizeAndEffects.name +
-				"\nsize: " + System.String.Format ("{0:0.##}", sizeAndEffects.GetSize ()) +
-				"\nenergy: " + System.String.Format("{0:0.##}", sizeAndEffects.GetEnergy ()) +
-				"\ncurrent speed: " + System.String.Format("{0:0.##}", mob.GetSpeed()) +
-				"\nbrake distance: " + System.String.Format("{0:0.##}", mob.GetBrakeDistance());
+				"\nsize: " + System.String.Format("{0:0.##}", sizeAndEffects.GetSize()) +
+				"\nenergy: " + System.String.Format("{0:0.##}", sizeAndEffects.GetEnergy()) +
+				"\ncurrent speed: " + System.String.Format("{0:0.##}", mob.CurrentSpeed) +
 		}
 		if (uiProperties && refreshProps) {
 			string propText = "";

@@ -214,7 +214,7 @@ public class AI_Harvest : AI_TargetTask {
 		return valid;
 	}
 	public override void GetSteering(ref Vector3 move, ref Vector3 look) { 
-		self.GetMob().CalculateArrive (target.position - self.transform.forward*idealDist, ref move, ref look);
+		self.GetMob().CalculateArrive (target.position - self.transform.forward*idealDist, out move, ref look);
 	}
 	public override void Execute() {
 		self.GetMob().Arrive (target.position - self.transform.forward*idealDist);
@@ -286,7 +286,7 @@ public class AI_Flee : AI_TargetTask {
 	}
 //	public static GameObject fleeViz;
 	public override void GetSteering(ref Vector3 move, ref Vector3 look) { 
-		self.GetMob().CalculateSeek (target.position, ref move, ref look);
+		self.GetMob().CalculateSeek (target.position, out move, ref look);
 		move *= -1;
 	}
 	public override void Execute() {
@@ -382,8 +382,8 @@ public class AI_Searching : AI_Task {
 	public override string GetDescription() { return "searching"; }
 	public override bool IsValid(ref string whyNot) { return true; }
 	public override void Execute () {
-		self.GetMob().RandomWalk (Singleton.Get<GameRules>().transform.position, 
-			self.transform.position.magnitude / 1024f
+		self.GetMob().RandomWalk (self.transform.position.magnitude / 1024f,
+			Singleton.Get<GameRules>().transform.position
 		);
 		self.GetSensor().enabled = true;// make sure we can see!
 		Agent_Sensor.SensorSnapshot s = self.GetSensor().GetSnapshot ();
@@ -524,8 +524,8 @@ public class AI_CompositeSteering : AI_Task {
 		Vector3 move = Vector3.zero, look = Vector3.zero;
 		CalcPriorities ();
 		GetSteering (ref move, ref look);
-		if (look != Vector3.zero) { m.UpdateLookDirection (look); }
-		if (move != Vector3.zero) { m.ApplyForceToward (move); }
+		if(look != Vector3.zero) { m.LookDirection = look; }//m.UpdateLookDirection (look); }
+		if(move != Vector3.zero) { m.MoveDirection = move; }//m.ApplyForceToward (move); }
 	}
 	public override string GetDescription () { return "steering behavior"; }
 	public override bool IsValid(ref string whyNot) {

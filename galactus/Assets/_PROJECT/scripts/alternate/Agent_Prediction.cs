@@ -36,10 +36,11 @@ public class Agent_Prediction : MonoBehaviour {
             v = rb.velocity;
             tMod = (float)(rb.mass / 2f);
             predictedLocation += v * Time.deltaTime;
-            //accelForce = pf.accelDirection * pf.maxAcceleration;
-			Vector3 dir = pf.GetAccelerationDirection();
+			//accelForce = pf.accelDirection * pf.maxAcceleration;
+			Vector3 dir = pf.MoveDirection;//pf.GetAccelerationDirection();
             if (dir == Vector3.zero) dir = rb.transform.forward;
-			accelForce = Steering.SeekDirection(dir * pf.maxSpeed, rb.velocity, pf.acceleration, tMod);
+			accelForce = Steering.SeekDirection(dir * pf.MoveSpeed//pf.maxSpeed
+				, rb.velocity, pf.acceleration, tMod);
         }
 
         public void Iterate(ref ParticleSystem.Particle particle) {
@@ -54,17 +55,17 @@ public class Agent_Prediction : MonoBehaviour {
             // TODO make the acceleration change as the velocity changes, to better predict if acceleration stays constant.
             v += (accelForce * (tMod / rb.mass));
             float d = v.magnitude;
-            if (d > pf.maxSpeed / rb.mass) {
-				v = v.normalized * (pf.maxSpeed / rb.mass);
+            if (d > pf.MoveSpeed / rb.mass) {
+				v = v.normalized * (pf.MoveSpeed / rb.mass);
             }
             predictedLocation += v * tMod;
-			Vector3 dir = pf.GetAccelerationDirection();
+			Vector3 dir = pf.MoveDirection;// pf.GetAccelerationDirection();
             if(dir == Vector3.zero) dir = rb.transform.forward;
-			accelForce = Steering.SeekDirection(dir * pf.maxSpeed, rb.velocity, pf.acceleration, tMod);
+			accelForce = Steering.SeekDirection(dir * pf.MoveSpeed, rb.velocity, pf.acceleration, tMod);
         }
 
 		public void StopLocation(ref ParticleSystem.Particle particle) {
-			particle.position = pf.transform.position + rb.velocity.normalized * pf.GetBrakeDistance();
+			particle.position = pf.transform.position + rb.velocity.normalized * pf.BrakeDistance;//GetBrakeDistance();
 			particle.startSize = re.GetSize();
 			particle.remainingLifetime = 1;
 			particle.startLifetime = 2;

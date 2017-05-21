@@ -6,38 +6,101 @@ public class Agent_SizeAndEffects : MonoBehaviour {
 
 	[SerializeField]
 	private EatSphere eatSphere;
+	private Vector3 eatSphereOffset;
+	public float eatSphereRatio = 0;
+	private Renderer graphic;
 	public EatSphere GetEatSphere() { return eatSphere; }
 	private Agent_MOB mob;
+	private SphereCollider sphere;
 
 	void Start() {
-		mob = GetComponent<Agent_MOB> ();
+		GetMOB();
+		GetGraphic();
 	}
 
-	public float GetRadius() {
-		return transform.lossyScale.z/2;
+	public Agent_MOB GetMOB() {
+		if(mob == null) { mob = GetComponent<Agent_MOB>(); }
+		return mob;
 	}
-	public float GetSize() {
-		return transform.lossyScale.z;
+
+	public SphereCollider GetOwnSphere() {
+		if(sphere == null) { sphere = GetComponent<SphereCollider>(); }
+		return sphere;
 	}
+
+	public Renderer GetGraphic() {
+		if(graphic == null) {
+			graphic = GetComponent<Renderer>();
+			if(!graphic.material.HasProperty("_Color")) {
+				// find a child graphic object. pick the one with the fewest scripts that inclues a (MeshFilter and MeshRenderer) or (TODO) Sprite
+				Transform t;
+				int bestCount = -1;
+				for(int i = 0; i<transform.childCount; ++i) {
+					t = transform.GetChild(i);
+					Renderer r = t.GetComponent<Renderer>();
+					if(!r.material.HasProperty("_Color")) {
+						continue;
+					}
+					if(t.name == "graphic") {
+						graphic = r;
+						break;
+					}
+					int componentCount = t.GetComponents<Component>().Length;
+					if(r != null && (bestCount< 0 || componentCount < bestCount)) {
+						graphic = r;
+						bestCount = componentCount;
+					}
+				}
+			}
+		}
+		return graphic;
+	}
+
+	public float GetRadius() { return GetOwnSphere().radius; }
+
+	public float GetSize() { return GetRadius()*2; }
 
 	// TODO remove?
-	public float GetEnergy() {
-		return GetComponent<Agent_Properties> ().Energy;
-	}
+	public float GetEnergy() { return GetComponent<Agent_Properties> ().Energy; }
 
 	/// <summary>Sets the radius. NOTE: the radius should be HALF the size.</summary>
 	/// <param name="radius">Radius.</param>
 	public void SetRadius(float radius) {
+		if(eatSphere && eatSphereRatio == 0) {
+			eatSphereRatio = eatSphere.GetRadius() / GetOwnSphere().radius;
+			eatSphereOffset = eatSphere.transform.localPosition;
+		}
+		float cameraDistanceRatio = 1;
+		if(GetMOB()) {
+			mob.EnsureRigidBody();
+			cameraDistanceRatio = mob.cameraControl.cameraDistance / GetOwnSphere().radius;
+		}
 		float s = radius * 2;
-		if (transform.parent) { s /= transform.parent.lossyScale.z; }
-		transform.localScale = new Vector3 (s,s,s);
+		if(GetGraphic() == null || graphic.transform == transform) {
+			if(transform.parent) { s /= transform.parent.lossyScale.z; }
+			transform.localScale = new Vector3(s, s, s);
+		} else {
+			SphereCollider sc = GetComponent<SphereCollider>();
+			sc.radius = radius;
+			transform.localScale = Vector3.one;
+			graphic.transform.localScale = new Vector3(s, s, s);
+		}
 		TrailRenderer trail = transform.GetComponent<TrailRenderer>();
 		if (trail) trail.startWidth = s;
 		if (mob) {
 			mob.rb.mass = s * Singleton.Get<GameRules>().massToEnergyRatio;
-			GetComponent<ParticleSystem> ().SetParticleSize(1);
+			if(GetGraphic() == null || graphic.transform == transform) {
+				GetComponent<ParticleSystem>().SetParticleSize(1);
+			} else {
+				GetComponent<ParticleSystem>().SetParticleSize(s);
+			}
+			mob.cameraControl.cameraDistance = cameraDistanceRatio * GetOwnSphere().radius;
 		} else {
 			GetComponent<ParticleSystem> ().SetParticleSize(s*5);
+		}
+		if(eatSphere) {
+			eatSphere.SetRadius(radius*eatSphereRatio);
+			eatSphere.transform.localPosition = eatSphereOffset * s;
 		}
 	}
 
@@ -53,10 +116,6 @@ public class Agent_SizeAndEffects : MonoBehaviour {
 //		SetRadius (CalculateSizeFromEnergy(energy)/2);
 //	}
 
-	public void SetModelColor(Color c) {
-		GetComponent<Renderer> ().material.color = c;
-	}
-
 	public void SetEffectColor(Color c) {
 		GetComponent<ParticleSystem>().SetColor(c);
 		TrailRenderer tr = gameObject.GetComponent<TrailRenderer>();
@@ -70,8 +129,12 @@ public class Agent_SizeAndEffects : MonoBehaviour {
 		SetEffectColor (c);
 	}
 
+	public void SetModelColor(Color c) {
+		GetGraphic().material.color = c;
+	}
+
 	public Color GetColor() {
-		return GetComponent<Renderer> ().material.color;
+		return GetGraphic().material.color;
 	}
 
 	public Color GetEffectColor() {
