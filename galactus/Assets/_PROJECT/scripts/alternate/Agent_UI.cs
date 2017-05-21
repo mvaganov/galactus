@@ -71,6 +71,7 @@ public class Agent_UI : MonoBehaviour {
 				"\nsize: " + System.String.Format("{0:0.##}", sizeAndEffects.GetSize()) +
 				"\nenergy: " + System.String.Format("{0:0.##}", sizeAndEffects.GetEnergy()) +
 				"\ncurrent speed: " + System.String.Format("{0:0.##}", mob.CurrentSpeed) +
+				"\nbrake distance: " + System.String.Format("{0:0.##}", mob.BrakeDistance);
 		}
 		if (uiProperties && refreshProps) {
 			string propText = "";

@@ -128,6 +128,7 @@ public class Agent_SensorLabeler : MonoBehaviour
 						if (distText)
 							distText.gameObject.SetActive (false);
 						FontStyle fstyle = FontStyle.Normal;
+						float bDist = mob.BrakeDistance;//GetBrakeDistance ();
 						string dText = ((int)dist).ToString();
 						if (dist >= (bDist - sensor.sizeAndEffects.GetRadius ()) && dist <= bDist + sensor.sizeAndEffects.GetRadius ()) {
 							dText = "{" + dText + "}";
