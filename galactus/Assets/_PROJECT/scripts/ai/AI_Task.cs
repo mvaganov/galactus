@@ -315,7 +315,7 @@ public class AI_Attack : AI_TargetTask {
 	public override float CalculateFitnessScore() {
 		dist = self.GetMob ().DistanceTo (target);
 		float d = (threatRange - dist);
-		return d*d*winability + self["aggession"] + self["desperation"] + self["attack"];
+		return d*d*winability*(1+self["aggession"]) + self["desperation"] + self["attack"];
 	}
 	public override void SetTarget (Transform t) { 
 		if (t) {
@@ -358,11 +358,16 @@ public class AI_Attack : AI_TargetTask {
 		return self.GetRadius() + (selfProps["speed"]*(1+self["aggression"]+winability));
 	}
 
-	public override void Enter () { selfProps.GetEatSphere ().maintainActivation = true; base.Enter (); }
+	public override void Enter () {
+		selfProps.GetEatSphere().autoActivateAgent = true;
+		selfProps.GetEatSphere ().maintainActivation = true; base.Enter ();
+	}
 	public override void Execute() {
 		self.GetMob().Seek (target.position - self.transform.forward*selfProps["eatRange"]);
 	}
-	public override void Exit () { selfProps.GetEatSphere ().maintainActivation = false; base.Exit (); }
+	public override void Exit () {
+		selfProps.GetEatSphere ().maintainActivation = false; base.Exit ();
+	}
 	public override void DrawLogic(ref List<GameObject> drawnElements) {
 		float r = target.transform.lossyScale.z / 2;
 		Vector3 d = (target.position - self.transform.position).normalized;
