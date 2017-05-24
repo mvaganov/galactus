@@ -31,6 +31,8 @@ public class MobileEntity : MonoBehaviour {
 	public bool IsBrakeOn = false;
 	protected bool brakesOnLastFrame = false;
 	public bool IsMovingIntentionally { get; protected set; }
+	[Tooltip("If true, the player will constantly move as though forward is being pressed. Useful for VR controls that rely on looking only")]
+	public bool IsAlwaysPressingForward = false;
 
 	#region Camera Control
 	public CameraControl cameraControl;
@@ -114,8 +116,12 @@ public class MobileEntity : MonoBehaviour {
 				bool updatingWithMouseInput = (controlMode == ControlStyle.rotate3rdPerson) || (controlMode == ControlStyle.lockAndRotateWithRMB && Input.GetMouseButton(1));
 				// camera rotation
 				if (updatingWithMouseInput) {
+					// rotate from the controller
+					float dx = Input.GetAxis("Oculus_GearVR_RThumbstickX"), dy = Input.GetAxis("Oculus_GearVR_RThumbstickY");
+					if(dx == 0 || Mathf.Abs(dx) < 1.0f/16) { dx = Input.GetAxis("Mouse X"); } else dx/=2; // controller input should be less sensitive than the mouse
+					if(dy == 0 || Mathf.Abs(dy) < 1.0f/16) { dy = Input.GetAxis("Mouse Y"); } else dy/=2;
 					// get the rotations that the user input is indicating
-					UpdateCameraAngles (me, Input.GetAxis ("Mouse X") * horizontalMouselookSpeed, Input.GetAxis ("Mouse Y") * verticalMouselookSpeed);
+					UpdateCameraAngles(me, dx * horizontalMouselookSpeed, dy * verticalMouselookSpeed);
 				} else if (mustUpdate) {
 					UpdateCameraAngles (me, 0, 0);
 				}
@@ -140,7 +146,7 @@ public class MobileEntity : MonoBehaviour {
 		if(!IsBrakeOn) {
 			IsMovingIntentionally = false;
 			if (PlayerControlled) {
-				float inputF = Input.GetAxis ("Vertical"), inputR = Input.GetAxis ("Horizontal");
+				float inputF = IsAlwaysPressingForward?1:Input.GetAxis ("Vertical"), inputR = Input.GetAxis ("Horizontal");
 				if (IsMovingIntentionally = (inputF != 0 || inputR != 0)) {
 					Transform t = cameraControl.myCamera.transform;
 					MoveDirection = (inputR * t.right) + (inputF * t.forward);
@@ -526,7 +532,7 @@ public class PlayerControl : MobileEntity {
 	}
 	public override void MoveLogic() {
 		if(PlayerControlled) {
-			float input_forward = Input.GetAxis("Vertical");
+			float input_forward = IsAlwaysPressingForward?1:Input.GetAxis("Vertical");
 			float input_right = Input.GetAxis("Horizontal");
 			if (IsMovingIntentionally = (input_forward != 0 || input_right != 0)) {
 				Vector3 currentRight, currentMoveForward;
