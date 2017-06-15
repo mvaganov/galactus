@@ -85,9 +85,10 @@ public class GameRules : MonoBehaviour {
 	}
 
 	private static ValueRules agentRules = new ValueRules(
+		// base calculations
 		new Dictionary<string,ValueCalculator<Agent_Properties>.ValueCalculation<float>>() {
 			{"baseSpeed",	(a)=>{	return a.HasValue("baseSpeed")?a.GetCached("baseSpeed"):a.mob.MoveSpeed;}},
-			{"baseAccel",	(a)=>{	return a.HasValue("baseAccel")?a.GetCached("baseAccel"):a.mob.acceleration;}},
+			{"baseAccel",	(a)=>{	return a.HasValue("baseAccel")?a.GetCached("baseAccel"):a.mob.Acceleration;}},
 			{"baseTurn",	(a)=>{	return a.HasValue("baseTurn")?a.GetCached("baseTurn"):a.mob.TurnSpeed;}},
 			{"baseEatRad",	(a)=>{	return a.HasValue("baseEatRad")?a.GetCached("baseEatRad"):(a.eatS.GetLocalRadius());}},
 			{"baseRadius",	(a)=>{	return Mathf.Sqrt (a["energy"]*Singleton.Get<GameRules>().sizeToEnergyRatio);}},
@@ -106,17 +107,19 @@ public class GameRules : MonoBehaviour {
 			{"birthCost",	(a)=>{	return (Singleton.Get<GameRules>().costToCreateAgent/(a["birthcost_"]+1)) - a["rad"];}}, // TODO implement birth
 			{"energyDrain",	(a)=>{	return Mathf.Max(0,a["rad"]-a["energySustain_"])*Singleton.Get<GameRules>().energyDrainPercentagePerSecond_MOB; }}
 		},
+		// what to do if values change
 		new Dictionary<string,ValueCalculator<Agent_Properties>.ChangeListener>(){
 			{"rad",(a,name,old,val)=>{a.sizeNeffects.SetRadius(val);}},
-			{"accel",(a,name,old,val)=>{a.mob.acceleration = val;}},
+			{"accel",(a,name,old,val)=>{a.mob.Acceleration = val;}},
 			{"turn",(a,name,old,val)=>{a.mob.TurnSpeed = val;}},
 			{"speed",(a,name,old,val)=>{a.mob.MoveSpeed = val;}},
 			{"eatSize",(a,name,old,val)=>{a.eatS.SetRadius(val);}},
 			{"eatRange",(a,name,old,val)=>{a.eatS.transform.localPosition=new Vector3(0,0,val);}},
-			{"eatWarmup",(a,name,old,val)=>{a.eatS.warmup = val;}}, // TODO use props["eatWarmup"]
-			{"eatCooldown",(a,name,old,val)=>{a.eatS.cooldown = val;}}, // TODO use props["eatCooldown"]
+			{"eatWarmup",(a,name,old,val)=>{a.eatS.warmup = val;}}, // TODO create and use props["eatWarmup"]
+			{"eatCooldown",(a,name,old,val)=>{a.eatS.cooldown = val;}}, // TODO create and use props["eatCooldown"]
 			{"energy",(a,name,old,val)=>{ if(val <= 0) { MemoryPoolItem.Destroy(a.gameObject); } }}
 		},
+		// stat descriptions
 		new Dictionary<string,string>(){
 			{"speed_", "Movement Speed\nIncrease maximum-speed"},
 			{"turn_", "Turn Speed\nTurn faster"},

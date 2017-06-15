@@ -13,6 +13,9 @@ public class Agent_SizeAndEffects : MonoBehaviour {
 	private Agent_MOB mob;
 	private SphereCollider sphere;
 
+	public delegate void RadiusChangeListener(float oldSize, float newSize);
+	public event RadiusChangeListener onRadiusChange;
+
 	void Start() {
 		GetMOB();
 		GetGraphic();
@@ -63,6 +66,12 @@ public class Agent_SizeAndEffects : MonoBehaviour {
 	// TODO remove?
 	public float GetEnergy() { return GetComponent<Agent_Properties> ().Energy; }
 
+	// TODO have the player's camera implement a callback that does...
+	// { inputController.cameraDistance = CalculateNewDistance(inputController.cameraDistance,oldSize,newSize); }
+	public static float CalculateNewDistance(float currentDistance, float oldSize, float newSize) {
+		return currentDistance * newSize / oldSize;
+	}
+
 	/// <summary>Sets the radius. NOTE: the radius should be HALF the size.</summary>
 	/// <param name="radius">Radius.</param>
 	public void SetRadius(float radius) {
@@ -70,10 +79,8 @@ public class Agent_SizeAndEffects : MonoBehaviour {
 			eatSphereRatio = eatSphere.GetRadius() / GetOwnSphere().radius;
 			eatSphereOffset = eatSphere.transform.localPosition;
 		}
-		float cameraDistanceRatio = 1;
 		if(GetMOB()) {
 			mob.EnsureRigidBody();
-			cameraDistanceRatio = mob.cameraControl.cameraDistance / GetOwnSphere().radius;
 		}
 		float s = radius * 2;
 		if(GetGraphic() == null || graphic.transform == transform) {
@@ -81,6 +88,7 @@ public class Agent_SizeAndEffects : MonoBehaviour {
 			transform.localScale = new Vector3(s, s, s);
 		} else {
 			SphereCollider sc = GetComponent<SphereCollider>();
+			if (onRadiusChange != null && sc.radius != radius) { onRadiusChange.Invoke (sc.radius, radius); }
 			sc.radius = radius;
 			transform.localScale = Vector3.one;
 			graphic.transform.localScale = new Vector3(s, s, s);
@@ -94,7 +102,6 @@ public class Agent_SizeAndEffects : MonoBehaviour {
 			} else {
 				GetComponent<ParticleSystem>().SetParticleSize(s);
 			}
-			mob.cameraControl.cameraDistance = cameraDistanceRatio * GetOwnSphere().radius;
 		} else {
 			GetComponent<ParticleSystem> ().SetParticleSize(s*5);
 		}

@@ -122,9 +122,9 @@ public class AgentMaker : MonoBehaviour {
 				timer = agentSpawnSettings.creationDelay;
 			}
 		}
-		if (!activeController.IsControllingAgent()) {
+		if (!activeController.IsControlling()) {
 			Agent_MOB mob = CreateRandomPlayerAgent();
-			activeController.Posess (mob);
+			activeController.Control (mob);
         }
 	}
 }

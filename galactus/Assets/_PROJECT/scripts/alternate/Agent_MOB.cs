@@ -3,7 +3,7 @@ using UnityEngine;
 using System.Collections;
 
 [RequireComponent(typeof(Rigidbody))]
-public class Agent_MOB : PlayerControl { }
+public class Agent_MOB : MovingEntity { }
 //	MonoBehaviour {
 
 //	// TODO add obstacle avoidance, flocking, and path-finding code

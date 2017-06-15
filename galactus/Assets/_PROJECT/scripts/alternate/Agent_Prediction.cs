@@ -40,7 +40,7 @@ public class Agent_Prediction : MonoBehaviour {
 			Vector3 dir = pf.MoveDirection;//pf.GetAccelerationDirection();
             if (dir == Vector3.zero) dir = rb.transform.forward;
 			accelForce = Steering.SeekDirection(dir * pf.MoveSpeed//pf.maxSpeed
-				, rb.velocity, pf.acceleration, tMod);
+				, rb.velocity, pf.Acceleration, tMod);
         }
 
         public void Iterate(ref ParticleSystem.Particle particle) {
@@ -61,7 +61,7 @@ public class Agent_Prediction : MonoBehaviour {
             predictedLocation += v * tMod;
 			Vector3 dir = pf.MoveDirection;// pf.GetAccelerationDirection();
             if(dir == Vector3.zero) dir = rb.transform.forward;
-			accelForce = Steering.SeekDirection(dir * pf.MoveSpeed, rb.velocity, pf.acceleration, tMod);
+			accelForce = Steering.SeekDirection(dir * pf.MoveSpeed, rb.velocity, pf.Acceleration, tMod);
         }
 
 		public void StopLocation(ref ParticleSystem.Particle particle) {

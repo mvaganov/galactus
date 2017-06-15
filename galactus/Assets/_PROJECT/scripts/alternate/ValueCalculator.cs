@@ -4,6 +4,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// An object of this class wraps around another object and allows callbacks to monitor when it's float variables are 
+/// modified, with the expectation that those callbacks could be modifying other values
+/// </summary>
 [System.Serializable]
 public class ValueCalculator<TARGET> {
 
@@ -18,8 +22,10 @@ public class ValueCalculator<TARGET> {
 	/// created based on the calculation function</summary>
 	//public Dictionary<string,float> values = new Dictionary<string, float> ();
 	[SerializeField]
-	private Dictionary_string_float values;// = new Dictionary_string_float();
+	private Dictionary_string_float values;
+	/// <summary>The change listeners, which should be added and removed freely</summary>
 	private TightBucketsOfUniques<string,ChangeListener> changeListeners = null;
+	/// <summary>The static change listeners, which should really only be set one for a type of class</summary>
 	private Dictionary<string,ChangeListener> staticChangeListeners = null;
 
 	private System.Collections.Generic.HashSet<string> needsCalculation = new HashSet<string>(); 
@@ -38,6 +44,19 @@ public class ValueCalculator<TARGET> {
 	// TODO is this needed? should Modifiers be removed? this feature may be useful in the future... ?
 	/// <summary>modifiers for variables, which are applied after variables are calculated</summary>
 	public TightBucketsOfUniques<string,Modifier<float>> modifiers = null;
+
+	public string PrintDependenciesBeingCalculated() {
+		#if PREVENT_STACK_OVERFLOW
+		string s = "";
+		for(int i = 0; i < dependenciesBeingCalculated.Count; ++i) {
+			if(i > 0) s += ", ";
+			s += dependenciesBeingCalculated.ToString();
+		}
+		return s;
+		#else
+		return "only available when PREVENT_STACK_OVERFLOW is set";
+		#endif
+	}
 
 	/// <param name="target">Target. an object passed to each calculation function, likely relevant to the values stored in this structure.</param>
 	/// <param name="dict">the dictionary store to use for storing values. will be heavily modified.</param>
@@ -288,14 +307,16 @@ public class ValueCalculator<TARGET> {
 				oldValue = 0;
 			}
 			values [valueName] = newValue;
-			needsCalculation.Remove(valueName);
+			needsCalculation.Remove (valueName);
 			if (changeListeners != null) {
 				changeListeners.ForEachUniqueInBucket (valueName, thing => thing (target, valueName, oldValue, newValue));
 				changeListeners.ForEachUniqueInBucket ("", thing => thing (target, valueName, oldValue, newValue));
 			}
 			if (staticChangeListeners != null) {
 				ChangeListener listener;
-				if (staticChangeListeners.TryGetValue (valueName, out listener)) { listener (target, valueName, oldValue, newValue); }
+				if (staticChangeListeners.TryGetValue (valueName, out listener)) {
+					listener (target, valueName, oldValue, newValue);
+				}
 			}
 		} else {
 			values [valueName] = newValue;

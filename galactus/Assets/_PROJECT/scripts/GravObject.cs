@@ -1,42 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-#region Base GravitySource
-public class GravitySource : MonoBehaviour {
-	[Tooltip("How much acceleration to apply to the PlayerControl")]
-	public float power = 9.81f;
-	[Tooltip("apply gravity if player hits this collider")]
-	public bool entangleOnCollision = true;
-	[Tooltip("apply gravity if player enters this collider trigger")]
-	public bool entangleOnTrigger = true;
-
-	public virtual Vector3 CalculateGravityDirectionFrom(Vector3 point) {
-		Vector3 delta = transform.position - point;
-		return delta.normalized;
-	}
-	public void OnCollisionEnter(Collision col) {
-		if(!enabled) return;
-		if(entangleOnCollision) { EntanglePlayer(col.gameObject.GetComponent<PlayerControl>()); }
-	}
-	public void OnTriggerEnter(Collider col) {
-		if(entangleOnTrigger) { EntanglePlayer(col.GetComponent<PlayerControl>()); }
-	}
-	public void EntanglePlayer(PlayerControl p) {
-		if(p && p.ApplyGravity) {
-			GravityPuller gp = p.gameObject.GetComponent<GravityPuller>();
-			if(!gp) { gp = p.gameObject.AddComponent<GravityPuller>(); }
-			if(gp.gravitySource != this) { gp.Init(this); } else { gp.Refresh(); }
-		}
-	}
-}
-#endregion // Base GravitySource
-
-/// <summary>Pull a PlayerControl (https://pastebin.com/9M9qyBmP) GameObject toward a Collider. 
+/// <summary>Pull a MovingEntity (https://pastebin.com/xFUD4tk2) GameObject toward a Collider. 
 /// Will work with a MeshCollider, but a SphereCollider or BoxCollider is optimal
-/// Latest version at: https://pastebin.com/71fHgXaA</summary>
+/// Latest version at: https://pastebin.com/...</summary>
 /// <description>MIT License - TL;DR - This code is free, don't bother me about it!</description>
 /// <author email="mvaganov@hotmail.com">Michael Vaganov</author>
-public class GravityObject : GravitySource {
+public class GravObject : GravSource {
 	#region public API
 	[Tooltip("If false, gravity will be based on the transform.position of this object, not it's collider")]
 	public bool useColliderGravity = true;
@@ -331,7 +301,7 @@ public class GravityObject : GravitySource {
 			}
 		}
 	}
-	#endregion
+	#endregion // VertTriList
 	#region KDTree
 	// KDTree.cs - A Stark, September 2009.
 	//	This class implements a data structure that stores a list of points in space.
@@ -459,7 +429,7 @@ public class GravityObject : GravitySource {
 			return result;
 		}
 	}
-	#endregion
+	#endregion // KDTree
 	#region MonoBehaviour
 	void Start() {
 		myCollider = GetComponent<Collider>();
@@ -471,25 +441,59 @@ public class GravityObject : GravitySource {
 	#endregion // MonoBehaviour
 }
 
-#region Gravity Puller (additional script for PlayerControl)
-public class GravityPuller : MonoBehaviour {
-	public GravitySource gravitySource;
-	private GravitySource lastGravitySource;
+#region Base GravitySource
+public class GravSource : MonoBehaviour {
+	[Tooltip("apply gravity if player hits this collider")]
+	public bool entangleOnCollision = true;
+	[Tooltip("apply gravity if player enters this collider trigger")]
+	public bool entangleOnTrigger = true;
+	[Tooltip("apply gravity power on player")]
+	public bool forceGravitypower = false;
+	[Tooltip("How much acceleration to apply to the PlayerControl, if gravity power is forced")]
+	public float power = 9.81f;
+
+	public virtual Vector3 CalculateGravityDirectionFrom(Vector3 point) {
+		Vector3 delta = transform.position - point;
+		return delta.normalized;
+	}
+	public void OnCollisionEnter(Collision col) {
+		if(!enabled) return;
+		if(entangleOnCollision) { EntanglePlayer(col.gameObject.GetComponent<MovingEntity>()); }
+	}
+	public void OnTriggerEnter(Collider col) {
+		if(!enabled) return;
+		if(entangleOnTrigger) { EntanglePlayer(col.GetComponent<MovingEntity>()); }
+	}
+	public void EntanglePlayer(MovingEntity p) {
+		if(p && p.gravityApplication != MovingEntity.GravityState.none) {
+			GravPuller gp = p.gameObject.GetComponent<GravPuller>();
+			if(!gp) { gp = p.gameObject.AddComponent<GravPuller>(); }
+			if(gp.gravitySource != this) { gp.Init(this); } else { gp.Refresh(); }
+		}
+	}
+}
+#endregion // Base GravitySource
+
+#region Gravity Puller (additional script for MovingEntity)
+public class GravPuller : MonoBehaviour {
+	public GravSource gravitySource;
+	private GravSource lastGravitySource;
 	private float timeOfLastSource;
-	private PlayerControl p;
+	private MovingEntity p;
 	[Tooltip("If true, will re-orient velocity to match any changes to gravity. useful for making tight video-gamey motion on small gravity wells.")]
 	public bool velocityFollowsGravity = true;
 
-	public void Init(GravitySource gs) {
+	public void Init(GravSource gs) {
 		if(gs != this && (gs != lastGravitySource || Time.time > timeOfLastSource+1)) {
 			timeOfLastSource = Time.time;
 			lastGravitySource = gravitySource;
 			gravitySource = gs;
-			p = GetComponent<PlayerControl>();
+			p = GetComponent<MovingEntity>();
 			Refresh();
 		}
 	}
 	public void Refresh() {
+		if(p.gravityApplication == MovingEntity.GravityState.none) return;
 		Vector3 nextDir = gravitySource.CalculateGravityDirectionFrom(transform.position);
 		Rigidbody rb = p.rb;
 		if(velocityFollowsGravity && nextDir != p.gravity.dir && rb != null) {
@@ -501,11 +505,13 @@ public class GravityPuller : MonoBehaviour {
 			rb.velocity = p.transform.TransformDirection (localVelocity);
 		}
 		p.gravity.dir = nextDir;
-		p.gravity.power = gravitySource.power;
+		if (gravitySource.forceGravitypower) {
+			p.gravity.power = gravitySource.power;
+		}
 	}
 	void FixedUpdate() { Refresh(); }
 	public Vector3 PullAsIfFrom(Vector3 alternateLocation) {
 		return gravitySource.CalculateGravityDirectionFrom(alternateLocation);
 	}
 }
-#endregion // Gravity Puller (additional script for PlayerControl)
+#endregion // Gravity Puller (additional script for MovingEntity)
