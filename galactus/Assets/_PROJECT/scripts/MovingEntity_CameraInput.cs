@@ -79,6 +79,9 @@ public class BaseInputController {
 	}
 	[Tooltip("Axis used for controls\n(see: Edit->Project Settings->Input")]
 	public ControlAxisNames controls = new ControlAxisNames();
+	public bool IsVRForwardAlways = true;
+	[Tooltip("If true, the player will constantly move as though forward is being pressed. Useful for VR controls that rely on looking only")]
+	public bool IsPressingForward = false;
 	[Tooltip("if true, automatically slow velocity to zero if there is no user-input")]
 	public bool AutoSlowdown = true;
 	[Tooltip("If true, a raycast is sent to make sure the camera doesn't clip through solid objects.")]
@@ -129,6 +132,9 @@ public class BaseInputController {
 			camHandle = (new GameObject("<camera handle>")).transform;
 			myCamera.transform.position = Vector3.zero;
 			myCamera.transform.SetParent(camHandle);
+			if (IsVRForwardAlways) {
+				IsPressingForward = true;
+			}
 		} else {
 			camHandle = myCamera.transform;
 		}
@@ -179,7 +185,8 @@ public class BaseInputController {
 		camHandle.position = nextLocation;
 	}
 	public virtual Vector3 Update(MovingEntityBase me) {
-		float inputF = Input.GetAxis (controls.forward), inputR = Input.GetAxis (controls.right);
+		float inputF = IsPressingForward?1:Input.GetAxis (controls.forward),
+			inputR = Input.GetAxis (controls.right);
 		Vector3 MoveDirection = default(Vector3);
 		if (inputF != 0 || inputR != 0) {
 			Transform t = myCamera.transform;
@@ -248,8 +255,8 @@ public class GroundedInputController : BaseInputController {
 		pc = null;
 	}
 	public override Vector3 Update(MovingEntityBase me) {
-		float input_forward = Input.GetAxis(controls.forward);
-		float input_right = Input.GetAxis(controls.right);
+		float input_forward = IsPressingForward?1:Input.GetAxis(controls.forward),
+			input_right = Input.GetAxis(controls.right);
 		Vector3 MoveDirection = Vector3.zero;
 		if (input_forward != 0 || input_right != 0) {
 			Vector3 currentRight, currentMoveForward;
