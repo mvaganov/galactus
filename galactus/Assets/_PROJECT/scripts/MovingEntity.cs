@@ -59,15 +59,6 @@ public class MovingEntity : MovingEntityBase {
 		right = Vector3.Cross(upVector, generalForward).normalized;
 		forward = Vector3.Cross(right, upVector).normalized;
 	}
-	public float DistanceTo(Vector3 loc) {
-		return Vector3.Distance(transform.position, loc) - ExpectedHorizontalRadius;
-	}
-	public float DistanceTo(Transform mob) {
-		float otherRad = mob.transform.localScale.z;
-		Collider c = mob.GetComponent<Collider>();
-		if(c != null) { otherRad *= c.bounds.extents.z; }
-		return Vector3.Distance(transform.position, mob.transform.position) - (ExpectedHorizontalRadius + otherRad);
-	}
 	public Vector3 GetVelocity() { return rb.velocity; }
 	#endregion // Public API
 	#region Core Controller Logic
@@ -425,7 +416,7 @@ public class MovingEntityBase : MonoBehaviour {
 		}
 	}
 	#endregion // Public API
-	#regionCore Controller Logic
+	#region Core Controller Logic
 	/// <summary>if a null pointer happens while trying to access a rigidbody variable, call this first.</summary>
 	public void EnsureRigidBody() {
 		if(rb == null) {
