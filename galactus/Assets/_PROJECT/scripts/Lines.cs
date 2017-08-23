@@ -48,11 +48,6 @@ public class Lines : MonoBehaviour {
 		SetColor(lr, color);
 		return lr;
 	}
-	/// <summary>As Make, but using an assured GameObject</summary>
-	public static LineRenderer Make_With(GameObject lineObject, Vector3 start, Vector3 end,
-		Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f) {
-		return Make (ref lineObject, start, end, color, startSize, endSize);
-	}
 
 	/// <summary>Make the specified Line from a list of points</summary>
 	/// <returns>The LineRenderer hosting the line</returns>
@@ -74,10 +69,6 @@ public class Lines : MonoBehaviour {
 		for(int i = 0; i < pointCount; ++i) { lr.SetPosition(i, points[i]); }
 		SetColor(lr, color);
 		return lr;
-	}
-	public static LineRenderer Make_With(GameObject lineObject, Vector3[] points, int pointCount,
-		Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f) {
-		return Make (ref lineObject, points, pointCount, color, startSize, endSize);
 	}
 
 	public static void SetColor(LineRenderer lr, Color color) {
@@ -253,9 +244,11 @@ public class Lines : MonoBehaviour {
 	/// <param name="sides"></param>
 	/// <param name="rotations"></param>
 	/// <returns></returns>
-	public static Vector3[] CreateSpiralSphere(Vector3 center, float radius, Vector3 axis, Vector3 axisFace,
-		float sides, float rotations) {
+	public static Vector3[] CreateSpiralSphere(Vector3 center = default(Vector3), float radius = 1,
+		Vector3 axis = default(Vector3), Vector3 axisFace = default(Vector3), float sides = 12, float rotations = 6) {
 		List<Vector3> points = new List<Vector3>(); // List instead of Array because sides and rotations are floats!
+		if(axis == Vector3.zero) { axis=Vector3.up; }
+		if(axisFace == Vector3.zero) { axisFace=Vector3.right; }
 		if (sides != 0 && rotations != 0) {
 			float iter = 0;
 			float increment = 1f / (rotations * sides);
@@ -287,4 +280,63 @@ public class Lines : MonoBehaviour {
 		Vector3[] verts = CreateSpiralSphere (center, radius, Vector3.up, Vector3.right, 24, 3);
 		return Make (ref lineObj, verts, verts.Length, color, linesize, linesize);
 	}
+
+	/// <param name="lineObject"></param>
+	/// <param name="start"></param>
+	/// <param name="end"></param>
+	/// <param name="arrowHeadSize"></param>
+	/// <param name="color"></param>
+	/// <param name="startSize"></param>
+	/// <param name="endSize"></param>
+	/// <returns></returns>
+	public static LineRenderer MakeArrow(ref GameObject lineObject, Vector3 start, Vector3 end,
+		float arrowHeadSize = 4, Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f) {
+		float arrowSize = endSize*arrowHeadSize;
+		Vector3 delta = end-start;
+		float dist = delta.magnitude;
+		bool bigEnough = dist > arrowSize;
+		LineRenderer lr;
+		if(bigEnough) {
+			Vector3 dir = delta / dist;
+			Vector3 arrowheadBase = start+dir*(dist-arrowSize);
+			float wiggle = 1-1.0f/128;
+			Vector3 arrowheadWidest = start+dir*(dist-arrowSize*wiggle);
+			Vector3[] line = new Vector3[] { start, arrowheadBase, arrowheadWidest, end };
+			Keyframe[] keyframes = new Keyframe[] {
+				new Keyframe(0, startSize), new Keyframe(1 - arrowSize/dist, startSize), new Keyframe(1 - (arrowSize*wiggle)/dist, arrowSize), new Keyframe(1, 0)
+			};
+			lr = Make(ref lineObject, line, line.Length, color, startSize, endSize);
+			lr.widthCurve = new AnimationCurve(keyframes);
+		} else {
+			lr = Make(ref lineObject, start, end, color, arrowSize, 0);
+		}
+		return lr;
+	}
+	// TODO make this happen.
+	//public static LineRenderer MakeArrow(ref GameObject lineObject, Vector3[] points, int pointCount,
+	//	float arrowHeadSize = 4, Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f) {
+	//	// find out where to put the arrowhead
+	//	int lastGoodIndex = 0;
+	//	float backtracked = 0;
+	//	float arrowheadLoc
+	//	float arrowSize = endSize*arrowHeadSize;
+	//	for(int i = points.Length-1; i>0; --i) {
+	//		float d = Vector3.Distance(points[i], points[i-1]);
+	//		backtracked += d;
+	//		if(backtracked >= arrowSize) {
+	//			lastGoodIndex = i-1;
+	//		}
+	//	}
+	//}
+
+	/// <summary>As Make, but using an assured GameObject</summary>
+	public static LineRenderer Make_With(GameObject lineObject, Vector3 start, Vector3 end,
+		Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f) {
+		return Make(ref lineObject, start, end, color, startSize, endSize);
+	}
+	public static LineRenderer Make_With(GameObject lineObject, Vector3[] points, int pointCount,
+		Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f) {
+		return Make(ref lineObject, points, pointCount, color, startSize, endSize);
+	}
+
 }

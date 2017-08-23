@@ -67,14 +67,16 @@ TextureImporter:
     21300120: socialmedia_BW_60
     21300122: socialmedia_BW_61
     21300124: socialmedia_BW_62
-  serializedVersion: 2
+  serializedVersion: 4
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
+    sRGBTexture: 1
     linearTexture: 0
-    correctGamma: 0
     fadeOut: 0
     borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
     mipMapFadeDistanceStart: 1
     mipMapFadeDistanceEnd: 3
   bumpmap:
@@ -84,23 +86,22 @@ TextureImporter:
     normalMapFilter: 0
   isReadable: 0
   grayScaleToAlpha: 0
-  generateCubemap: 0
+  generateCubemap: 6
   cubemapConvolution: 0
-  cubemapConvolutionSteps: 7
-  cubemapConvolutionExponent: 1.5
   seamlessCubemap: 0
   textureFormat: -1
   maxTextureSize: 2048
   textureSettings:
+    serializedVersion: 2
     filterMode: -1
     aniso: 16
     mipBias: -1
-    wrapMode: 1
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
   nPOTScale: 0
   lightmap: 0
-  rGBM: 0
   compressionQuality: 50
-  allowsAlphaSplitting: 0
   spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
@@ -108,12 +109,28 @@ TextureImporter:
   spritePivot: {x: 0.5, y: 0.5}
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spritePixelsToUnits: 100
+  alphaUsage: 1
   alphaIsTransparency: 1
+  spriteTessellationDetail: -1
   textureType: 8
-  buildTargetSettings: []
+  textureShape: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  platformSettings:
+  - buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
   spriteSheet:
+    serializedVersion: 2
     sprites:
-    - name: socialmedia_BW_0
+    - serializedVersion: 2
+      name: socialmedia_BW_0
       rect:
         serializedVersion: 2
         x: 8
@@ -123,15 +140,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -26.5, y: -22.5}
-        - {x: -24.5, y: -24.5}
-        - {x: 25.5, y: -24.5}
-        - {x: 25.5, y: 28.5}
-        - {x: -15.5, y: 28.5}
-        - {x: -24.5, y: 27.5}
-        - {x: -26.5, y: 25.5}
-    - name: socialmedia_BW_1
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_1
       rect:
         serializedVersion: 2
         x: 65
@@ -141,14 +154,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -26.5, y: 28.5}
-        - {x: -26.5, y: -24.5}
-        - {x: 23.5, y: -24.5}
-        - {x: 25.5, y: -22.5}
-        - {x: 25.5, y: 26.5}
-        - {x: 23.5, y: 28.5}
-    - name: socialmedia_BW_2
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_2
       rect:
         serializedVersion: 2
         x: 122
@@ -158,15 +168,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -26.5, y: 28.5}
-        - {x: -26.5, y: -22.5}
-        - {x: -24.5, y: -24.5}
-        - {x: 23.5, y: -24.5}
-        - {x: 26.5, y: -21.5}
-        - {x: 26.5, y: 25.5}
-        - {x: 25.5, y: 28.5}
-    - name: socialmedia_BW_3
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_3
       rect:
         serializedVersion: 2
         x: 179
@@ -176,14 +182,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -26.5, y: 27.5}
-        - {x: -26.5, y: -21.5}
-        - {x: -23.5, y: -24.5}
-        - {x: 24.5, y: -24.5}
-        - {x: 26.5, y: -22.5}
-        - {x: 26.5, y: 27.5}
-    - name: socialmedia_BW_4
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_4
       rect:
         serializedVersion: 2
         x: 236
@@ -193,16 +196,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -23.5, y: 28.5}
-        - {x: -25.5, y: 26.5}
-        - {x: -25.5, y: -22.5}
-        - {x: -23.5, y: -24.5}
-        - {x: 24.5, y: -24.5}
-        - {x: 26.5, y: -22.5}
-        - {x: 26.5, y: 26.5}
-        - {x: 24.5, y: 28.5}
-    - name: socialmedia_BW_5
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_5
       rect:
         serializedVersion: 2
         x: 293
@@ -212,13 +210,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -25.5, y: 28.5}
-        - {x: -25.5, y: -24.5}
-        - {x: 24.5, y: -24.5}
-        - {x: 27.5, y: -21.5}
-        - {x: 27.5, y: 28.5}
-    - name: socialmedia_BW_6
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_6
       rect:
         serializedVersion: 2
         x: 350
@@ -228,15 +224,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -25.5, y: -21.5}
-        - {x: -24.5, y: -24.5}
-        - {x: 27.5, y: -24.5}
-        - {x: 27.5, y: 28.5}
-        - {x: -5.5, y: 28.5}
-        - {x: -23.5, y: 27.5}
-        - {x: -25.5, y: 25.5}
-    - name: socialmedia_BW_7
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_7
       rect:
         serializedVersion: 2
         x: 407
@@ -246,15 +238,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -24.5, y: 25.5}
-        - {x: -24.5, y: -22.5}
-        - {x: -22.5, y: -24.5}
-        - {x: 27.5, y: -24.5}
-        - {x: 27.5, y: 28.5}
-        - {x: -3.5, y: 28.5}
-        - {x: -22.5, y: 27.5}
-    - name: socialmedia_BW_8
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_8
       rect:
         serializedVersion: 2
         x: 464
@@ -264,16 +252,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: 13.5, y: 28.5}
-        - {x: -23.5, y: 28.5}
-        - {x: -24.5, y: 25.5}
-        - {x: -24.5, y: -22.5}
-        - {x: -22.5, y: -24.5}
-        - {x: 25.5, y: -24.5}
-        - {x: 27.5, y: -22.5}
-        - {x: 27.5, y: 27.5}
-    - name: socialmedia_BW_9
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_9
       rect:
         serializedVersion: 2
         x: 8
@@ -283,16 +266,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -24.5, y: 27.5}
-        - {x: -26.5, y: 25.5}
-        - {x: -26.5, y: -23.5}
-        - {x: -24.5, y: -25.5}
-        - {x: 23.5, y: -25.5}
-        - {x: 25.5, y: -23.5}
-        - {x: 25.5, y: 25.5}
-        - {x: 23.5, y: 27.5}
-    - name: socialmedia_BW_10
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_10
       rect:
         serializedVersion: 2
         x: 65
@@ -302,16 +280,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -24.5, y: 27.5}
-        - {x: -26.5, y: 25.5}
-        - {x: -26.5, y: -23.5}
-        - {x: -24.5, y: -25.5}
-        - {x: 23.5, y: -25.5}
-        - {x: 25.5, y: -23.5}
-        - {x: 25.5, y: 25.5}
-        - {x: 23.5, y: 27.5}
-    - name: socialmedia_BW_11
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_11
       rect:
         serializedVersion: 2
         x: 122
@@ -321,14 +294,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -26.5, y: 27.5}
-        - {x: -26.5, y: -22.5}
-        - {x: -23.5, y: -25.5}
-        - {x: 23.5, y: -25.5}
-        - {x: 26.5, y: -23.5}
-        - {x: 26.5, y: 27.5}
-    - name: socialmedia_BW_12
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_12
       rect:
         serializedVersion: 2
         x: 179
@@ -338,16 +308,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -23.5, y: 27.5}
-        - {x: -26.5, y: 24.5}
-        - {x: -26.5, y: -22.5}
-        - {x: -23.5, y: -25.5}
-        - {x: 24.5, y: -25.5}
-        - {x: 26.5, y: -23.5}
-        - {x: 26.5, y: 25.5}
-        - {x: 24.5, y: 27.5}
-    - name: socialmedia_BW_13
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_13
       rect:
         serializedVersion: 2
         x: 236
@@ -357,16 +322,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -23.5, y: 27.5}
-        - {x: -25.5, y: 25.5}
-        - {x: -25.5, y: -23.5}
-        - {x: -23.5, y: -25.5}
-        - {x: 24.5, y: -25.5}
-        - {x: 26.5, y: -23.5}
-        - {x: 26.5, y: 25.5}
-        - {x: 24.5, y: 27.5}
-    - name: socialmedia_BW_14
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_14
       rect:
         serializedVersion: 2
         x: 293
@@ -376,14 +336,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -25.5, y: 27.5}
-        - {x: -25.5, y: -23.5}
-        - {x: -23.5, y: -25.5}
-        - {x: 24.5, y: -25.5}
-        - {x: 27.5, y: -22.5}
-        - {x: 27.5, y: 27.5}
-    - name: socialmedia_BW_15
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_15
       rect:
         serializedVersion: 2
         x: 350
@@ -393,28 +350,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -25.5, y: 27.5}
-        - {x: -25.5, y: -22.5}
-        - {x: -22.5, y: -25.5}
-        - {x: 27.5, y: -25.5}
-        - {x: 27.5, y: 27.5}
-      - - {x: -9.5, y: -2.5}
-        - {x: -9.5, y: -5.5}
-        - {x: -8.5, y: -8.5}
-        - {x: 11.5, y: -8.5}
-        - {x: 11.5, y: -3.5}
-        - {x: 8.5, y: -0.5}
-        - {x: -6.5, y: -0.5}
-      - - {x: -9.5, y: 9.5}
-        - {x: -9.5, y: 5.5}
-        - {x: -8.5, y: 3.5}
-        - {x: 2.5, y: 3.5}
-        - {x: 5.5, y: 4.5}
-        - {x: 5.5, y: 8.5}
-        - {x: 2.5, y: 11.5}
-        - {x: -6.5, y: 11.5}
-    - name: socialmedia_BW_16
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_16
       rect:
         serializedVersion: 2
         x: 407
@@ -424,14 +364,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -25.5, y: -14.5}
-        - {x: -24.5, y: -25.5}
-        - {x: 27.5, y: -25.5}
-        - {x: 27.5, y: 27.5}
-        - {x: -24.5, y: 27.5}
-        - {x: -25.5, y: 22.5}
-    - name: socialmedia_BW_17
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_17
       rect:
         serializedVersion: 2
         x: 464
@@ -441,16 +378,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -22.5, y: 27.5}
-        - {x: -24.5, y: 25.5}
-        - {x: -24.5, y: -23.5}
-        - {x: -22.5, y: -25.5}
-        - {x: 25.5, y: -25.5}
-        - {x: 27.5, y: -23.5}
-        - {x: 27.5, y: 25.5}
-        - {x: 25.5, y: 27.5}
-    - name: socialmedia_BW_18
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_18
       rect:
         serializedVersion: 2
         x: 8
@@ -460,16 +392,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -24.5, y: 26.5}
-        - {x: -26.5, y: 24.5}
-        - {x: -26.5, y: -23.5}
-        - {x: -24.5, y: -25.5}
-        - {x: 23.5, y: -25.5}
-        - {x: 25.5, y: -23.5}
-        - {x: 25.5, y: 24.5}
-        - {x: 23.5, y: 26.5}
-    - name: socialmedia_BW_19
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_19
       rect:
         serializedVersion: 2
         x: 65
@@ -479,12 +406,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -26.5, y: 27.5}
-        - {x: -26.5, y: -25.5}
-        - {x: 25.5, y: -25.5}
-        - {x: 25.5, y: 27.5}
-    - name: socialmedia_BW_20
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_20
       rect:
         serializedVersion: 2
         x: 122
@@ -494,20 +420,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -26.5, y: -25.5}
-        - {x: 26.5, y: -25.5}
-        - {x: 26.5, y: 27.5}
-        - {x: -26.5, y: 27.5}
-      - - {x: -5.5, y: 13.5}
-        - {x: -10.5, y: 9.5}
-        - {x: -10.5, y: -9.5}
-        - {x: -9.5, y: -11.5}
-        - {x: 4.5, y: -11.5}
-        - {x: 10.5, y: -10.5}
-        - {x: 10.5, y: 10.5}
-        - {x: 6.5, y: 13.5}
-    - name: socialmedia_BW_21
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_21
       rect:
         serializedVersion: 2
         x: 179
@@ -517,16 +434,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -23.5, y: 27.5}
-        - {x: -26.5, y: 24.5}
-        - {x: -26.5, y: -23.5}
-        - {x: -24.5, y: -25.5}
-        - {x: 24.5, y: -25.5}
-        - {x: 26.5, y: -23.5}
-        - {x: 26.5, y: 25.5}
-        - {x: 24.5, y: 27.5}
-    - name: socialmedia_BW_22
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_22
       rect:
         serializedVersion: 2
         x: 236
@@ -536,16 +448,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -23.5, y: 27.5}
-        - {x: -25.5, y: 25.5}
-        - {x: -25.5, y: -23.5}
-        - {x: -23.5, y: -25.5}
-        - {x: 24.5, y: -25.5}
-        - {x: 26.5, y: -23.5}
-        - {x: 26.5, y: 25.5}
-        - {x: 24.5, y: 27.5}
-    - name: socialmedia_BW_23
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_23
       rect:
         serializedVersion: 2
         x: 293
@@ -555,22 +462,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -25.5, y: 27.5}
-        - {x: -25.5, y: -23.5}
-        - {x: -23.5, y: -25.5}
-        - {x: 26.5, y: -25.5}
-        - {x: 27.5, y: -23.5}
-        - {x: 27.5, y: 27.5}
-      - - {x: -3.5, y: 13.5}
-        - {x: -6.5, y: 6.5}
-        - {x: -6.5, y: 2.5}
-        - {x: -2.5, y: 0.5}
-        - {x: 2.5, y: 1.5}
-        - {x: 7.5, y: 5.5}
-        - {x: 7.5, y: 9.5}
-        - {x: 5.5, y: 13.5}
-    - name: socialmedia_BW_24
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_24
       rect:
         serializedVersion: 2
         x: 350
@@ -580,14 +476,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -23.5, y: 27.5}
-        - {x: -25.5, y: 24.5}
-        - {x: -25.5, y: -22.5}
-        - {x: -22.5, y: -25.5}
-        - {x: 27.5, y: -25.5}
-        - {x: 27.5, y: 27.5}
-    - name: socialmedia_BW_25
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_25
       rect:
         serializedVersion: 2
         x: 407
@@ -597,13 +490,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -22.5, y: 27.5}
-        - {x: -25.5, y: 24.5}
-        - {x: -25.5, y: -25.5}
-        - {x: 27.5, y: -25.5}
-        - {x: 27.5, y: 27.5}
-    - name: socialmedia_BW_26
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_26
       rect:
         serializedVersion: 2
         x: 464
@@ -613,14 +504,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -24.5, y: 27.5}
-        - {x: -24.5, y: -25.5}
-        - {x: 26.5, y: -25.5}
-        - {x: 27.5, y: -23.5}
-        - {x: 27.5, y: 25.5}
-        - {x: 25.5, y: 27.5}
-    - name: socialmedia_BW_27
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_27
       rect:
         serializedVersion: 2
         x: 8
@@ -630,13 +518,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -26.5, y: 26.5}
-        - {x: -26.5, y: -24.5}
-        - {x: -24.5, y: -25.5}
-        - {x: 25.5, y: -25.5}
-        - {x: 25.5, y: 26.5}
-    - name: socialmedia_BW_28
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_28
       rect:
         serializedVersion: 2
         x: 65
@@ -646,13 +532,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -27.5, y: 26.5}
-        - {x: -27.5, y: -24.5}
-        - {x: -22.5, y: -26.5}
-        - {x: 25.5, y: -26.5}
-        - {x: 25.5, y: 26.5}
-    - name: socialmedia_BW_29
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_29
       rect:
         serializedVersion: 2
         x: 122
@@ -662,16 +546,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -24.5, y: 26.5}
-        - {x: -26.5, y: 24.5}
-        - {x: -26.5, y: -23.5}
-        - {x: -24.5, y: -25.5}
-        - {x: 23.5, y: -25.5}
-        - {x: 25.5, y: -23.5}
-        - {x: 25.5, y: 24.5}
-        - {x: 23.5, y: 26.5}
-    - name: socialmedia_BW_30
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_30
       rect:
         serializedVersion: 2
         x: 179
@@ -681,16 +560,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -23.5, y: 26.5}
-        - {x: -26.5, y: 23.5}
-        - {x: -26.5, y: -23.5}
-        - {x: -24.5, y: -25.5}
-        - {x: 24.5, y: -25.5}
-        - {x: 26.5, y: -23.5}
-        - {x: 26.5, y: 24.5}
-        - {x: 24.5, y: 26.5}
-    - name: socialmedia_BW_31
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_31
       rect:
         serializedVersion: 2
         x: 236
@@ -700,14 +574,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -26.5, y: 27.5}
-        - {x: -26.5, y: -26.5}
-        - {x: 26.5, y: -26.5}
-        - {x: 26.5, y: 24.5}
-        - {x: 24.5, y: 26.5}
-        - {x: 10.5, y: 27.5}
-    - name: socialmedia_BW_32
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_32
       rect:
         serializedVersion: 2
         x: 293
@@ -717,16 +588,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -23.5, y: 26.5}
-        - {x: -25.5, y: 24.5}
-        - {x: -25.5, y: -23.5}
-        - {x: -23.5, y: -25.5}
-        - {x: 24.5, y: -25.5}
-        - {x: 26.5, y: -23.5}
-        - {x: 26.5, y: 24.5}
-        - {x: 24.5, y: 26.5}
-    - name: socialmedia_BW_33
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_33
       rect:
         serializedVersion: 2
         x: 350
@@ -736,12 +602,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -25.5, y: 26.5}
-        - {x: -25.5, y: -25.5}
-        - {x: 27.5, y: -25.5}
-        - {x: 27.5, y: 26.5}
-    - name: socialmedia_BW_34
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_34
       rect:
         serializedVersion: 2
         x: 407
@@ -751,13 +616,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -25.5, y: 26.5}
-        - {x: -25.5, y: -25.5}
-        - {x: 25.5, y: -25.5}
-        - {x: 27.5, y: -23.5}
-        - {x: 27.5, y: 26.5}
-    - name: socialmedia_BW_35
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_35
       rect:
         serializedVersion: 2
         x: 464
@@ -767,16 +630,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -22.5, y: 26.5}
-        - {x: -24.5, y: 24.5}
-        - {x: -24.5, y: -23.5}
-        - {x: -22.5, y: -25.5}
-        - {x: 25.5, y: -25.5}
-        - {x: 27.5, y: -23.5}
-        - {x: 27.5, y: 24.5}
-        - {x: 25.5, y: 26.5}
-    - name: socialmedia_BW_36
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_36
       rect:
         serializedVersion: 2
         x: 8
@@ -786,14 +644,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -27.5, y: 26.5}
-        - {x: -27.5, y: -24.5}
-        - {x: -25.5, y: -26.5}
-        - {x: 22.5, y: -26.5}
-        - {x: 25.5, y: -23.5}
-        - {x: 25.5, y: 26.5}
-    - name: socialmedia_BW_37
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_37
       rect:
         serializedVersion: 2
         x: 65
@@ -803,14 +658,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -25.5, y: 26.5}
-        - {x: -27.5, y: 24.5}
-        - {x: -27.5, y: -23.5}
-        - {x: -24.5, y: -26.5}
-        - {x: 25.5, y: -26.5}
-        - {x: 25.5, y: 26.5}
-    - name: socialmedia_BW_38
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_38
       rect:
         serializedVersion: 2
         x: 122
@@ -820,20 +672,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -27.5, y: 26.5}
-        - {x: -27.5, y: -26.5}
-        - {x: 25.5, y: -26.5}
-        - {x: 25.5, y: 26.5}
-      - - {x: -9.5, y: 12.5}
-        - {x: -11.5, y: 10.5}
-        - {x: -11.5, y: -9.5}
-        - {x: -8.5, y: -12.5}
-        - {x: 2.5, y: -12.5}
-        - {x: 10.5, y: -9.5}
-        - {x: 10.5, y: 10.5}
-        - {x: 9.5, y: 12.5}
-    - name: socialmedia_BW_39
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_39
       rect:
         serializedVersion: 2
         x: 179
@@ -843,14 +686,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -24.5, y: 26.5}
-        - {x: -26.5, y: 24.5}
-        - {x: -26.5, y: -24.5}
-        - {x: -24.5, y: -26.5}
-        - {x: 25.5, y: -26.5}
-        - {x: 25.5, y: 26.5}
-    - name: socialmedia_BW_40
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_40
       rect:
         serializedVersion: 2
         x: 236
@@ -860,15 +700,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -23.5, y: 26.5}
-        - {x: -26.5, y: 23.5}
-        - {x: -26.5, y: -24.5}
-        - {x: -24.5, y: -26.5}
-        - {x: 26.5, y: -26.5}
-        - {x: 26.5, y: 25.5}
-        - {x: 23.5, y: 26.5}
-    - name: socialmedia_BW_41
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_41
       rect:
         serializedVersion: 2
         x: 293
@@ -878,21 +714,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -26.5, y: 26.5}
-        - {x: -26.5, y: -23.5}
-        - {x: -23.5, y: -26.5}
-        - {x: 26.5, y: -26.5}
-        - {x: 26.5, y: 26.5}
-      - - {x: 5.5, y: 4.5}
-        - {x: 3.5, y: 2.5}
-        - {x: 3.5, y: 0.5}
-        - {x: 5.5, y: -1.5}
-        - {x: 9.5, y: -1.5}
-        - {x: 11.5, y: -0.5}
-        - {x: 11.5, y: 1.5}
-        - {x: 10.5, y: 4.5}
-    - name: socialmedia_BW_42
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_42
       rect:
         serializedVersion: 2
         x: 350
@@ -902,16 +728,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -23.5, y: 26.5}
-        - {x: -25.5, y: 24.5}
-        - {x: -25.5, y: -24.5}
-        - {x: -23.5, y: -26.5}
-        - {x: 23.5, y: -26.5}
-        - {x: 26.5, y: -23.5}
-        - {x: 26.5, y: 24.5}
-        - {x: 24.5, y: 26.5}
-    - name: socialmedia_BW_43
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_43
       rect:
         serializedVersion: 2
         x: 407
@@ -921,16 +742,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -23.5, y: 26.5}
-        - {x: -25.5, y: 24.5}
-        - {x: -25.5, y: -23.5}
-        - {x: -22.5, y: -26.5}
-        - {x: 23.5, y: -26.5}
-        - {x: 26.5, y: -23.5}
-        - {x: 26.5, y: 24.5}
-        - {x: 24.5, y: 26.5}
-    - name: socialmedia_BW_44
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_44
       rect:
         serializedVersion: 2
         x: 464
@@ -940,14 +756,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -23.5, y: 26.5}
-        - {x: -25.5, y: 24.5}
-        - {x: -25.5, y: -23.5}
-        - {x: -22.5, y: -26.5}
-        - {x: 27.5, y: -26.5}
-        - {x: 27.5, y: 26.5}
-    - name: socialmedia_BW_45
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_45
       rect:
         serializedVersion: 2
         x: 8
@@ -957,14 +770,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -27.5, y: 25.5}
-        - {x: -27.5, y: -24.5}
-        - {x: -25.5, y: -26.5}
-        - {x: 23.5, y: -26.5}
-        - {x: 25.5, y: -24.5}
-        - {x: 25.5, y: 25.5}
-    - name: socialmedia_BW_46
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_46
       rect:
         serializedVersion: 2
         x: 65
@@ -974,13 +784,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -27.5, y: 25.5}
-        - {x: -27.5, y: -26.5}
-        - {x: 23.5, y: -26.5}
-        - {x: 25.5, y: -25.5}
-        - {x: 25.5, y: 25.5}
-    - name: socialmedia_BW_47
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_47
       rect:
         serializedVersion: 2
         x: 122
@@ -990,16 +798,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -24.5, y: 25.5}
-        - {x: -26.5, y: 23.5}
-        - {x: -26.5, y: -24.5}
-        - {x: -24.5, y: -26.5}
-        - {x: 23.5, y: -26.5}
-        - {x: 25.5, y: -24.5}
-        - {x: 25.5, y: 23.5}
-        - {x: 23.5, y: 25.5}
-    - name: socialmedia_BW_48
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_48
       rect:
         serializedVersion: 2
         x: 179
@@ -1009,13 +812,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -26.5, y: 25.5}
-        - {x: -26.5, y: -25.5}
-        - {x: -24.5, y: -26.5}
-        - {x: 26.5, y: -26.5}
-        - {x: 26.5, y: 25.5}
-    - name: socialmedia_BW_49
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_49
       rect:
         serializedVersion: 2
         x: 236
@@ -1025,16 +826,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -24.5, y: 25.5}
-        - {x: -26.5, y: 23.5}
-        - {x: -26.5, y: -24.5}
-        - {x: -23.5, y: -27.5}
-        - {x: 23.5, y: -27.5}
-        - {x: 26.5, y: -24.5}
-        - {x: 26.5, y: 23.5}
-        - {x: 24.5, y: 25.5}
-    - name: socialmedia_BW_50
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_50
       rect:
         serializedVersion: 2
         x: 293
@@ -1044,13 +840,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -25.5, y: 25.5}
-        - {x: -25.5, y: -25.5}
-        - {x: -23.5, y: -26.5}
-        - {x: 27.5, y: -26.5}
-        - {x: 27.5, y: 25.5}
-    - name: socialmedia_BW_51
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_51
       rect:
         serializedVersion: 2
         x: 350
@@ -1060,14 +854,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -25.5, y: 25.5}
-        - {x: -25.5, y: -24.5}
-        - {x: -24.5, y: -27.5}
-        - {x: 24.5, y: -27.5}
-        - {x: 27.5, y: -25.5}
-        - {x: 27.5, y: 25.5}
-    - name: socialmedia_BW_52
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_52
       rect:
         serializedVersion: 2
         x: 407
@@ -1077,16 +868,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -23.5, y: 25.5}
-        - {x: -25.5, y: 23.5}
-        - {x: -25.5, y: -24.5}
-        - {x: -23.5, y: -26.5}
-        - {x: 25.5, y: -26.5}
-        - {x: 27.5, y: -24.5}
-        - {x: 27.5, y: 23.5}
-        - {x: 25.5, y: 25.5}
-    - name: socialmedia_BW_53
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_53
       rect:
         serializedVersion: 2
         x: 464
@@ -1096,16 +882,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -22.5, y: 25.5}
-        - {x: -25.5, y: 22.5}
-        - {x: -25.5, y: -24.5}
-        - {x: -23.5, y: -26.5}
-        - {x: 25.5, y: -26.5}
-        - {x: 27.5, y: -24.5}
-        - {x: 27.5, y: 23.5}
-        - {x: 25.5, y: 25.5}
-    - name: socialmedia_BW_54
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_54
       rect:
         serializedVersion: 2
         x: 8
@@ -1115,14 +896,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: 22.5, y: 25.5}
-        - {x: -27.5, y: 25.5}
-        - {x: -27.5, y: -27.5}
-        - {x: 22.5, y: -27.5}
-        - {x: 25.5, y: -24.5}
-        - {x: 25.5, y: 23.5}
-    - name: socialmedia_BW_55
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_55
       rect:
         serializedVersion: 2
         x: 65
@@ -1132,14 +910,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -27.5, y: -25.5}
-        - {x: -24.5, y: -27.5}
-        - {x: 25.5, y: -27.5}
-        - {x: 25.5, y: 25.5}
-        - {x: -24.5, y: 25.5}
-        - {x: -27.5, y: 23.5}
-    - name: socialmedia_BW_56
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_56
       rect:
         serializedVersion: 2
         x: 122
@@ -1149,14 +924,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -27.5, y: -24.5}
-        - {x: -25.5, y: -27.5}
-        - {x: 25.5, y: -27.5}
-        - {x: 25.5, y: 25.5}
-        - {x: -25.5, y: 25.5}
-        - {x: -27.5, y: 21.5}
-    - name: socialmedia_BW_57
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_57
       rect:
         serializedVersion: 2
         x: 179
@@ -1166,13 +938,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -25.5, y: 25.5}
-        - {x: -26.5, y: 24.5}
-        - {x: -26.5, y: -27.5}
-        - {x: 26.5, y: -27.5}
-        - {x: 26.5, y: 25.5}
-    - name: socialmedia_BW_58
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_58
       rect:
         serializedVersion: 2
         x: 236
@@ -1182,12 +952,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -26.5, y: 25.5}
-        - {x: -26.5, y: -27.5}
-        - {x: 26.5, y: -27.5}
-        - {x: 26.5, y: 25.5}
-    - name: socialmedia_BW_59
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_59
       rect:
         serializedVersion: 2
         x: 293
@@ -1197,14 +966,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -25.5, y: 25.5}
-        - {x: -26.5, y: 20.5}
-        - {x: -26.5, y: -21.5}
-        - {x: -25.5, y: -27.5}
-        - {x: 26.5, y: -27.5}
-        - {x: 26.5, y: 25.5}
-    - name: socialmedia_BW_60
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_60
       rect:
         serializedVersion: 2
         x: 350
@@ -1214,13 +980,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -25.5, y: 25.5}
-        - {x: -25.5, y: -27.5}
-        - {x: 27.5, y: -27.5}
-        - {x: 27.5, y: 11.5}
-        - {x: 26.5, y: 25.5}
-    - name: socialmedia_BW_61
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_61
       rect:
         serializedVersion: 2
         x: 407
@@ -1230,12 +994,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -25.5, y: 25.5}
-        - {x: -25.5, y: -27.5}
-        - {x: 27.5, y: -27.5}
-        - {x: 27.5, y: 25.5}
-    - name: socialmedia_BW_62
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: socialmedia_BW_62
       rect:
         serializedVersion: 2
         x: 464
@@ -1245,12 +1008,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -24.5, y: 24.5}
-        - {x: -24.5, y: -27.5}
-        - {x: 27.5, y: -27.5}
-        - {x: 27.5, y: 24.5}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
     outline: []
+    physicsShape: []
   spritePackingTag: 
   userData: 
   assetBundleName: 
