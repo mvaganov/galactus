@@ -72,4 +72,7 @@ Temporary Items
 # galactus web build
 [Ww]eb/
 
-galactus/Assets/TextMesh Pro/
+*/Assets/TextMesh Pro/
+*/Assets/OVR/
+*/Assets/TESTING/
+*/Assets/TESTING.meta

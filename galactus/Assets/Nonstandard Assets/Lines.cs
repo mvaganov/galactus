@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
+// author: mvaganov@hotmail.com
+// license: Copyfree, public domain. This is free code! Great artists, steal this code!
+// latest version at: https://pastebin.com/8m69iTut -- added: WriteArcOnSphere (2017/10/25)
 public class Lines : MonoBehaviour {
-	[Tooltip("Used to draw lines. Ideally a white Self-Illumin/Diffuse shader.")]
+	[Tooltip("Used to draw lines. Ideally a white Self-Illumin/Diffuse shader. Or Default-Line")]
 	public Material lineMaterial;
 	public bool autoParentLinesToGlobalObject = true;
 
@@ -12,9 +14,8 @@ public class Lines : MonoBehaviour {
 	public static Lines Instance() {
 		if(instance == null) {
 			if((instance = FindObjectOfType(typeof(Lines)) as Lines) == null) {
-				GameObject g = new GameObject();
+				GameObject g = new GameObject("<" + typeof(Lines).Name + ">");
 				instance = g.AddComponent<Lines>();
-				g.name = "<" + instance.GetType().Name + ">";
 			}
 		}
 		return instance;
@@ -48,11 +49,6 @@ public class Lines : MonoBehaviour {
 		SetColor(lr, color);
 		return lr;
 	}
-	/// <summary>As Make, but using an assured GameObject</summary>
-	public static LineRenderer Make_With(GameObject lineObject, Vector3 start, Vector3 end,
-		Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f) {
-		return Make (ref lineObject, start, end, color, startSize, endSize);
-	}
 
 	/// <summary>Make the specified Line from a list of points</summary>
 	/// <returns>The LineRenderer hosting the line</returns>
@@ -75,24 +71,24 @@ public class Lines : MonoBehaviour {
 		SetColor(lr, color);
 		return lr;
 	}
-	public static LineRenderer Make_With(GameObject lineObject, Vector3[] points, int pointCount,
-		Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f) {
-		return Make (ref lineObject, points, pointCount, color, startSize, endSize);
+
+	public static Material FindShaderMaterial(string shadername){
+		Shader s = Shader.Find(shadername);
+		if(s == null) {
+			throw new System.Exception("Missing shader: " + shadername
+				+ ". Please make sure it is in the \"Resources\" folder, "
+				+ "or used by at least one other object. Or, create an "
+				+ " object with Lines, and assign the material manually");
+		}
+		return new Material(s);
 	}
 
 	public static void SetColor(LineRenderer lr, Color color) {
 		Material mat = Instance().lineMaterial;
 		if(mat == null) {
-			const string colorShaderName = "Unlit/Color";
-			Shader s = Shader.Find(colorShaderName);
-			if(s == null) {
-				throw new System.Exception("Missing shader: " + colorShaderName
-					+ ". Please make sure it is in the \"Resources\" folder, "
-					+ "or used by at least one other object. Or, create an "
-					+ " object with Lines, and assign the material manually");
-			}
-			mat = new Material(s);
-			Instance().lineMaterial = mat;
+			const string colorShaderName = "Sprites/Default";//"Unlit/Color";
+			mat = FindShaderMaterial(colorShaderName);
+			Instance ().lineMaterial = mat;
 		}
 		if(lr.material == null || lr.material.name != mat.name) { lr.material = mat; }
 		lr.material.color = color;
@@ -142,6 +138,31 @@ public class Lines : MonoBehaviour {
 		return Make(ref lineObj, points, pointCount, color, startSize, endSize);
 	}
 
+	public static LineRenderer MakeLineOnSphere(ref GameObject lineObj, Vector3 sphereCenter, Vector3 start, Vector3 end, 
+		Color color=default(Color), float startSize=0.125f, float endSize=0.125f, int pointCount = 24) {
+		Vector3[] points = null;
+		WriteArcOnSphere(ref points, pointCount, sphereCenter, start, end);
+		return Make(ref lineObj, points, pointCount, color, startSize, endSize);
+	}
+	public static void WriteArcOnSphere(ref Vector3[] points, int pointCount, Vector3 sphereCenter, Vector3 start, Vector3 end) {
+		Vector3 axis;
+		if(start == -end) {
+			axis = (start != Vector3.up && end != Vector3.up)? Vector3.up : Vector3.right;
+		} else {
+			axis = Vector3.Cross(start, end).normalized;
+		}
+		Vector3 a = start - sphereCenter, b = end - sphereCenter;
+		float arad = a.magnitude, brad = b.magnitude;
+		a /= arad; b /= brad;
+		float angle = Vector3.Angle(a,b);
+		WriteArc(ref points, pointCount, axis, a, angle, Vector3.zero);
+		float raddelta = brad-arad;
+		for(int i=0; i < points.Length; ++i) {
+			points[i] = points[i] * ((i * raddelta / points.Length) + arad);
+			points[i] += sphereCenter;
+		}
+	}
+
 	/// <summary>Makes a circle with a 3D line</summary>
 	/// <returns>The LineRenderer hosting the line</returns>
 	/// <param name="lineObj">GameObject host of the LineRenderer</param>
@@ -154,8 +175,10 @@ public class Lines : MonoBehaviour {
 		Vector3 center, Vector3 normal, Color color = default(Color), float radius = 1, float linesize = 0.125f) {
 		Vector3 crossDir = (normal != Vector3.up) ? Vector3.up : Vector3.forward;
 		Vector3 r = Vector3.Cross(normal, crossDir).normalized;
-		return Lines.MakeArc(ref lineObj, 360, 24, normal, r * radius, center, color,
+		LineRenderer lr = Lines.MakeArc(ref lineObj, 360, 24, normal, r * radius, center, color,
 			linesize, linesize);
+		lr.loop = true;
+		return lr;
 	}
 	/// <summary>As MakeCircle, but using an assured GameObject</summary>
 	public static LineRenderer MakeCircle_With(GameObject lineObj,
@@ -253,9 +276,11 @@ public class Lines : MonoBehaviour {
 	/// <param name="sides"></param>
 	/// <param name="rotations"></param>
 	/// <returns></returns>
-	public static Vector3[] CreateSpiralSphere(Vector3 center, float radius, Vector3 axis, Vector3 axisFace,
-		float sides, float rotations) {
+	public static Vector3[] CreateSpiralSphere(Vector3 center = default(Vector3), float radius = 1,
+		Vector3 axis = default(Vector3), Vector3 axisFace = default(Vector3), float sides = 12, float rotations = 6) {
 		List<Vector3> points = new List<Vector3>(); // List instead of Array because sides and rotations are floats!
+		if(axis == Vector3.zero) { axis=Vector3.up; }
+		if(axisFace == Vector3.zero) { axisFace=Vector3.right; }
 		if (sides != 0 && rotations != 0) {
 			float iter = 0;
 			float increment = 1f / (rotations * sides);
@@ -286,5 +311,151 @@ public class Lines : MonoBehaviour {
 		Vector3 center = default(Vector3), Color color = default(Color), float linesize = 0.125f) {
 		Vector3[] verts = CreateSpiralSphere (center, radius, Vector3.up, Vector3.right, 24, 3);
 		return Make (ref lineObj, verts, verts.Length, color, linesize, linesize);
+	}
+
+	public const float ARROWSIZE = 3;
+	public static LineRenderer MakeArrow(ref GameObject lineObject, Vector3 start, Vector3 end,
+		Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f, float arrowHeadSize = ARROWSIZE) {
+		return MakeArrow(ref lineObject, new Vector3[] { start, end }, 2, color, startSize, endSize, arrowHeadSize);
+	}
+	public static LineRenderer MakeArrowBothEnds(ref GameObject lineObject, Vector3 start, Vector3 end,
+		Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f, float arrowHeadSize = ARROWSIZE) {
+		return MakeArrowBothEnds(ref lineObject, new Vector3[] { start, end }, 2, color, startSize, endSize, arrowHeadSize);
+	}
+	public static LineRenderer MakeArrow(ref GameObject lineObject, Vector3[] points, int pointCount,
+		Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f, float arrowHeadSize = ARROWSIZE, Keyframe[] lineKeyFrames = null) {
+		float arrowSize = endSize*arrowHeadSize;
+		int lastGoodIndex = 0;
+		Vector3 arrowheadBase = Vector3.zero, arrowheadWidest = Vector3.zero, delta, dir = Vector3.zero;
+		float dist = 0, backtracked = 0, extraFromLastGoodIndex = 0;
+		for(int i = points.Length-1; i>0; --i) {
+			float d = Vector3.Distance(points[i], points[i-1]);
+			dist += d;
+			backtracked += d;
+			if(backtracked >= arrowSize && dir == Vector3.zero) {
+				lastGoodIndex = i-1;
+				delta = points[i] - points[i-1];
+				dir = delta.normalized;
+				extraFromLastGoodIndex = backtracked - arrowSize;
+				arrowheadBase = points[lastGoodIndex] + dir * extraFromLastGoodIndex;
+			}
+		}
+		if(dist <= arrowSize) { return Make(ref lineObject, points[0], points[points.Length-1], color, arrowSize, 0); }
+		delta = points[points.Length-1] - arrowheadBase;
+		dir = delta.normalized;
+		const float factionalArrowheadExpanseDelta = 1.0f/512;
+		arrowheadWidest = arrowheadBase + dir * (dist*factionalArrowheadExpanseDelta);
+		Vector3[] line = new Vector3[lastGoodIndex+4];
+		for(int i = 0; i<=lastGoodIndex; i++) {
+			line[i] = points[i];
+		}
+		line[lastGoodIndex+3] = points[points.Length-1];
+		line[lastGoodIndex+2] = arrowheadWidest;
+		line[lastGoodIndex+1] = arrowheadBase;
+		LineRenderer lr;
+		Keyframe[] keyframes;
+		float arrowHeadBaseStart = 1 - arrowSize/dist;
+		float arrowHeadBaseWidest = 1 - (arrowSize/dist-factionalArrowheadExpanseDelta);
+		if(lineKeyFrames == null) {
+			keyframes= new Keyframe[] {
+				new Keyframe(0, startSize), new Keyframe(arrowHeadBaseStart, endSize),
+				new Keyframe(arrowHeadBaseWidest, arrowSize), new Keyframe(1, 0)
+			};
+		} else {
+			// count how many there are after arrowHeadBaseStart.
+			float t = 0;
+			int validCount = lineKeyFrames.Length;
+			for(int i = 0; i < lineKeyFrames.Length; ++i) {
+				t = lineKeyFrames[i].time;
+				if(t > arrowHeadBaseStart) { validCount = i; break; }
+			}
+			// those are irrelivant now. they'll be replaced by the 3 extra points
+			keyframes = new Keyframe[validCount+3];
+			for(int i=0;i<validCount; ++i) { keyframes[i] = lineKeyFrames[i]; }
+			keyframes[validCount+0] = new Keyframe(arrowHeadBaseStart, endSize);
+			keyframes[validCount+1] = new Keyframe(arrowHeadBaseWidest, arrowSize);
+			keyframes[validCount+2] = new Keyframe(1, 0);
+		}
+		lr = Make(ref lineObject, line, line.Length, color, startSize, endSize);
+		lr.widthCurve = new AnimationCurve(keyframes);
+		return lr;
+	}
+	public static LineRenderer MakeArrowBothEnds(ref GameObject lineObject, Vector3[] points, int pointCount,
+		Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f, float arrowHeadSize = ARROWSIZE) {
+		LineRenderer lr = MakeArrow(ref lineObject, points, pointCount, color, startSize, endSize, arrowHeadSize, null);
+		ReverseLineInternal(ref lr);
+		Vector3[] p = new Vector3[lr.positionCount];
+		lr.GetPositions(p);
+		lr = MakeArrow(ref lineObject, p, p.Length, color, endSize, startSize, arrowHeadSize, lr.widthCurve.keys);
+		ReverseLineInternal(ref lr);
+		return lr;
+	}
+	public static LineRenderer ReverseLineInternal(ref LineRenderer lr) {
+		Vector3[] p = new Vector3[lr.positionCount];
+		lr.GetPositions(p);
+		System.Array.Reverse(p);
+		lr.SetPositions(p);
+		if(lr.widthCurve != null && lr.widthCurve.length > 1) {
+			Keyframe[] kf = new Keyframe[lr.widthCurve.keys.Length];
+			Keyframe[] okf = lr.widthCurve.keys;
+			for(int i = 0; i<kf.Length; ++i) { kf[i]=okf[i]; }
+			System.Array.Reverse(kf);
+			for(int i = 0; i<kf.Length; ++i) { kf[i].time = 1-kf[i].time; }
+			lr.widthCurve = new AnimationCurve(kf);
+		}
+		return lr;
+	}
+
+	public static LineRenderer MakeArcArrow(ref GameObject lineObj,
+		float angle, int pointCount, Vector3 arcPlaneNormal = default(Vector3), Vector3 firstPoint = default(Vector3),
+		Vector3 center = default(Vector3), Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f, float arrowHeadSize = ARROWSIZE) {
+		if(arcPlaneNormal == default(Vector3)) { arcPlaneNormal = Vector3.up; }
+		if(center == default(Vector3) && firstPoint == default(Vector3)) { firstPoint = Vector3.right; }
+		Vector3[] points = null;
+		WriteArc(ref points, pointCount, arcPlaneNormal, firstPoint, angle, center);
+		return MakeArrow(ref lineObj, points, pointCount, color, startSize, endSize, arrowHeadSize);
+	}
+
+	public static LineRenderer MakeArcArrowBothEnds(ref GameObject lineObj,
+		float angle, int pointCount, Vector3 arcPlaneNormal = default(Vector3), Vector3 firstPoint = default(Vector3),
+		Vector3 center = default(Vector3), Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f, float arrowHeadSize = ARROWSIZE) {
+		LineRenderer lr = MakeArcArrow(ref lineObj, angle, pointCount, arcPlaneNormal, firstPoint, center, color, startSize, endSize, arrowHeadSize);
+		ReverseLineInternal(ref lr);
+		Vector3[] p = new Vector3[lr.positionCount];
+		lr.GetPositions(p);
+		lr = MakeArrow(ref lineObj, p, p.Length, color, endSize, startSize, arrowHeadSize, lr.widthCurve.keys);
+		ReverseLineInternal(ref lr);
+		return lr;
+	}
+
+	public static void MakeQuaternion(ref GameObject axisObj, ref GameObject angleObj, Quaternion quaternion, 
+		Vector3 position=default(Vector3), Color color=default(Color), Quaternion orientation=default(Quaternion), 
+		int arcPoints = 24, float lineSize = 0.125f, float arrowHeadSize = ARROWSIZE, 
+		Vector3 startPoint=default(Vector3)) {
+		if (orientation == default(Quaternion)) { orientation = Quaternion.identity; }
+		float angle;
+		Vector3 axis;
+		quaternion.ToAngleAxis (out angle, out axis);
+		if (startPoint == default(Vector3)) {
+			float a = Vector3.Angle (axis, Vector3.up);
+			if (a < 45 || a > 315) { // if the quaternion axis is too vertical
+				startPoint = Vector3.forward; // start from forward
+			} else {
+				startPoint = Vector3.up; // otherwise start from top
+			}
+			startPoint = orientation * startPoint;
+			// find the closest point to the starPoint on the arc-circle
+			Vector3 forwardVector = Vector3.Cross(axis, startPoint);
+			forwardVector.Normalize ();
+			Vector3 turnedStartPoint = Vector3.Cross (forwardVector, axis);
+			turnedStartPoint.Normalize ();
+			startPoint = turnedStartPoint;
+			angle *= -1;
+		}
+		while (angle > 180) { angle -= 360; }
+		while (angle < -180) { angle += 360; }
+		Vector3 axisRotated = orientation * axis;
+		Lines.MakeArrow (ref axisObj, position - axisRotated/2, position + axisRotated/2, color, lineSize, lineSize, arrowHeadSize);
+		Lines.MakeArcArrow (ref angleObj, angle, arcPoints, axisRotated, startPoint, position, color, lineSize, lineSize, arrowHeadSize);
 	}
 }

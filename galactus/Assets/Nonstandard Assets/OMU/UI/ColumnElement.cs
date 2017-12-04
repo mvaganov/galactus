@@ -110,7 +110,7 @@ public abstract class ColumnElement : MonoBehaviour, R3.Reusable, ListUI.HasDirt
 			//Debug.Log("Set "+s+" "+inf.selectionFocusPosition+" "+inf.selectionAnchorPosition);
 			});
 		}
-		void FixedUpdate(){
+		new void FixedUpdate(){
 			base.FixedUpdate();
 			if(caret == null){
 				for(int i=0;i<transform.parent.childCount;++i) {

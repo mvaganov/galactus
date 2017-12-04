@@ -228,12 +228,12 @@ public class AI_Harvest : AI_TargetTask {
 		Vector3 targ = target.position - self.transform.forward * idealDist;
 		Lines.MakeCircle_With (LineElement (0), targ, Camera.main.transform.forward, Color.green,
 			self.GetRadius()).name="<H>";
-		Lines.Make_With (LineElement (1), 
-			target.position,
-			target.position - self.transform.forward * target.transform.lossyScale.z/2,
-//			self.transform.position + self.transform.forward * self.GetRadius (), 
-//			targ - self.transform.forward * self.GetRadius(), 
-			Color.green, self.GetProperties ().GetEatSphere ().GetRadius (), 0).name="<H.>";
+//		Lines.Make_With (LineElement (1), 
+//			target.position,
+//			target.position - self.transform.forward * target.transform.lossyScale.z/2,
+////			self.transform.position + self.transform.forward * self.GetRadius (), 
+////			targ - self.transform.forward * self.GetRadius(), 
+//			Color.green, self.GetProperties ().GetEatSphere ().GetRadius (), 0).name="<H.>";
 	}
 }
 
@@ -300,10 +300,10 @@ public class AI_Flee : AI_TargetTask {
 	public float dist, idealDist;
 	public Agent_Properties targetProps, selfProps;
 	public override void DrawLogic(ref List<GameObject> drawnElements) {
-		float r = target.transform.lossyScale.z / 2;
+//		float r = target.transform.lossyScale.z / 2;
 		Vector3 d = (target.position - self.transform.position).normalized;
-		Lines.Make_With (LineElement(0), target.transform.position - d * r, target.position - d * (idealDist - self.GetRadius()),
-			Color.yellow, r*2, 0).name="<F.t>";
+//		Lines.Make_With (LineElement(0), target.transform.position - d * r, target.position - d * (idealDist - self.GetRadius()),
+//			Color.yellow, r*2, 0).name="<F.t>";
 		Lines.MakeCircle_With (LineElement(1), target.position - d * idealDist, Camera.main.transform.forward, 
 			Color.yellow, self.GetRadius ()).name="<F.e>";
 	}
@@ -369,12 +369,12 @@ public class AI_Attack : AI_TargetTask {
 		selfProps.GetEatSphere ().maintainActivation = false; base.Exit ();
 	}
 	public override void DrawLogic(ref List<GameObject> drawnElements) {
-		float r = target.transform.lossyScale.z / 2;
+//		float r = target.transform.lossyScale.z / 2;
 		Vector3 d = (target.position - self.transform.position).normalized;
-		Lines.Make_With (LineElement(0), self.transform.position+d*self.GetRadius(), target.position-d*r, 
-			Color.red, self.transform.lossyScale.z, 0).name="<A.t>";
-		Lines.Make_With (LineElement(1), self.transform.position + d * threatRange, target.transform.position + d*r,
-			Color.red, target.transform.lossyScale.z, 0).name="<A.e>";
+//		Lines.Make_With (LineElement(0), self.transform.position+d*self.GetRadius(), target.position-d*r, 
+//			Color.red, self.transform.lossyScale.z, 0).name="<A.t>";
+//		Lines.Make_With (LineElement(1), self.transform.position + d * threatRange, target.transform.position + d*r,
+//			Color.red, target.transform.lossyScale.z, 0).name="<A.e>";
 //		Lines.MakeCircle (DrawElement(2), self.transform.position, Camera.main.transform.forward, Color.red, threatRange).name="<A.r>";
 	}
 
@@ -399,7 +399,7 @@ public class AI_Searching : AI_Task {
 	}
 	public override void DrawLogic(ref List<GameObject> drawnElements) {
 		Agent_Sensor.SensorSnapshot s = self.GetSensor().GetSnapshot ();
-		Lines.Make_With (LineElement(0), s.origin, s.origin + s.direction * s.range, Color.gray).name="<S.l>";
+//		Lines.Make_With (LineElement(0), s.origin, s.origin + s.direction * s.range, Color.gray).name="<S.l>";
 		Lines.MakeCircle_With (LineElement(1), s.origin, Camera.main.transform.forward, Color.gray).name="<S.s>";
 		Lines.MakeCircle_With (LineElement(2), s.origin + s.direction * s.range, Camera.main.transform.forward, Color.gray).name="<S.e>";
 	}
@@ -453,7 +453,7 @@ public class AI_Plan : AI_Task {
 		Agent_Sensor.SensorSnapshot s = self.GetSensor().GetSnapshot ();
 		RaycastHit[] hits = s.sensed;
 		for (int i = 0; i < hits.Length; ++i) {
-			Lines.Make_With (LineElement(i), hits [i].transform.position, self.transform.position, Color.gray, hits[i].transform.lossyScale.z, 0).name="<P.l>";
+//			Lines.Make_With (LineElement(i), hits [i].transform.position, self.transform.position, Color.gray, hits[i].transform.lossyScale.z, 0).name="<P.l>";
 		}
 		ClearLineElementsBeyond (hits.Length);
 	}
@@ -552,8 +552,8 @@ public class AI_CompositeSteering : AI_Task {
 			p [0] = self.transform.position + steerCalc[i,0] * (self.transform.lossyScale.z/2);
 			p [1] = p [0] + steerCalc [i, 0];
 			p [2] = p [1] + steerCalc [i, 1];
-			float w = GetWeightOf (steering [i]);
-			Lines.Make_With(LineElement(i), p, p.Length, steering[i].LineElement(0).GetComponent<Renderer>().material.color, w, 0).name = "<?."+steering[i].GetDescription()+">";
+//			float w = GetWeightOf (steering [i]);
+//			Lines.Make_With(LineElement(i), p, p.Length, steering[i].LineElement(0).GetComponent<Renderer>().material.color, w, 0).name = "<?."+steering[i].GetDescription()+">";
 		}
 	}
 }

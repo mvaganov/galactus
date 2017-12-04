@@ -10,9 +10,9 @@ public class VRControls : MonoBehaviour {
 		if(thisCam) thisCam.enabled = false;
 		AudioListener al = oldCamera.GetComponent<AudioListener>();
 		if(al) al.enabled = false;
-		GUILayer guiL = oldCamera.GetComponent<GUILayer>();
-		if(guiL) guiL.enabled = false;
+		//GUILayer guiL = oldCamera.GetComponent<GUILayer>();
+		//if(guiL) guiL.enabled = false;
 
-		head.gameObject.AddComponent<GUILayer>();
+		//head.gameObject.AddComponent<GUILayer>();
 	}
 }

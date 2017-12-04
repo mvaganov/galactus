@@ -360,7 +360,7 @@ public class OVRGamepadController : MonoBehaviour
 	/// <param name="frequency">
 	/// The frequency of the vibration in Hertz, if applicable.
 	/// </param>
-	public static bool GPC_SetVibration(UnityEngine.VR.VRNode node, float strength, float frequency)
+	public static bool GPC_SetVibration(UnityEngine.XR.XRNode node, float strength, float frequency)
 	{
 #if !UNITY_ANDROID || UNITY_EDITOR
 		return OVR_GamepadController_SetVibration((int)node, strength, frequency);

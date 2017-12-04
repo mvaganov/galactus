@@ -8,7 +8,7 @@ using System.Collections.Generic;
 /// <author email="mvaganov@hotmail.com">Michael Vaganov</author>
 public class GravObject : GravSource {
 	#region public API
-	[Tooltip("If false, gravity will be based on the transform.position of this object, not it's collider")]
+	[Tooltip("If true, will base gravity on this object's collider normals. Can be set to false for spheres with (0,0,0) center offset, since gravity is always at transform-center.")]
 	public bool useColliderGravity = true;
 
 	public override Vector3 CalculateGravityDirectionFrom(Vector3 point) {
@@ -433,7 +433,9 @@ public class GravObject : GravSource {
 	#region MonoBehaviour
 	void Start() {
 		myCollider = GetComponent<Collider>();
-		if(myCollider is BoxCollider) { colliderType = ColliderType.box; } else if(myCollider is SphereCollider) { colliderType = ColliderType.sphere; } else if(myCollider is MeshCollider) {
+		     if(myCollider is BoxCollider) { colliderType = ColliderType.box; }
+		else if(myCollider is SphereCollider) { colliderType = ColliderType.sphere; }
+		else if(myCollider is MeshCollider) {
 			nearestPointOnMeshCalculationObject = new NearestPointOnMeshCalculationObject(gameObject);
 			colliderType = ColliderType.mesh;
 		}
@@ -465,7 +467,7 @@ public class GravSource : MonoBehaviour {
 		if(entangleOnTrigger) { EntanglePlayer(col.GetComponent<MovingEntity>()); }
 	}
 	public void EntanglePlayer(MovingEntity p) {
-		if(p && p.gravityApplication != MovingEntity.GravityState.none) {
+		if(p && p.gravity.application != MovingEntity.GravityState.none) {
 			GravPuller gp = p.gameObject.GetComponent<GravPuller>();
 			if(!gp) { gp = p.gameObject.AddComponent<GravPuller>(); }
 			if(gp.gravitySource != this) { gp.Init(this); } else { gp.Refresh(); }
@@ -493,7 +495,7 @@ public class GravPuller : MonoBehaviour {
 		}
 	}
 	public void Refresh() {
-		if(p.gravityApplication == MovingEntity.GravityState.none) return;
+		if(p.gravity.application == MovingEntity.GravityState.none) return;
 		Vector3 nextDir = gravitySource.CalculateGravityDirectionFrom(transform.position);
 		Rigidbody rb = p.rb;
 		if(velocityFollowsGravity && nextDir != p.gravity.dir && rb != null) {

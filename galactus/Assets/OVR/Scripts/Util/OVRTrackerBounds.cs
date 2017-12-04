@@ -152,7 +152,7 @@ public class OVRTrackerBounds : MonoBehaviour
 
         // Transform point into volume space
 		OVRPose headPose;
-		headPose.position = VR.InputTracking.GetLocalPosition(VR.VRNode.Head);
+		headPose.position = UnityEngine.XR.InputTracking.GetLocalPosition(UnityEngine.XR.XRNode.Head);
 
 		Vector3 localPos = trackerMat.inverse.MultiplyPoint(headPose.position);
 

@@ -3,8 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class TestListUI : ListUI {
-	public class TC_ { public string word; public int n; public TC_(string str) { word = str; n = str.Length; } 
-	public override string ToString(){return "{"+word+":"+n+"}";}}
+
+	public class TC_ {
+		public string word; public int n;
+		public TC_(string str) { word = str; n = str.Length; } 	
+		public override string ToString(){return "{"+word+":"+n+"}";}
+	}
+
 	public class TC {
 		public string name, description; public TC(){name=RandomString(1);description=RandomString(10);}
 		public List<TC_> words = new List<TC_>();

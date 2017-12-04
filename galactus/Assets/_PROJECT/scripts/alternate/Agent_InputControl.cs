@@ -64,7 +64,7 @@ public class Agent_InputControl : MovingEntity_CameraInput {
 			if (tf) {
 				tf.enabled = false;
 			}
-			controlling.EnsureRigidBody ();
+			//controlling.EnsureRigidBody ();
 			Agent_Prediction prediction = GetComponent<Agent_Prediction> ();
 			if (prediction) {
 				List<Agent_MOB> body = new List<Agent_MOB> ();
