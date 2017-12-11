@@ -436,6 +436,12 @@ public class Lines : MonoBehaviour {
 		float angle;
 		Vector3 axis;
 		quaternion.ToAngleAxis (out angle, out axis);
+		MakeQuaternion (ref axisObj, ref angleObj, axis, angle, 
+			position, color, orientation, arcPoints, lineSize, arrowHeadSize, startPoint);
+	}
+	public static void MakeQuaternion(ref GameObject axisObj, ref GameObject angleObj, Vector3 axis, float angle, 
+		Vector3 position=default(Vector3), Color color=default(Color), Quaternion orientation=default(Quaternion), 
+		int arcPoints = 24, float lineSize = 0.125f, float arrowHeadSize = ARROWSIZE, Vector3 startPoint=default(Vector3)) {
 		if (startPoint == default(Vector3)) {
 			float a = Vector3.Angle (axis, Vector3.up);
 			if (a < 45 || a > 315) { // if the quaternion axis is too vertical

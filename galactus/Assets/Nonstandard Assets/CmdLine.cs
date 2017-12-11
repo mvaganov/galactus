@@ -10,7 +10,7 @@ using UnityEngine.UI;
 using TMPro;
 
 /// <summary>A Command Line emulation for Unity3D v5.6+. Just use 'CmdLine.Log()'
-/// Latest version at: https://pastebin.com/nphdEi1z added prompt artifact</summary>
+/// Latest version at: https://pastebin.com/nphdEi1z added colored log text when intercepting Debug</summary>
 /// <description>MIT License - TL;DR - This code is free, don't bother me about it!</description>
 /// <author email="mvaganov@hotmail.com">Michael Vaganov</author>
 public class CmdLine : MonoBehaviour {
@@ -160,6 +160,8 @@ public class CmdLine : MonoBehaviour {
 	private bool togglingVisiblityWithMultitouch = false;
 	[Tooltip ("If true, will show up and take user input immediately")]
 	public bool activeOnStart = true;
+	[Tooltip ("If true, will hide the 3D canvas representation, only show when the commandline button is pressed")]
+	public bool hideInWorldSpace = false;
 	private bool needToShowUserPrompt = true;
 	[Tooltip ("The TextMeshPro font used. If null, built-in-font should be used.")]
 	public TMP_FontAsset textMeshProFont;
@@ -197,7 +199,6 @@ public class CmdLine : MonoBehaviour {
 		}
 		public void ApplySettingsTo(Canvas c) {
 			if (screenSize == Vector2.zero) { screenSize = new Vector2 (Screen.width, Screen.height); }
-			c.renderMode = RenderMode.WorldSpace;
 			RectTransform r = c.GetComponent<RectTransform> ();
 			r.sizeDelta = screenSize;
 			c.transform.localPosition = Vector3.zero;
@@ -222,7 +223,18 @@ public class CmdLine : MonoBehaviour {
 		if (useOverlay && mainview.renderMode != RenderMode.ScreenSpaceOverlay) {
 			mainview.renderMode = RenderMode.ScreenSpaceOverlay;
 		} else if(!useOverlay) {
+			mainview.renderMode = RenderMode.WorldSpace;
 			worldSpaceSettings.ApplySettingsTo (mainview);
+		}
+		if (hideInWorldSpace) {
+			switch (mainview.renderMode) {
+			case RenderMode.WorldSpace:
+				mainview.gameObject.SetActive (false);
+				break;
+			case RenderMode.ScreenSpaceOverlay:
+				mainview.gameObject.SetActive (true);
+				break;
+			}
 		}
 	}
 	private Canvas CreateUI () {
@@ -831,7 +843,22 @@ public class CmdLine : MonoBehaviour {
 			dbgIntercepted = false;
 		}
 	}
-	private void HandleLog (string logString, string stackTrace, LogType type) { log (logString); }
+	private void HandleLog (string logString, string stackTrace, LogType type) {
+		switch (type) {
+		case LogType.Error:
+			AddText ("<#"+ColorToHexCode(Color.Lerp(colorSet.text, Color.red, 0.5f))+">"+logString+"</color>\n");
+			break;
+		case LogType.Exception:
+			AddText ("<#"+ColorToHexCode(Color.Lerp(colorSet.text, Color.magenta, 0.5f))+">"+logString+"</color>\n");
+			break;
+		case LogType.Warning:
+			AddText ("<#"+ColorToHexCode(Color.Lerp(colorSet.text, Color.yellow, 0.5f))+">"+logString+"</color>\n");
+			break;
+		default:
+			log (logString);
+			break;
+		}
+	}
 	#endregion // Debug.Log intercept
 	#region Unity Editor interaction
 	private static Mesh _editorMesh = null; // one variable to enable better UI in the editor
