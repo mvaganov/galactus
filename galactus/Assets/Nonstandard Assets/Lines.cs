@@ -71,6 +71,7 @@ public class Lines : MonoBehaviour {
 		SetColor(lr, color);
 		return lr;
 	}
+<<<<<<< HEAD:galactus/Assets/Nonstandard Assets/Lines.cs
 
 	public static Material FindShaderMaterial(string shadername){
 		Shader s = Shader.Find(shadername);
@@ -82,6 +83,8 @@ public class Lines : MonoBehaviour {
 		}
 		return new Material(s);
 	}
+=======
+>>>>>>> origin/master:galactus/Assets/_PROJECT/scripts/Lines.cs
 
 	public static void SetColor(LineRenderer lr, Color color) {
 		Material mat = Instance().lineMaterial;
@@ -313,6 +316,7 @@ public class Lines : MonoBehaviour {
 		return Make (ref lineObj, verts, verts.Length, color, linesize, linesize);
 	}
 
+<<<<<<< HEAD:galactus/Assets/Nonstandard Assets/Lines.cs
 	public const float ARROWSIZE = 3;
 	public static LineRenderer MakeArrow(ref GameObject lineObject, Vector3 start, Vector3 end,
 		Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f, float arrowHeadSize = ARROWSIZE) {
@@ -464,4 +468,64 @@ public class Lines : MonoBehaviour {
 		Lines.MakeArrow (ref axisObj, position - axisRotated/2, position + axisRotated/2, color, lineSize, lineSize, arrowHeadSize);
 		Lines.MakeArcArrow (ref angleObj, angle, arcPoints, axisRotated, startPoint, position, color, lineSize, lineSize, arrowHeadSize);
 	}
+=======
+	/// <param name="lineObject"></param>
+	/// <param name="start"></param>
+	/// <param name="end"></param>
+	/// <param name="arrowHeadSize"></param>
+	/// <param name="color"></param>
+	/// <param name="startSize"></param>
+	/// <param name="endSize"></param>
+	/// <returns></returns>
+	public static LineRenderer MakeArrow(ref GameObject lineObject, Vector3 start, Vector3 end,
+		float arrowHeadSize = 4, Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f) {
+		float arrowSize = endSize*arrowHeadSize;
+		Vector3 delta = end-start;
+		float dist = delta.magnitude;
+		bool bigEnough = dist > arrowSize;
+		LineRenderer lr;
+		if(bigEnough) {
+			Vector3 dir = delta / dist;
+			Vector3 arrowheadBase = start+dir*(dist-arrowSize);
+			float wiggle = 1-1.0f/128;
+			Vector3 arrowheadWidest = start+dir*(dist-arrowSize*wiggle);
+			Vector3[] line = new Vector3[] { start, arrowheadBase, arrowheadWidest, end };
+			Keyframe[] keyframes = new Keyframe[] {
+				new Keyframe(0, startSize), new Keyframe(1 - arrowSize/dist, startSize), new Keyframe(1 - (arrowSize*wiggle)/dist, arrowSize), new Keyframe(1, 0)
+			};
+			lr = Make(ref lineObject, line, line.Length, color, startSize, endSize);
+			lr.widthCurve = new AnimationCurve(keyframes);
+		} else {
+			lr = Make(ref lineObject, start, end, color, arrowSize, 0);
+		}
+		return lr;
+	}
+	// TODO make this happen.
+	//public static LineRenderer MakeArrow(ref GameObject lineObject, Vector3[] points, int pointCount,
+	//	float arrowHeadSize = 4, Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f) {
+	//	// find out where to put the arrowhead
+	//	int lastGoodIndex = 0;
+	//	float backtracked = 0;
+	//	float arrowheadLoc
+	//	float arrowSize = endSize*arrowHeadSize;
+	//	for(int i = points.Length-1; i>0; --i) {
+	//		float d = Vector3.Distance(points[i], points[i-1]);
+	//		backtracked += d;
+	//		if(backtracked >= arrowSize) {
+	//			lastGoodIndex = i-1;
+	//		}
+	//	}
+	//}
+
+	/// <summary>As Make, but using an assured GameObject</summary>
+	public static LineRenderer Make_With(GameObject lineObject, Vector3 start, Vector3 end,
+		Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f) {
+		return Make(ref lineObject, start, end, color, startSize, endSize);
+	}
+	public static LineRenderer Make_With(GameObject lineObject, Vector3[] points, int pointCount,
+		Color color = default(Color), float startSize = 0.125f, float endSize = 0.125f) {
+		return Make(ref lineObject, points, pointCount, color, startSize, endSize);
+	}
+
+>>>>>>> origin/master:galactus/Assets/_PROJECT/scripts/Lines.cs
 }

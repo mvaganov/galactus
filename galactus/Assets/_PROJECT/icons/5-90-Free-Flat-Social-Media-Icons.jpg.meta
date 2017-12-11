@@ -67,14 +67,16 @@ TextureImporter:
     21300120: 5-90-Free-Flat-Social-Media-Icons_60
     21300122: 5-90-Free-Flat-Social-Media-Icons_61
     21300124: 5-90-Free-Flat-Social-Media-Icons_62
-  serializedVersion: 2
+  serializedVersion: 4
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
+    sRGBTexture: 1
     linearTexture: 0
-    correctGamma: 0
     fadeOut: 0
     borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
     mipMapFadeDistanceStart: 1
     mipMapFadeDistanceEnd: 3
   bumpmap:
@@ -84,23 +86,22 @@ TextureImporter:
     normalMapFilter: 0
   isReadable: 0
   grayScaleToAlpha: 0
-  generateCubemap: 0
+  generateCubemap: 6
   cubemapConvolution: 0
-  cubemapConvolutionSteps: 7
-  cubemapConvolutionExponent: 1.5
   seamlessCubemap: 0
   textureFormat: -1
   maxTextureSize: 2048
   textureSettings:
+    serializedVersion: 2
     filterMode: -1
     aniso: 16
     mipBias: -1
-    wrapMode: 1
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
   nPOTScale: 0
   lightmap: 0
-  rGBM: 0
   compressionQuality: 50
-  allowsAlphaSplitting: 0
   spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
@@ -108,12 +109,28 @@ TextureImporter:
   spritePivot: {x: 0.5, y: 0.5}
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spritePixelsToUnits: 100
+  alphaUsage: 1
   alphaIsTransparency: 1
+  spriteTessellationDetail: -1
   textureType: 8
-  buildTargetSettings: []
+  textureShape: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  platformSettings:
+  - buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
   spriteSheet:
+    serializedVersion: 2
     sprites:
-    - name: 5-90-Free-Flat-Social-Media-Icons_0
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_0
       rect:
         serializedVersion: 2
         x: 8
@@ -123,12 +140,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_1
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_1
       rect:
         serializedVersion: 2
         x: 65
@@ -138,12 +154,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_2
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_2
       rect:
         serializedVersion: 2
         x: 122
@@ -153,12 +168,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_3
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_3
       rect:
         serializedVersion: 2
         x: 179
@@ -168,12 +182,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_4
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_4
       rect:
         serializedVersion: 2
         x: 236
@@ -183,12 +196,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_5
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_5
       rect:
         serializedVersion: 2
         x: 293
@@ -198,12 +210,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_6
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_6
       rect:
         serializedVersion: 2
         x: 350
@@ -213,12 +224,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_7
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_7
       rect:
         serializedVersion: 2
         x: 407
@@ -228,12 +238,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_8
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_8
       rect:
         serializedVersion: 2
         x: 464
@@ -243,12 +252,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_9
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_9
       rect:
         serializedVersion: 2
         x: 8
@@ -258,12 +266,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_10
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_10
       rect:
         serializedVersion: 2
         x: 65
@@ -273,12 +280,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_11
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_11
       rect:
         serializedVersion: 2
         x: 122
@@ -288,12 +294,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_12
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_12
       rect:
         serializedVersion: 2
         x: 179
@@ -303,12 +308,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_13
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_13
       rect:
         serializedVersion: 2
         x: 236
@@ -318,12 +322,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_14
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_14
       rect:
         serializedVersion: 2
         x: 293
@@ -333,12 +336,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_15
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_15
       rect:
         serializedVersion: 2
         x: 350
@@ -348,12 +350,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_16
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_16
       rect:
         serializedVersion: 2
         x: 407
@@ -363,12 +364,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_17
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_17
       rect:
         serializedVersion: 2
         x: 464
@@ -378,12 +378,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_18
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_18
       rect:
         serializedVersion: 2
         x: 8
@@ -393,12 +392,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_19
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_19
       rect:
         serializedVersion: 2
         x: 65
@@ -408,12 +406,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_20
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_20
       rect:
         serializedVersion: 2
         x: 122
@@ -423,12 +420,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_21
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_21
       rect:
         serializedVersion: 2
         x: 179
@@ -438,12 +434,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_22
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_22
       rect:
         serializedVersion: 2
         x: 236
@@ -453,12 +448,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_23
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_23
       rect:
         serializedVersion: 2
         x: 293
@@ -468,12 +462,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_24
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_24
       rect:
         serializedVersion: 2
         x: 350
@@ -483,12 +476,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_25
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_25
       rect:
         serializedVersion: 2
         x: 407
@@ -498,12 +490,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_26
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_26
       rect:
         serializedVersion: 2
         x: 464
@@ -513,12 +504,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_27
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_27
       rect:
         serializedVersion: 2
         x: 8
@@ -528,12 +518,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_28
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_28
       rect:
         serializedVersion: 2
         x: 65
@@ -543,12 +532,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_29
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_29
       rect:
         serializedVersion: 2
         x: 122
@@ -558,12 +546,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_30
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_30
       rect:
         serializedVersion: 2
         x: 179
@@ -573,12 +560,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_31
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_31
       rect:
         serializedVersion: 2
         x: 236
@@ -588,12 +574,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_32
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_32
       rect:
         serializedVersion: 2
         x: 293
@@ -603,12 +588,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_33
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_33
       rect:
         serializedVersion: 2
         x: 350
@@ -618,12 +602,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_34
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_34
       rect:
         serializedVersion: 2
         x: 407
@@ -633,12 +616,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_35
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_35
       rect:
         serializedVersion: 2
         x: 464
@@ -648,12 +630,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_36
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_36
       rect:
         serializedVersion: 2
         x: 8
@@ -663,12 +644,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_37
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_37
       rect:
         serializedVersion: 2
         x: 65
@@ -678,12 +658,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_38
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_38
       rect:
         serializedVersion: 2
         x: 122
@@ -693,12 +672,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_39
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_39
       rect:
         serializedVersion: 2
         x: 179
@@ -708,12 +686,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_40
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_40
       rect:
         serializedVersion: 2
         x: 236
@@ -723,12 +700,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_41
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_41
       rect:
         serializedVersion: 2
         x: 293
@@ -738,12 +714,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_42
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_42
       rect:
         serializedVersion: 2
         x: 350
@@ -753,12 +728,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_43
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_43
       rect:
         serializedVersion: 2
         x: 407
@@ -768,12 +742,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_44
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_44
       rect:
         serializedVersion: 2
         x: 464
@@ -783,12 +756,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_45
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_45
       rect:
         serializedVersion: 2
         x: 8
@@ -798,12 +770,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_46
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_46
       rect:
         serializedVersion: 2
         x: 65
@@ -813,12 +784,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_47
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_47
       rect:
         serializedVersion: 2
         x: 122
@@ -828,12 +798,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_48
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_48
       rect:
         serializedVersion: 2
         x: 179
@@ -843,12 +812,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_49
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_49
       rect:
         serializedVersion: 2
         x: 236
@@ -858,12 +826,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_50
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_50
       rect:
         serializedVersion: 2
         x: 293
@@ -873,12 +840,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_51
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_51
       rect:
         serializedVersion: 2
         x: 350
@@ -888,12 +854,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_52
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_52
       rect:
         serializedVersion: 2
         x: 407
@@ -903,12 +868,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_53
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_53
       rect:
         serializedVersion: 2
         x: 464
@@ -918,12 +882,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_54
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_54
       rect:
         serializedVersion: 2
         x: 8
@@ -933,12 +896,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_55
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_55
       rect:
         serializedVersion: 2
         x: 65
@@ -948,12 +910,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_56
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_56
       rect:
         serializedVersion: 2
         x: 122
@@ -963,12 +924,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_57
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_57
       rect:
         serializedVersion: 2
         x: 179
@@ -978,12 +938,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_58
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_58
       rect:
         serializedVersion: 2
         x: 236
@@ -993,12 +952,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_59
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_59
       rect:
         serializedVersion: 2
         x: 293
@@ -1008,12 +966,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_60
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_60
       rect:
         serializedVersion: 2
         x: 350
@@ -1023,12 +980,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_61
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_61
       rect:
         serializedVersion: 2
         x: 407
@@ -1038,12 +994,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
-    - name: 5-90-Free-Flat-Social-Media-Icons_62
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+    - serializedVersion: 2
+      name: 5-90-Free-Flat-Social-Media-Icons_62
       rect:
         serializedVersion: 2
         x: 464
@@ -1053,12 +1008,11 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
-      outline:
-      - - {x: -28.5, y: 28.5}
-        - {x: -28.5, y: -28.5}
-        - {x: 28.5, y: -28.5}
-        - {x: 28.5, y: 28.5}
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
     outline: []
+    physicsShape: []
   spritePackingTag: 
   userData: 
   assetBundleName: 
