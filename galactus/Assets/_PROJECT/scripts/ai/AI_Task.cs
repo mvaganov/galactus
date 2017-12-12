@@ -226,15 +226,9 @@ public class AI_Harvest : AI_TargetTask {
 	public float dist, idealDist;
 	public Agent_Properties props, selfProps;
 	public override void DrawLogic(ref List<GameObject> drawnElements) {
-<<<<<<< HEAD
-		Vector3 targ = target.position - self.transform.forward * idealDist;
-		Lines.MakeCircle_With (LineElement (0), targ, Camera.main.transform.forward, Color.green,
-			self.GetRadius()).name="<H>";
-=======
 //		Vector3 targ = target.position - self.transform.forward * idealDist;
 //		Lines.MakeCircle_With (LineElement (0), targ, Camera.main.transform.forward, Color.green,
 //			self.GetRadius()).name="<H>";
->>>>>>> origin/master
 //		Lines.Make_With (LineElement (1), 
 //			target.position,
 //			target.position - self.transform.forward * target.transform.lossyScale.z/2,
@@ -307,21 +301,12 @@ public class AI_Flee : AI_TargetTask {
 	public float dist, idealDist;
 	public Agent_Properties targetProps, selfProps;
 	public override void DrawLogic(ref List<GameObject> drawnElements) {
-<<<<<<< HEAD
-//		float r = target.transform.lossyScale.z / 2;
-		Vector3 d = (target.position - self.transform.position).normalized;
-//		Lines.Make_With (LineElement(0), target.transform.position - d * r, target.position - d * (idealDist - self.GetRadius()),
-//			Color.yellow, r*2, 0).name="<F.t>";
-		Lines.MakeCircle_With (LineElement(1), target.position - d * idealDist, Camera.main.transform.forward, 
-			Color.yellow, self.GetRadius ()).name="<F.e>";
-=======
 		//float r = target.transform.lossyScale.z / 2;
 		//Vector3 d = (target.position - self.transform.position).normalized;
 		//Lines.Make_With (LineElement(0), target.transform.position - d * r, target.position - d * (idealDist - self.GetRadius()),
 		//	Color.yellow, r*2, 0).name="<F.t>";
 		//Lines.MakeCircle_With (LineElement(1), target.position - d * idealDist, Camera.main.transform.forward, 
 		//	Color.yellow, self.GetRadius ()).name="<F.e>";
->>>>>>> origin/master
 	}
 }
 
@@ -386,20 +371,12 @@ public class AI_Attack : AI_TargetTask {
 	}
 	public override void DrawLogic(ref List<GameObject> drawnElements) {
 //		float r = target.transform.lossyScale.z / 2;
-<<<<<<< HEAD
-		Vector3 d = (target.position - self.transform.position).normalized;
-=======
 //		Vector3 d = (target.position - self.transform.position).normalized;
->>>>>>> origin/master
 //		Lines.Make_With (LineElement(0), self.transform.position+d*self.GetRadius(), target.position-d*r, 
 //			Color.red, self.transform.lossyScale.z, 0).name="<A.t>";
 //		Lines.Make_With (LineElement(1), self.transform.position + d * threatRange, target.transform.position + d*r,
 //			Color.red, target.transform.lossyScale.z, 0).name="<A.e>";
-<<<<<<< HEAD
-//		Lines.MakeCircle (DrawElement(2), self.transform.position, Camera.main.transform.forward, Color.red, threatRange).name="<A.r>";
-=======
 ////		Lines.MakeCircle (DrawElement(2), self.transform.position, Camera.main.transform.forward, Color.red, threatRange).name="<A.r>";
->>>>>>> origin/master
 	}
 
 	public float dist, threatRange, winability;
@@ -422,17 +399,10 @@ public class AI_Searching : AI_Task {
 		}
 	}
 	public override void DrawLogic(ref List<GameObject> drawnElements) {
-<<<<<<< HEAD
-		Agent_Sensor.SensorSnapshot s = self.GetSensor().GetSnapshot ();
-//		Lines.Make_With (LineElement(0), s.origin, s.origin + s.direction * s.range, Color.gray).name="<S.l>";
-		Lines.MakeCircle_With (LineElement(1), s.origin, Camera.main.transform.forward, Color.gray).name="<S.s>";
-		Lines.MakeCircle_With (LineElement(2), s.origin + s.direction * s.range, Camera.main.transform.forward, Color.gray).name="<S.e>";
-=======
 		//Agent_Sensor.SensorSnapshot s = self.GetSensor().GetSnapshot ();
 		//Lines.Make_With (LineElement(0), s.origin, s.origin + s.direction * s.range, Color.gray).name="<S.l>";
 		//Lines.MakeCircle_With (LineElement(1), s.origin, Camera.main.transform.forward, Color.gray).name="<S.s>";
 		//Lines.MakeCircle_With (LineElement(2), s.origin + s.direction * s.range, Camera.main.transform.forward, Color.gray).name="<S.e>";
->>>>>>> origin/master
 	}
 }
 
@@ -481,21 +451,12 @@ public class AI_Plan : AI_Task {
 		return fittest;
 	}
 	public override void DrawLogic(ref List<GameObject> drawnElements) {
-<<<<<<< HEAD
-		Agent_Sensor.SensorSnapshot s = self.GetSensor().GetSnapshot ();
-		RaycastHit[] hits = s.sensed;
-		for (int i = 0; i < hits.Length; ++i) {
-//			Lines.Make_With (LineElement(i), hits [i].transform.position, self.transform.position, Color.gray, hits[i].transform.lossyScale.z, 0).name="<P.l>";
-		}
-		ClearLineElementsBeyond (hits.Length);
-=======
 		//Agent_Sensor.SensorSnapshot s = self.GetSensor().GetSnapshot ();
 		//RaycastHit[] hits = s.sensed;
 		//for (int i = 0; i < hits.Length; ++i) {
 		//	Lines.Make_With (LineElement(i), hits [i].transform.position, self.transform.position, Color.gray, hits[i].transform.lossyScale.z, 0).name="<P.l>";
 		//}
 		//ClearLineElementsBeyond (hits.Length);
->>>>>>> origin/master
 	}
 }
 
@@ -583,20 +544,6 @@ public class AI_CompositeSteering : AI_Task {
 
 	// TODO draw line and arrow heads pointing out of the target move and look, the thickness indicates priority.
 	public override void DrawLogic(ref List<GameObject> drawnElements) {
-<<<<<<< HEAD
-		for (int i = 0; i < steering.Count; ++i) {
-			steering [i].Draw ();
-		}
-		Vector3[] p = new Vector3[3];
-		for (int i = 0; i < steerCalc.GetLength(0) && i < steering.Count; ++i) {
-			// TODO draw an arrow, with a width based on the weight.
-			p [0] = self.transform.position + steerCalc[i,0] * (self.transform.lossyScale.z/2);
-			p [1] = p [0] + steerCalc [i, 0];
-			p [2] = p [1] + steerCalc [i, 1];
-//			float w = GetWeightOf (steering [i]);
-//			Lines.Make_With(LineElement(i), p, p.Length, steering[i].LineElement(0).GetComponent<Renderer>().material.color, w, 0).name = "<?."+steering[i].GetDescription()+">";
-		}
-=======
 		//for (int i = 0; i < steering.Count; ++i) {
 		//	steering [i].Draw ();
 		//}
@@ -609,7 +556,6 @@ public class AI_CompositeSteering : AI_Task {
 		//	float w = GetWeightOf (steering [i]);
 		//	Lines.Make_With(LineElement(i), p, p.Length, steering[i].LineElement(0).GetComponent<Renderer>().material.color, w, 0).name = "<?."+steering[i].GetDescription()+">";
 		//}
->>>>>>> origin/master
 	}
 }
 

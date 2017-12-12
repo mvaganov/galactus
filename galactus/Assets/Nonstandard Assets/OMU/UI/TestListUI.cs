@@ -33,7 +33,7 @@ public class TestListUI : ListUI {
 		//Vector3 p1 = new Vector3(1, 1, 1), p2 = new Vector3(3f, 3f, 3f), c = (p1+p2)/2;
 		//Lines.MakeArrow(ref arrow, p1, p2);
 		LineRenderer axis = Lines.MakeArrow(ref arrow, -Vector3.up*1.5f, Vector3.up*1.5f);
-		LineRenderer arcarrow = Lines.MakeArcArrow(ref arc, 270, 64, 4);
+		LineRenderer arcarrow = Lines.MakeArcArrow(ref arc, 270, 64);
 		arcarrow.useWorldSpace = false;
 		axis.useWorldSpace = false;
 		arcarrow.transform.SetParent(axis.transform);
