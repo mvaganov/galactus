@@ -26,7 +26,7 @@ namespace NS {
 			onMouseEnter, onMouseOver, onMouseExit,
 			onMouseDown, onMouseDrag, onMouseUp, onMouseUpAsButton,
 			onBecameInvisible, onBecameVisible,
-
+			// TODO add: VREnter (can be hands or head), VRExit, VRPress (can be any hand control button), VRRelease
 		}
 		[Tooltip("What triggers the object above")]
 		public TKind kind = TKind.onTriggerEnter;

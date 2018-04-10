@@ -2,9 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// NonStandard assets
+// author: mvaganov@hotmail.com
+// license: Copyfree, public domain. This is free code! Great artists, steal this code!
+// latest version at: https://pastebin.com/raw/h61nAC3E
+// requires Trigger at: https://pastebin.com/raw/tMNcQbTi
 namespace NS {
-	public class Timer : Time {
+	/* // example code:
+	NS.Timer.setTimeout (() => {
+		Debug.Log("This printed 3 seconds after setTimeout was called!");
+	}, 3000);
+	*/
+	public class Timer : Chrono {
 		[Tooltip("When to trigger")]
 		public float seconds = 1;
 		[Tooltip("Transform to teleport to\nSceneAsset to load a new scene\nAudioClip to play audio\nGameObject to SetActivate(true)")]
@@ -26,13 +34,15 @@ namespace NS {
 			if(whatToTrigger != null) { DoTimer(); }
 		}
 	}
-	
-	public class Time : MonoBehaviour {
+
+	public class Chrono : MonoBehaviour {
 		[System.Serializable]
 		public class ToDo {
 			public string description;
+			/// <summary>Unix Epoch Time Milliseconds</summary>
 			public long when;
 			public object what;
+			/// <summary>whether or not to Do or UNdo</summary>
 			public bool activate = true;
 			/// <summary>what could be a delegate, or an executable object, as executed by a Trigger</summary>
 			public ToDo(long when, object what, string description = null) {
@@ -50,18 +60,18 @@ namespace NS {
 		/// <summary>using a List, which is contiguous memory, because it's faster than a liked list MOST of time, because of cache misses, and reasonable data loads</summary>
 		public List<ToDo> queue = new List<ToDo>();
 		/// <summary>The singleton</summary>
-		private static NS.Time s_instance = null;
-		public static Time Instance() {
+		private static NS.Chrono s_instance = null;
+		public static Chrono Instance() {
 			if (s_instance == null) {
-				Object[] objs = FindObjectsOfType(typeof(NS.Time));  // find the instance
+				Object[] objs = FindObjectsOfType(typeof(NS.Chrono));  // find the instance
 				for (int i = 0; i < objs.Length; ++i) {
-					if (objs[i].GetType () == typeof(NS.Time)) {
-						s_instance = objs [i] as NS.Time; break;
+					if (objs[i].GetType () == typeof(NS.Chrono)) {
+						s_instance = objs [i] as NS.Chrono; break;
 					}
 				}
 				if(s_instance == null) { // if it doesn't exist
-					GameObject g = new GameObject("<" + typeof(NS.Time).Name + ">");
-					s_instance = g.AddComponent<NS.Time>(); // create one
+					GameObject g = new GameObject("<" + typeof(NS.Chrono).Name + ">");
+					s_instance = g.AddComponent<NS.Chrono>(); // create one
 				}
 			}
 			return s_instance;
@@ -77,9 +87,9 @@ namespace NS {
 
 		public static long now() { return Instance ().Now (); }
 
-		public void SynchToRealtime() { alternativeTime = 0; }
+		public void SyncToRealtime() { alternativeTime = 0; }
 
-		private int BestIndexFor(long soon){
+		private int BestIndexFor(long soon) {
 			int index = 0;
 			for (index = 0; index < queue.Count; ++index) {
 				if (queue [index].when > soon) break;
@@ -139,10 +149,26 @@ namespace NS {
 				leftOverTime = deltaTimeMs - deltaTimeMsLong;
 				now = alternativeTime;
 			}
-			while (queue.Count > 0 && queue [0].when <= now) {
-				ToDo todo = queue [0];
-				queue.RemoveAt (0);
-				NS.Trigger.DoActivateTrigger(gameObject, todo.what, gameObject, todo.activate);
+//			while (queue.Count > 0 && queue [0].when <= now) {
+//				ToDo todo = queue [0];
+//				queue.RemoveAt (0);
+//				NS.Trigger.DoActivateTrigger(gameObject, todo.what, gameObject, todo.activate);
+//			}
+			if (queue.Count > 0 && queue [0].when <= now) {
+				// the things to do in the toDoRightNow might add to the queue, so to prevent infinite looping...
+				// separate out the elements to do right now
+				List<ToDo> toDoRightNow = new List<ToDo> ();
+				for (int i = 0; i < queue.Count; ++i) {
+					if (queue [i].when > now) { break; }
+					toDoRightNow.Add (queue [i]);
+				}
+				queue.RemoveRange (0, toDoRightNow.Count);
+				// do what is scheduled to do right now
+				for (int i = 0; i < toDoRightNow.Count; ++i) {
+					ToDo todo = toDoRightNow [i];
+					// if todo.what adds to the queue, it won't get executed this cycle
+					NS.Trigger.DoActivateTrigger(gameObject, todo.what, gameObject, todo.activate);
+				}
 			}
 		}
 	}

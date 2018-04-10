@@ -10,3 +10,30 @@
 break up players into smaller players
 shoot pieces of mass
 movement/acceleration slows down as mass increases
+
+
+agents have color preferences
+	r/g/b/c/m/y
+	different colors are needed for different upgrades
+		(R) attack power: 
+			(R+Y) attack cooldown
+			(R+G) attack size/range
+			(R+C) eat power (how well energy is stolen)
+			(R+B) penetration/+bonus defense
+			(R+M) velocity attack transfer
+		(Y) agility: acceleration into maximum speed
+			(Y+G) hp regen
+			(Y+C) energy regen
+			(Y+B) Defense regen
+			(Y+M) turn speed
+		(G) size: determines how much you can hold, slows you down, gives armor bonus, gives strength bonus
+			(G+C) energy amount
+			(G+B) defense amount
+			(G+M) stamina amount
+		(C) energy power: used as "mana" style resource
+			(C+B) 
+			(C+M) stamina regen
+		(B) defense: 
+			(B+M) slippy: for going fast through fogs
+		(M) speed: maximum speed
+eat energy

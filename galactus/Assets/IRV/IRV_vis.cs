@@ -1,79 +1,88 @@
-﻿//using System.Collections;
-//using System.Collections.Generic;
-//using UnityEngine;
-//
-//public class IRV_vis : MonoBehaviour {
-//
-//	private static string IRV_EX;
-//	public static void IRV_deserializeVisualizationBlocData(object serialized, float x, float y, float width, float height, Transform graphicOutput = null) {
-//		IRV.SerializedResults deserialized;
-//		if(serialized is string) {
-//			// TODO javascript deserialization...
-//			//eval("deserialized ="+serialized); // TODO safer javascript evaluation?
-//		} else {
-//			deserialized = serialized as IRV.SerializedResults; // TODO typecast to the results object?
-//		}
-//		IRV_EX = deserialized.candidates[0];
-//		deserialized.colorMap = new Dictionary<string, Color>(); // TODO why is the colormap cleared here?
-//		for(var i=0;i<deserialized.candidates.Count;++i) {
-//			deserialized.colorMap[deserialized.candidates[i]] = deserialized.colors[i];
-//		}
-//		IRV_convertVisualizationBlocIds(deserialized.data, deserialized.candidates);
-//		if(height < 0) height = deserialized.data.Length*30; // FIXME this should never happen...
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class IRV_vis : MonoBehaviour {
+
+	private static string IRV_EX = "?";
+	public static void IRV_deserializeVisualizationBlocData(object serialized, float x, float y, float width, float height, Transform graphicOutput = null) {
+		IRV.SerializedResults deserialized = null;
+		if(serialized is string) {
+			Debug.LogError ("missing string de-serialization. use objects please!");
+			// TODO javascript deserialization...
+			//eval("deserialized ="+serialized); // TODO safer javascript evaluation?
+		} else {
+			deserialized = serialized as IRV.SerializedResults; // TODO typecast to the results object?
+		}
+		IRV_EX = deserialized.candidates[0];
+		deserialized.colorMap = new Dictionary<string, Color>(); // TODO why is the colormap cleared here?
+		for(var i=0;i<deserialized.candidates.Count;++i) {
+			deserialized.colorMap[deserialized.candidates[i]] = deserialized.colors[i];
+		}
+
+		IRV_convertVisualizationBlocIds(deserialized.data, deserialized.candidates);
+		if(height < 0) height = deserialized.data.Count*30; // FIXME this should never happen...
+		Debug.Log("Time to create visualizations!");
 //		IRV_createVisualizationView(deserialized.data, deserialized.colorMap, deserialized.numVotes, 
 //			0, 0, width, height, graphicOutput);
-//	}
-//
-//	/**
-// * client-side visualization
-// * filter the visualization bloc object data. allows size reduction
-// * @param allVisBlocsStates
-// * @param conversionTable if not null, used to replace ids with an alternate value
-// * @param out_conversionMade if not null, counts how many times any id was replaced
-// */
-//	public static void IRV_convertVisualizationBlocIds(List<List<IRV.VoteBloc>> allVisBlocsStates, 
-//		Dictionary<string,int> conversionTable, Dictionary<string,int> out_conversionsMade = null) {
-//		for(int s=0;s<allVisBlocsStates.Count;++s) {
-//			List<IRV.VoteBloc> state = allVisBlocsStates[s];
-//			for(int b=0;b<state.Count;++b){
-//				IRV.VoteBloc bloc = state[b];
-//				if(out_conversionsMade != null) {out_conversionsMade[bloc.C] = (out_conversionsMade[bloc.C])?(out_conversionsMade[bloc.C]+1):1;}
-//				if(conversionTable != null) {bloc.C = conversionTable[bloc.C];}
-//				List<IRV.VoteBloc.NextBloc> nextList = bloc.n;
-//				if(nextList != null) {
-//					for(var n=0;n<nextList.Count;++n) {
-//						IRV.VoteBloc.NextBloc nextEntry = nextList[n];
-//						if(out_conversionsMade) {out_conversionsMade[nextEntry.D] = (out_conversionsMade[nextEntry.D])?(out_conversionsMade[nextEntry.D]+1):1;}
-//						if(conversionTable) {nextEntry.D = conversionTable[nextEntry.D];}
-//					}
-//				}
-//			}
-//		}
-//	}
-//
-//	public class VisualComponents
-//	{
-//		public Dictionary<string, GameObject> labels = new Dictionary<string, GameObject>();
-//		public List<Dictionary<string,GameObject> > blocs = new List<Dictionary<string,GameObject> >();
-//		public List<Dictionary<string,GameObject> > transitions = new List<Dictionary<string,GameObject> >();
-//	}
-//
-//	public static GameObject MakeRectangle(float x, float y, float w, float h, Color c) {
-//		// TODO create a rectangle mesh in a new game object, and return it.
-//		GameObject go = new GameObject("rect("+x+","+y+","+w+","+h+")");
-//		return go;
-//	}
-//
-//	public static GameObject MakeLabel(string text, float x, float y, string align, Color c) {
-//		GameObject go = new GameObject ("label("+text+","+x+","+y+","+align+")");
-//	}
-//
+	}
+
+	/**
+	 * client-side visualization
+	 * filter the visualization bloc object data. allows size reduction
+	 * @param allVisBlocsStates
+	 * @param conversionTable if not null, used to replace ids with an alternate value
+	 * @param out_conversionMade if not null, counts how many times any id was replaced
+	 */
+	public static void IRV_convertVisualizationBlocIds(List<List<IRV.VoteBloc>> allVisBlocsStates, 
+		List<string> conversionTable, Dictionary<string,int> out_conversionsMade = null) {
+		for(int s=0;s<allVisBlocsStates.Count;++s) {
+			List<IRV.VoteBloc> state = allVisBlocsStates[s];
+			for(int b=0;b<state.Count;++b){
+				IRV.VoteBloc bloc = state[b];
+				if(out_conversionsMade != null) {
+					out_conversionsMade[bloc.C] = (out_conversionsMade.ContainsKey(bloc.C))?(out_conversionsMade[bloc.C]+1):1;
+				}
+				if(conversionTable != null) {bloc.C = conversionTable[int.Parse(bloc.C)];}
+				List<IRV.VoteBloc.NextBloc> nextList = bloc.n;
+				if(nextList != null) {
+					for(var n=0;n<nextList.Count;++n) {
+						IRV.VoteBloc.NextBloc nextEntry = nextList[n];
+						if(out_conversionsMade != null) {
+							out_conversionsMade[nextEntry.D] = (out_conversionsMade.ContainsKey(nextEntry.D))
+								?(out_conversionsMade[nextEntry.D]+1):1;
+						}
+						if(conversionTable != null) {nextEntry.D = conversionTable[int.Parse(nextEntry.D)];}
+					}
+				}
+			}
+		}
+	}
+
+	public class VisualComponents
+	{
+		public Dictionary<string, GameObject> labels = new Dictionary<string, GameObject>();
+		public List<Dictionary<string,GameObject> > blocs = new List<Dictionary<string,GameObject> >();
+		public List<Dictionary<string,GameObject> > transitions = new List<Dictionary<string,GameObject> >();
+	}
+
+	public static GameObject MakeRectangle(float x, float y, float w, float h, Color c) {
+		// TODO create a rectangle mesh in a new game object, and return it.
+		GameObject go = new GameObject("rect("+x+","+y+","+w+","+h+")");
+		return go;
+	}
+
+	public static GameObject MakeLabel(string text, float x, float y, string align, Color c) {
+		GameObject go = new GameObject ("label("+text+","+x+","+y+","+align+")");
+		return go;
+	}
+
 //	public static void IRV_createVisualizationView(
 //		List<List<IRV.VoteBloc>> visBlocs,
 //		Dictionary<string, Color> colorMap, 
 //		int countBallots,
 //		float x, float y, float width, float height,
-//		Transform destinationForGraphic, VisualComponents out_components) {
+//		Transform destinationForGraphic, VisualComponents out_components = null) {
 //		//if(!destinationForGraphic) destinationForGraphic = document.body;
 //		//if(typeof destinationForGraphic === 'string') destinationForGraphic = document.getElementById(destinationForGraphic);
 //		//if(!destinationForGraphic) throw "valid destination object required";
@@ -173,14 +182,14 @@
 //		}
 //		//two.update();
 //	}
-//
-//	// Use this for initialization
-//	void Start () {
-//		
-//	}
-//	
-//	// Update is called once per frame
-//	void Update () {
-//		
-//	}
-//}
+
+	// Use this for initialization
+	void Start () {
+		
+	}
+	
+	// Update is called once per frame
+	void Update () {
+		
+	}
+}

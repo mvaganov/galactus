@@ -27,13 +27,13 @@ public class TestListUI : ListUI {
 		// table.columnRules = ColumnRule.GenerateFor(typeof(TC));
 		Set(thingies);
 		GameObject sphere = null, tac = null, arrow = null, arc=null;
-		Lines.MakeSpiralSphere(ref sphere);
-		Lines.MakeThumbtack(ref tac);
+		NS.Lines.MakeSpiralSphere(ref sphere);
+		NS.Lines.MakeThumbtack(ref tac);
 
 		//Vector3 p1 = new Vector3(1, 1, 1), p2 = new Vector3(3f, 3f, 3f), c = (p1+p2)/2;
 		//Lines.MakeArrow(ref arrow, p1, p2);
-		LineRenderer axis = Lines.MakeArrow(ref arrow, -Vector3.up*1.5f, Vector3.up*1.5f);
-		LineRenderer arcarrow = Lines.MakeArcArrow(ref arc, 270, 64);
+		LineRenderer axis = NS.Lines.MakeArrow(ref arrow, -Vector3.up*1.5f, Vector3.up*1.5f);
+		LineRenderer arcarrow = NS.Lines.MakeArcArrow(ref arc, 270, 64);
 		arcarrow.useWorldSpace = false;
 		axis.useWorldSpace = false;
 		arcarrow.transform.SetParent(axis.transform);

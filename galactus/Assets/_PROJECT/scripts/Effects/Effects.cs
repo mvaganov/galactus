@@ -55,7 +55,7 @@ public class Effects : MonoBehaviour {
 	public GameObjectPool GetLinePool() {
 		if (lineEffects == null) {
 			GameObject newLine = null;
-			Lines.Make (ref newLine, Vector3.zero, Vector3.zero);
+			NS.Lines.Make (ref newLine, Vector3.zero, Vector3.zero);
 			lineEffects = new GameObjectPool (newLine);
 		} return lineEffects;
 	}
@@ -99,11 +99,11 @@ public class Effects : MonoBehaviour {
 	public static GameObject Line(ref GameObject obj, Vector3 start = default(Vector3), Vector3 end = default(Vector3), Color color = default(Color), float startWidth = 0.125f, float endWidth = 0.125f) {
 		Effects e = Get ();
 		if (obj == null) { obj = e.GetLinePool ().Alloc (); }
-		Lines.Make(ref obj, start, end, color, startWidth, endWidth);
+		NS.Lines.Make(ref obj, start, end, color, startWidth, endWidth);
 		return obj;
 	}
 
-	void Start() { Lines.Instance ().transform.SetParent (transform); }
+	void Start() { NS.Lines.Instance ().transform.SetParent (transform); }
 
 	public Effect Get(string name) {
 		Effect e = null;
