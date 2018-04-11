@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class IRV_vis : MonoBehaviour {
 
-	private static string IRV_EX = "?";
 	public static void IRV_deserializeVisualizationBlocData(object serialized, float x, float y, float width, float height, Transform graphicOutput = null) {
 		IRV.SerializedResults deserialized = null;
 		if(serialized is string) {
@@ -14,8 +13,8 @@ public class IRV_vis : MonoBehaviour {
 		} else {
 			deserialized = serialized as IRV.SerializedResults; // TODO typecast to the results object?
 		}
-		IRV_EX = deserialized.candidates[0];
-		deserialized.colorMap = new Dictionary<string, Color>(); // TODO why is the colormap cleared here?
+		IRV.IRV_EX = deserialized.candidates[0];
+		deserialized.colorMap = new Dictionary<IRV.Candidate, Color>(); // TODO why is the colormap cleared here?
 		for(var i=0;i<deserialized.candidates.Count;++i) {
 			deserialized.colorMap[deserialized.candidates[i]] = deserialized.colors[i];
 		}
@@ -35,7 +34,7 @@ public class IRV_vis : MonoBehaviour {
 	 * @param out_conversionMade if not null, counts how many times any id was replaced
 	 */
 	public static void IRV_convertVisualizationBlocIds(List<List<IRV.VoteBloc>> allVisBlocsStates, 
-		List<string> conversionTable, Dictionary<string,int> out_conversionsMade = null) {
+		List<IRV.Candidate> conversionTable, Dictionary<IRV.Candidate,int> out_conversionsMade = null) {
 		for(int s=0;s<allVisBlocsStates.Count;++s) {
 			List<IRV.VoteBloc> state = allVisBlocsStates[s];
 			for(int b=0;b<state.Count;++b){
@@ -43,7 +42,7 @@ public class IRV_vis : MonoBehaviour {
 				if(out_conversionsMade != null) {
 					out_conversionsMade[bloc.C] = (out_conversionsMade.ContainsKey(bloc.C))?(out_conversionsMade[bloc.C]+1):1;
 				}
-				if(conversionTable != null) {bloc.C = conversionTable[int.Parse(bloc.C)];}
+//				if(conversionTable != null) {bloc.C = conversionTable[int.Parse(bloc.C)];}
 				List<IRV.VoteBloc.NextBloc> nextList = bloc.n;
 				if(nextList != null) {
 					for(var n=0;n<nextList.Count;++n) {
@@ -52,7 +51,7 @@ public class IRV_vis : MonoBehaviour {
 							out_conversionsMade[nextEntry.D] = (out_conversionsMade.ContainsKey(nextEntry.D))
 								?(out_conversionsMade[nextEntry.D]+1):1;
 						}
-						if(conversionTable != null) {nextEntry.D = conversionTable[int.Parse(nextEntry.D)];}
+//						if(conversionTable != null) {nextEntry.D = conversionTable[int.Parse(nextEntry.D)];}
 					}
 				}
 			}
@@ -61,9 +60,9 @@ public class IRV_vis : MonoBehaviour {
 
 	public class VisualComponents
 	{
-		public Dictionary<string, GameObject> labels = new Dictionary<string, GameObject>();
-		public List<Dictionary<string,GameObject> > blocs = new List<Dictionary<string,GameObject> >();
-		public List<Dictionary<string,GameObject> > transitions = new List<Dictionary<string,GameObject> >();
+		public Dictionary<IRV.Candidate, GameObject> labels = new Dictionary<IRV.Candidate, GameObject>();
+		public List<Dictionary<IRV.Candidate,GameObject> > blocs = new List<Dictionary<IRV.Candidate,GameObject> >();
+		public List<Dictionary<IRV.Candidate,GameObject> > transitions = new List<Dictionary<IRV.Candidate,GameObject> >();
 	}
 
 	public static GameObject MakeRectangle(float x, float y, float w, float h, Color c) {
@@ -79,8 +78,8 @@ public class IRV_vis : MonoBehaviour {
 
 	public static void IRV_createVisualizationView(
 		List<List<IRV.VoteBloc>> visBlocs,
-		Dictionary<string, Color> colorMap, 
-		List<string> idToName,
+		Dictionary<IRV.Candidate, Color> colorMap, 
+		List<IRV.Candidate> idToName,
 		int countBallots,
 		float x, float y, float width, float height,
 		Transform destinationForGraphic, VisualComponents out_components = null) {
@@ -101,13 +100,13 @@ public class IRV_vis : MonoBehaviour {
 		if(cursorWidth < 4) { hMargin = 0; hM = 0; }
 		for(var state=0;state<visBlocs.Count;++state) {
 			if(out_components != null) {
-				out_components.blocs.Add(new Dictionary<string, GameObject>());
-				out_components.transitions.Add(new Dictionary<string, GameObject>());
+				out_components.blocs.Add(new Dictionary<IRV.Candidate, GameObject>());
+				out_components.transitions.Add(new Dictionary<IRV.Candidate, GameObject>());
 			}
 			bool hasNext = false;
 			for(int b=0;b<visBlocs[state].Count;++b) {
 				IRV.VoteBloc bloc = visBlocs[state][b];
-				if(bloc.C == IRV_EX) continue; // don't draw exhausted ballots
+				if(bloc.C == IRV.IRV_EX) continue; // don't draw exhausted ballots
 				bool diesHere = true;
 				if(bloc.n != null) {
 					hasNext = true;
@@ -119,7 +118,7 @@ public class IRV_vis : MonoBehaviour {
 					}
 				}
 				float rWidth = cursorWidth*bloc.v;
-				string blocname = idToName [int.Parse (bloc.C)];
+				IRV.Candidate blocname = bloc.C;//idToName [int.Parse (bloc.C)];
 				Debug.Log (bloc.C+" "+blocname);
 				GameObject r = MakeRectangle(cursorx+rWidth/2, cursory+cursorHeight/2, rWidth-4, cursorHeight, colorMap[blocname]);
 				//r.opacity = 0.5;
@@ -133,7 +132,7 @@ public class IRV_vis : MonoBehaviour {
 						align = "right";
 						xPos = cursorx + rWidth;
 					}
-					GameObject label = MakeLabel(bloc.C, xPos, cursory+cursorHeight/2, align, Color.black);
+					GameObject label = MakeLabel(bloc.C.name, xPos, cursory+cursorHeight/2, align, Color.black);
 					if(out_components != null) { out_components.labels[bloc.C] = label; }
 				}
 				cursorx += rWidth;
@@ -145,7 +144,7 @@ public class IRV_vis : MonoBehaviour {
 					IRV.VoteBloc bloc = visBlocs[state][b];
 					if(bloc.n != null) {
 						for(int n=0;n<bloc.n.Count;++n) {
-							if(bloc.n[n].D == IRV_EX) { continue; } // don't show shifts to exhaustion.
+							if(bloc.n[n].D == IRV.IRV_EX) { continue; } // don't show shifts to exhaustion.
 							float fromMin = x+hM+cursorWidth * bloc.n[n].f;
 							float fromMax = x-hM+cursorWidth *(bloc.n[n].f+bloc.n[n].v);
 							float toMin = x+hM+cursorWidth * bloc.n[n].t;
@@ -175,7 +174,7 @@ public class IRV_vis : MonoBehaviour {
 								new Vector3(fromMax, cursory, 0),
 							};
 							GameObject path = new GameObject();
-							string blocname = idToName [int.Parse (bloc.C)];
+							IRV.Candidate blocname = bloc.C;//idToName [int.Parse (bloc.C)];
 							LineRenderer lr = NS.Lines.Make(ref path, pathV, pathV.Length, colorMap[blocname]);
 //							var curve = two.makePath(
 //								fromMin, cursory,

@@ -5,6 +5,14 @@ using UnityEngine;
 public class IRV : MonoBehaviour {
 
 	// TODO create a "Candidate" class, which is has the Candidate name, short code, index, icon, webpage, description, etc...
+	[System.Serializable]
+	public class Candidate {
+		public string name;
+		public Color color;
+		public float weight;
+		public string ToString() { return name; }
+		public Candidate(string name){this.name=name;}
+	}
 
 	// TODO rename Ballot
 	[System.Serializable]
@@ -12,7 +20,7 @@ public class IRV : MonoBehaviour {
 		[Tooltip("who is voting")]
 		public string id;
 		[Tooltip("order being voted for")]
-		public string[] vote; // TODO replace with integer, and add a lookup table reference. or replace with 'Candidate' class
+		public Candidate[] vote; // TODO replace with integer, and add a lookup table reference. or replace with 'Candidate' class
 	}
 
 	// TODO rename IRV campaign
@@ -20,14 +28,14 @@ public class IRV : MonoBehaviour {
 		/// how many votes total were recorded
 		public int numVotes;
 		/// <summary>who the candidates are. also, this is the int->string dictionary for candidate IDs</summary></summary>
-		public List<string> candidates;
+		public List<Candidate> candidates;
 		/// color representation for the candidates. TODO replace with a some class that stores candidate style (color, icon, font)
 		public List<Color> colors;
-		public Dictionary<string, Color> colorMap; // unused during transmission
+		public Dictionary<Candidate, Color> colorMap; // unused during transmission
 		public string title;
 		/// <summary>data to describe graphical representation [IRV rank][candidate]</summary>
 		public List<List<IRV.VoteBloc>> data;
-		public SerializedResults(int numVotes, List<string> candidates, List<Color> colors, string title, List<List<IRV.VoteBloc>> data) {
+		public SerializedResults(int numVotes, List<Candidate> candidates, List<Color> colors, string title, List<List<IRV.VoteBloc>> data) {
 			this.numVotes = numVotes;
 			this.candidates = candidates;
 			this.colors = colors;
@@ -39,10 +47,10 @@ public class IRV : MonoBehaviour {
 	// TODO rename RunoffResult
 	class Results {
 		public int r; // rank
-		public List<string> C; // candidate winners. probably just one, but might be 2.
+		public List<Candidate> C; // candidate winners. probably just one, but might be 2.
 		public int v; // vote count of winner
 		public SerializedResults showme; // serialized data showing the work of the results.
-		public Results(int r, List<string> C, int v, SerializedResults showme) {
+		public Results(int r, List<Candidate> C, int v, SerializedResults showme) {
 			this.r=r;this.C=C;this.v=v;this.showme=showme;
 		}
 	}
@@ -51,31 +59,31 @@ public class IRV : MonoBehaviour {
 
 	public class VoteBloc {
 		/// candidate name TODO rename candidateID
-		public string C;
+		public Candidate C;
 		/// starting point in the linear representation
 		public int s;
 		/// votes
 		public int v;
 		public class NextBloc {
-			public string D; // destination
+			public Candidate D; // destination
 			public int v; // vote count
 			public int f; // index from
 			public int t; // intdex to
-			public NextBloc(string destination, int voteCount, int indexFrom, int indexTo) {
+			public NextBloc(Candidate destination, int voteCount, int indexFrom, int indexTo) {
 				D = destination; v = voteCount; f = indexFrom; t = indexTo;
 			}
 		}
 		/// the next blocs that these votes go into
 		public List<NextBloc> n;
-		public VoteBloc(string candidate, int start, int votes) {
+		public VoteBloc(Candidate candidate, int start, int votes) {
 			C = candidate; s = start; v = votes; n = null;
 		}
 	}
 
+	Color IRV_EX_color = new Color(.875f,.875f,.875f); // should never print, but just in case... light gray
 	/// <summary>exhausted ballot token: where votes go when none of their candidates survived the runoff.
 	/// regenerated to ensure no collision with candidate names</summary>
-	string IRV_EX = "`";
-	Color IRV_EX_color = new Color(.875f,.875f,.875f); // should never print, but just in case... light gray
+	public static Candidate IRV_EX = new Candidate("`");//, IRV_EX_color);
 	public Color[] IRV_colorList = new Color[]{
 		Color.red, Color.green, Color.blue, //"888",
 		Color.yellow, Color.cyan, Color.magenta, //"222",
@@ -123,24 +131,25 @@ public class IRV : MonoBehaviour {
 	/// <summary>make sure the EX code is unique amoung the list of candidates, by brute force if necessary</summary>
 	/// <param name="listOfCandidates">List of candidates.</param>
 	/// TODO rename ensure_unique_EX_code
-	void IRV_ensure_EX_code(List<string> listOfCandidates) {
+	void IRV_ensure_EX_code(List<Candidate> listOfCandidates) {
 		tryEveryString((str)=>{
-			IRV_EX=str;
+			IRV_EX.name=str;
 			// if this string is in the listOfCandidates, return true, to keep looking for a new string.
-			return listOfCandidates.IndexOf(str) >= 0;
+			return listOfCandidates.FindIndex((Candidate c)=>{return c.name == str;}) >= 0;
 		});
 	}
 
 	/// <summary>Generates a default color table for the list of choices.</summary>
 	/// <returns>The v create color map lookup table.</returns>
 	/// <param name="listing">Listing.</param>
-	Dictionary<string, Color> IRV_createColorMapLookupTable(List<string> listing) {
-		Dictionary<string, Color> colorMap = new Dictionary<string, Color>();
+	Dictionary<Candidate, Color> IRV_createColorMapLookupTable(List<Candidate> listing) {
+		Dictionary<Candidate, Color> colorMap = new Dictionary<Candidate, Color>();
 		int colorindex = 0;
 		int startingIndex = 0;
 		for(int i=startingIndex; i<listing.Count; ++i) {
-			string k = listing[i];
-			colorMap[k] = IRV_colorList[(colorindex++) % IRV_colorList.Length];
+			Candidate k = listing[i];
+			k.color = IRV_colorList[(colorindex++) % IRV_colorList.Length];
+			colorMap [k] = k.color;
 		}
 		return colorMap;
 	}
@@ -150,9 +159,9 @@ public class IRV : MonoBehaviour {
 	/// <param name="tieBreakerData">Tie breaker data.</param>
 	/// <param name="allChoicesPossible">All choices possible.</param>
 	/// <param name="forceTieBreakerDataAsOrder">Force tie breaker data as order.</param>
-	List<string> IRV_orderChoices(Dictionary<string, List<Vote> > tally, Dictionary<string, float> tieBreakerData, 
+	List<Candidate> IRV_orderChoices(Dictionary<Candidate, List<Vote> > tally, Dictionary<Candidate, float> tieBreakerData, 
 		bool allChoicesPossible = false, bool forceTieBreakerDataAsOrder = false) {
-		List<string> order = new List<string>();
+		List<Candidate> order = new List<Candidate>();
 		foreach(var k in tally) { order.Add(k.Key); }
 		order.Sort((a,b)=>{
 			float diff = tally[b].Count - tally[a].Count;
@@ -166,9 +175,9 @@ public class IRV : MonoBehaviour {
 			foreach(var k in tally) {
 				List<Vote> ballots = tally[k.Key];
 				for(int v=0;v<ballots.Count; ++v) {
-					string[] possibleChoices = ballots[v].vote;
+					Candidate[] possibleChoices = ballots[v].vote;
 					for(int c=0;c<possibleChoices.Length;++c) {
-						string possibleChoice = possibleChoices[c];
+						Candidate possibleChoice = possibleChoices[c];
 						if(order.IndexOf(possibleChoice) < 0) {
 							order.Add(possibleChoice);
 						}
@@ -214,8 +223,8 @@ public class IRV : MonoBehaviour {
 	}
 
 	/// <summary>converts string IDs to numeric indices, for more compressed runtime data</summary>
-	void IRV_createLookupTable(Dictionary<string, float> candidateWeight, List<string> out_indexToId, Dictionary<string, int> out_idToIndex) {
-		List<string> candidateList = new List<string>();
+	void IRV_createLookupTable(Dictionary<Candidate, float> candidateWeight, List<Candidate> out_indexToId, Dictionary<Candidate, int> out_idToIndex) {
+		List<Candidate> candidateList = new List<Candidate>();
 		foreach(var k in candidateWeight) {
 			candidateList.Add(k.Key);
 		}
@@ -233,7 +242,7 @@ public class IRV : MonoBehaviour {
 		}
 	}
 
-	List<VoteBloc> calculateBlocs(List<string> sorted, Dictionary<string, List<Vote> > voteState, Dictionary<string, float> candidateWeight) {
+	List<VoteBloc> calculateBlocs(List<Candidate> sorted, Dictionary<Candidate, List<Vote> > voteState, Dictionary<Candidate, float> candidateWeight) {
 		List<VoteBloc> blocsThisState = new List<VoteBloc>();
 		int cursor = 0;
 		for(int s=0;s<sorted.Count;++s) {
@@ -253,7 +262,7 @@ public class IRV : MonoBehaviour {
 	}
 
 	// finds where a bloc is in a given bloc state
-	private int findBlocIndex(string candidateName, List<VoteBloc> blocList) {
+	private int findBlocIndex(Candidate candidateName, List<VoteBloc> blocList) {
 		for(int i=0;i<blocList.Count;++i) {
 			if(blocList[i].C == candidateName) { return i; }
 		}
@@ -269,17 +278,17 @@ public class IRV : MonoBehaviour {
 	/// <param name="candidateWeight">the weight of each bloc, used to sort blocks of the same size (tie breaking)</param>
 	void IRV_calculateVisualizationModel(
 		List<List<VoteBloc>> out_visBlocs, 
-		List< Dictionary<string, List<Vote> > > voteStateHistory, 
-		List< Dictionary <string, Dictionary<string, List<Vote> > > > voteMigrationHistory, 
-		Dictionary<string, float> candidateWeight)
+		List< Dictionary<Candidate, List<Vote> > > voteStateHistory, 
+		List< Dictionary <Candidate, Dictionary<Candidate, List<Vote> > > > voteMigrationHistory, 
+		Dictionary<Candidate, float> candidateWeight)
 	{
 		List<VoteBloc> blocsThisState;// = new List<VoteBloc>();
 		List<VoteBloc> blocsLastState = null;
 
 		// to make the visualization more coherent, calculate the order in which candidates are exhausted, and weight them visually that way
-		Dictionary<string, float> weightsForThisVisualization = new Dictionary<string, float>();
+		Dictionary<Candidate, float> weightsForThisVisualization = new Dictionary<Candidate, float>();
 		for(int s=0;s<voteStateHistory.Count;++s) {
-			Dictionary<string, List<Vote> > state = voteStateHistory[s];
+			Dictionary<Candidate, List<Vote> > state = voteStateHistory[s];
 			foreach(var c in state) {
 				float val;
 				if (weightsForThisVisualization.TryGetValue (c.Key, out val)) {
@@ -295,7 +304,7 @@ public class IRV : MonoBehaviour {
 
 		for(int stateIndex=0; stateIndex < voteStateHistory.Count; ++stateIndex) {
 			// sort the candidates based on who is likely to win right now
-			List<string> sorted = IRV_orderChoices(voteStateHistory[stateIndex], candidateWeight, false, true);
+			List<Candidate> sorted = IRV_orderChoices(voteStateHistory[stateIndex], candidateWeight, false, true);
 			// organize those candidates into blocs, and put all those blocs into a list. this is a vote state
 			blocsThisState = calculateBlocs(sorted, voteStateHistory[stateIndex], candidateWeight);
 			// add the vote state to a list of vote states
@@ -305,7 +314,7 @@ public class IRV : MonoBehaviour {
 				// for each block in the current state
 				for(int c=0; c < blocsThisState.Count; ++c) {
 					VoteBloc thisBloc = blocsThisState[c];
-					string thisBlocName = thisBloc.C;
+					Candidate thisBlocName = thisBloc.C;
 					if(thisBlocName == IRV_EX) continue; // don't describe exhausted ballot continuation
 					// find where it was in the previous state
 					int oldBlocIndex = findBlocIndex(thisBlocName, blocsLastState);
@@ -332,10 +341,10 @@ public class IRV : MonoBehaviour {
 					}
 				}
 				// the complex shifts were not calculated in the last forloop. but they were calculated in voteMigrationHistory
-				Dictionary<string, Dictionary<string, List<Vote> > > thisTransition = voteMigrationHistory[stateIndex-1];
-				Dictionary<string,int>
-				lastStateBlocAcct = new Dictionary<string, int>(), 
-				thisStateBlocAcct = new Dictionary<string, int>(); // keeps track of how much is being transfer from/to
+				Dictionary<Candidate, Dictionary<Candidate, List<Vote> > > thisTransition = voteMigrationHistory[stateIndex-1];
+				Dictionary<Candidate,int>
+				lastStateBlocAcct = new Dictionary<Candidate, int>(), 
+				thisStateBlocAcct = new Dictionary<Candidate, int>(); // keeps track of how much is being transfer from/to
 				foreach(var k in thisTransition) { // from
 					VoteBloc lastBloc = blocsLastState[findBlocIndex(k.Key, blocsLastState)];
 					int countBloc;
@@ -377,15 +386,15 @@ public class IRV : MonoBehaviour {
 
 	SerializedResults IRV_serializeVisualizationBlocData (
 		List<List<VoteBloc>> visBlocs,
-		List<string> candidatesListing, 
-		Dictionary<string, Color> colorMap,
+		List<Candidate> candidatesListing, 
+		Dictionary<Candidate, Color> colorMap,
 		int voteCount,
 		string title) {
 		// create a lookup table for unique IDs to reduce serialized data. only use IDs that are in this bloc visualization.
-		Dictionary<string,int> actuallyNeeded = new Dictionary<string,int>();
-		Dictionary<string,int> idToIndexInUse = new Dictionary<string,int>();
+		Dictionary<Candidate,int> actuallyNeeded = new Dictionary<Candidate,int>();
+		Dictionary<Candidate,int> idToIndexInUse = new Dictionary<Candidate,int>();
 		List<Color> colorListToSend = new List<Color> ();
-		List<string> indexToIdToSend = new List<string> ();
+		List<Candidate> indexToIdToSend = new List<Candidate> ();
 		actuallyNeeded[IRV_EX]=1; // make sure IRV_EX is in the list (will be first if it is).
 		IRV_convertVisualizationBlocIds(visBlocs, null, actuallyNeeded);
 		for(int i=0;i<candidatesListing.Count;++i) {
@@ -416,7 +425,7 @@ public class IRV : MonoBehaviour {
 	/// <param name="conversionTable">if not null, used to replace ids with an alternate value</param>
 	/// <param name="out_conversionsMade">if not null, counts how many times any id was replaced</param>
 	public static void IRV_convertVisualizationBlocIds (List<List<VoteBloc>> allVisBlocsStates, 
-		Dictionary<string,int> conversionTable, Dictionary<string,int> out_conversionsMade = null) {
+		Dictionary<Candidate,int> conversionTable, Dictionary<Candidate,int> out_conversionsMade = null) {
 		for(int s=0;s<allVisBlocsStates.Count;++s) {
 			List<VoteBloc> state = allVisBlocsStates[s];
 			for(int b=0;b<state.Count;++b) {
@@ -425,7 +434,7 @@ public class IRV : MonoBehaviour {
 					out_conversionsMade[bloc.C] = (out_conversionsMade.ContainsKey(bloc.C))
 						?(out_conversionsMade[bloc.C]+1):1;
 				}
-				if(conversionTable != null) {bloc.C = conversionTable[bloc.C].ToString();}
+//				if(conversionTable != null) {bloc.C = conversionTable[bloc.C].ToString();}
 				List<VoteBloc.NextBloc> nextList = bloc.n;
 				if(nextList != null) {
 					for(int n=0;n<nextList.Count;++n) {
@@ -434,7 +443,7 @@ public class IRV : MonoBehaviour {
 							out_conversionsMade[nextEntry.D] = (out_conversionsMade.ContainsKey(nextEntry.D))
 								?(out_conversionsMade[nextEntry.D]+1):1;
 						}
-						if(conversionTable != null) {nextEntry.D = conversionTable[nextEntry.D].ToString();}
+//						if(conversionTable != null) {nextEntry.D = conversionTable[nextEntry.D].ToString();}
 					}
 				}
 			}
@@ -483,11 +492,11 @@ public class IRV : MonoBehaviour {
 	}
 
 	/// <returns>table of weighted scores. used for tie-breaking when multiple candidates are about to be removed</returns>
-	Dictionary<string,float> IRV_weightedVoteCalc(List<Vote> ballots) {
+	Dictionary<Candidate,float> IRV_weightedVoteCalc(List<Vote> ballots) {
 		// calculate a weighted score, which is a simpler algorithm than Instant Runoff Voting
-		Dictionary<string,float> weightedScore = new Dictionary<string,float>();
+		Dictionary<Candidate,float> weightedScore = new Dictionary<IRV.Candidate,float>();
 		for(int v = 0; v < ballots.Count; ++v) {
-			string[] voterRanks = ballots[v].vote;
+			Candidate[] voterRanks = ballots[v].vote;
 			for(int i=0;i<voterRanks.Length; ++i){
 				weightedScore[voterRanks[i]] = 0;
 			}
@@ -496,9 +505,9 @@ public class IRV : MonoBehaviour {
 		int totalCandidateCount = weightedScore.Count;
 		// first-pick adds 1 point. 2nd pick adds half a point. 3rd pick 1/3, 4th pick 1/4, 5 pick 1/5, ...
 		for(int v = 0; v < ballots.Count; ++v) {
-			string[] voterRanks = ballots[v].vote;
+			Candidate[] voterRanks = ballots[v].vote;
 			for(int i=0;i<voterRanks.Length;++i){
-				string candidate = voterRanks[i];
+				Candidate candidate = voterRanks[i];
 				float currentScore = weightedScore [candidate];
 				weightedScore[candidate] = currentScore + 1/(i+1.0f);
 				if(currentScore > max) max = currentScore;
@@ -557,17 +566,17 @@ public class IRV : MonoBehaviour {
 			return;
 			// TODO do some logic to pick which vote is the correct one and remove the others?
 		}
-		List<string> winners = new List<string>(); // simple list of candidates who have won
+		List<Candidate> winners = new List<Candidate>(); // simple list of candidates who have won
 		List<Results> results = new List<Results>(); // detailed results: {r:Number (rank),C:String||Array (winning candidates),v:Number (vote count),showme:String (how the results were developed visual)
 		int place = 0; // keeps track of which rank is being calculated right now
 		Results best = null; // the most recent best candidate(s). TODO replace with Candidate
-		Dictionary<string,float> candidateWeight = IRV_weightedVoteCalc(allBallots); // do a simple guess of who will win using a weighted vote algorithm
+		Dictionary<Candidate,float> candidateWeight = IRV_weightedVoteCalc(allBallots); // do a simple guess of who will win using a weighted vote algorithm
 
-		List<string> indexToId = new List<string>();
-		Dictionary<string,int> idToIndex = new Dictionary<string, int>(); // lookup tables used in serialization/deserialization, ordered by weighted-vote weight
+		List<Candidate> indexToId = new List<Candidate>();
+		Dictionary<Candidate,int> idToIndex = new Dictionary<Candidate, int>(); // lookup tables used in serialization/deserialization, ordered by weighted-vote weight
 		IRV_createLookupTable(candidateWeight, indexToId, idToIndex);
 		IRV_ensure_EX_code(indexToId);
-		Dictionary<string,Color> colorMap = IRV_createColorMapLookupTable(indexToId); // master color lookup table. will be rebuilt for each visualization
+		Dictionary<Candidate,Color> colorMap = IRV_createColorMapLookupTable(indexToId); // master color lookup table. will be rebuilt for each visualization
 		indexToId.Insert(0,IRV_EX); // indexToId.splice(0,0,IRV_EX);
 		colorMap[IRV_EX] = IRV_EX_color;
 
@@ -577,12 +586,12 @@ public class IRV : MonoBehaviour {
 		InstantRunoff calcIteration = null;
 		calcIteration = (WhatToDoWithResults calcCb) => {
 			// start with the winners from the system. they can't win again.
-			List<string> exhastedCandidates = new List<string>(winners);
+			List<Candidate> exhastedCandidates = new List<Candidate>(winners);
 			// how votes move during the instant-runoff-vote
-			List< Dictionary<string, List<Vote> > > voteStateHistory = new List< Dictionary<string, List<Vote> > >();
+			List< Dictionary<Candidate, List<Vote> > > voteStateHistory = new List< Dictionary<Candidate, List<Vote> > >();
 			// array of rounds, each round has an array of shifts, each shift is an array with the voter ID and the choice.
-			List< Dictionary <string, Dictionary<string, List<Vote> > > > voteMigrationHistory = 
-				new List< Dictionary <string, Dictionary<string, List<Vote> > > >();
+			List< Dictionary <Candidate, Dictionary<Candidate, List<Vote> > > > voteMigrationHistory = 
+				new List< Dictionary <Candidate, Dictionary<Candidate, List<Vote> > > >();
 			// do process!
 			best = IRV_calcBestFrom(exhastedCandidates, allBallots, candidateWeight, voteStateHistory, voteMigrationHistory);
 
@@ -636,8 +645,8 @@ public class IRV : MonoBehaviour {
 	}
 
 	/// <returns>a clone of the given table of lists. used to store logs of vote state TODO rename cloneVoteCollection</returns>
-	Dictionary<string,List<Vote>> IRV_cloneTableOfLists(Dictionary<string,List<Vote>> tally) {
-		Dictionary<string,List<Vote>> cloned = new Dictionary<string,List<Vote>>();
+	Dictionary<Candidate,List<Vote>> IRV_cloneTableOfLists(Dictionary<Candidate,List<Vote>> tally) {
+		Dictionary<Candidate,List<Vote>> cloned = new Dictionary<Candidate,List<Vote>>();
 		foreach(var k in tally) {
 			cloned[k.Key] = new List<Vote>(tally[k.Key]); // TODO k.Value
 		}
@@ -650,16 +659,16 @@ public class IRV : MonoBehaviour {
 	/// <param name="tieBreakerData">Tie breaker data.</param>
 	/// <param name="out_voteState">if not null, make it a list of vote states, where each state is "the name of the choice":"the votes for that choice"</param>
 	/// <param name="out_voteMigrationHistory">if not null, make a list of voting rounds, where each round has a table of vote shifts, and each vote shift is a {[key] choice that was displaced and [value] a table of {[key] choices that votes moved to and [value] votes that made it there}}</param>
-	Results IRV_calcBestFrom(List<string> exhastedCandidates, List<Vote> allBallots, Dictionary<string,float> tieBreakerData, 
-		List< Dictionary<string, List<Vote> > > out_voteState, 
-		List< Dictionary <string, Dictionary<string, List<Vote> > > > out_voteMigrationHistory) {
+	Results IRV_calcBestFrom(List<Candidate> exhastedCandidates, List<Vote> allBallots, Dictionary<Candidate,float> tieBreakerData, 
+		List< Dictionary<Candidate, List<Vote> > > out_voteState, 
+		List< Dictionary <Candidate, Dictionary<Candidate, List<Vote> > > > out_voteMigrationHistory) {
 		bool doHtmlOutput = true;
 		string htmlOutput = "";
-		Dictionary<string,List<Vote>> tally = new Dictionary<string,List<Vote>>(); // the table of votes per candidate
+		Dictionary<Candidate,List<Vote>> tally = new Dictionary<Candidate,List<Vote>>(); // the table of votes per candidate
 		// do an initial count, to find out how things rank
 		IRV_tallyVotes(allBallots, exhastedCandidates, tally);
 		int iterations = 0;
-		List<string> winner = new List<string>();
+		List<Candidate> winner = new List<Candidate>();
 		int mostVotes = 0;
 		int expectedMaxVoteCount = -1;
 		if(out_voteState != null){
@@ -704,13 +713,13 @@ public class IRV : MonoBehaviour {
 					}
 				}
 				// check for ties, which are a tricky thing in instant-runoff-voting. ties are when *every* candidate has the same number of votes
-				List<string> tie = null;
-				if(mostVotes == leastVotes){ tie = new List<string>(); }
+				List<Candidate> tie = null;
+				if(mostVotes == leastVotes){ tie = new List<Candidate>(); }
 
 				// find out which candidate gets exhausted this round
 				// identify which ballots need to be recalculated
-				Dictionary<string,List<Vote>> displacedVotes = new Dictionary<string,List<Vote>>();
-				List<string> losers = new List<string>(); // the list of losing candidates
+				Dictionary<Candidate,List<Vote>> displacedVotes = new Dictionary<IRV.Candidate,List<Vote>>();
+				List<Candidate> losers = new List<Candidate>(); // the list of losing candidates
 				foreach(var k in tally) {
 					if(k.Key==IRV_EX) continue; // the exhausted candidate is already lost, no need to use them in logic
 					if(tally[k.Key].Count == leastVotes) { // TODO k.Value.Count
@@ -723,7 +732,7 @@ public class IRV : MonoBehaviour {
 					losers = IRV_untie(losers, tieBreakerData, true);
 					// disqualify candidate and displace the candidate's ballots
 					for(int i=losers.Count-1; i>=0; --i) {
-						string k = losers[i];
+						Candidate k = losers[i];
 						exhastedCandidates.Add(k); // needs to be disqualified now, because ties are reprocessed otherwise...
 						// move them to a list of uncounted votes
 						displacedVotes[k] = tally[k];
@@ -746,13 +755,13 @@ public class IRV : MonoBehaviour {
 //					}
 				} else {
 					// if there is no tie, reassign votes.
-					Dictionary<string,Dictionary<string,List<Vote>>> votingRoundAdjust = null;
+					Dictionary<Candidate,Dictionary<Candidate,List<Vote>>> votingRoundAdjust = null;
 					if(out_voteMigrationHistory != null) {
-						votingRoundAdjust = new Dictionary<string,Dictionary<string,List<Vote>>>();
+						votingRoundAdjust = new Dictionary<Candidate,Dictionary<Candidate,List<Vote>>>();
 					}
 					foreach(var k in displacedVotes){
 						// do standard logic to find out where to put displaced votes, who's current best choices have been disqualified
-						Dictionary<string,List<Vote>> reassignedVotes = new Dictionary<string,List<Vote>>();
+						Dictionary<Candidate,List<Vote>> reassignedVotes = new Dictionary<Candidate,List<Vote>>();
 						IRV_tallyVotes(displacedVotes[k.Key], exhastedCandidates, reassignedVotes); // TODO k.Value
 
 						if(doHtmlOutput) htmlOutput+=("moved "+displacedVotes[k.Key].Count+" votes from "+k.Key+" ("+tieBreakerData[k.Key]+") to: ");
@@ -795,8 +804,8 @@ public class IRV : MonoBehaviour {
 	/// <param name="tied">the list of tied candidates</param>
 	/// <param name="tieBreakerData">a table giving a score to compare for each tied member</param>
 	/// <param name="wantLowest">if false, will return lowest-scoring-member(s) of the tie. otherwise, returns highest.</param>
-	List<string> IRV_untie(List<string> tied, Dictionary<string,float> tieBreakerData, bool wantLowest) {
-		List<string> setApart = new List<string>(); // who has broken the tie
+	List<Candidate> IRV_untie(List<Candidate> tied, Dictionary<Candidate,float> tieBreakerData, bool wantLowest) {
+		List<Candidate> setApart = new List<Candidate>(); // who has broken the tie
 		float dividingScore = tieBreakerData[tied[0]];
 		// find out what the differentiating score is in the group
 		for(int i=1;i<tied.Count;++i) {
@@ -816,8 +825,8 @@ public class IRV : MonoBehaviour {
 	/// <returns>the index of the highest priority choice from list, with choices eliminated if they are in the exhastedCandidates list. -1 if no valid choices exist, identifying an exhausted ballot.</returns>
 	/// <param name="ballot">Ballot.</param>
 	/// <param name="exhastedCandidates">which choices are disqualified, prompting the next choice to be taken</param>
-	int IRV_getBestChoice(Vote ballot, List<string> exhastedCandidates) {
-		string[] list = ballot.vote;
+	int IRV_getBestChoice(Vote ballot, List<Candidate> exhastedCandidates) {
+		Candidate[] list = ballot.vote;
 		if(list != null) {
 			for(int i=0;i<list.Length;++i) {
 				if(exhastedCandidates.IndexOf(list[i]) < 0) {
@@ -831,11 +840,11 @@ public class IRV : MonoBehaviour {
 	/// <param name="ballots">a list of ballots. A ballot is a {id:"unique voter id", vote:["list","of","candidates","(order","matters)"]}.</param>
 	/// <param name="exhastedCandidates">list of which candidates should not count (move to the next choice in the vote's ranked list)</param>
 	/// <param name="out_tally">a table of all of the votes, seperated by vote winner. {<candidate name>: [list of ballots]}</param>
-	void IRV_tallyVotes(List<Vote> ballots, List<string> exhastedCandidates, Dictionary<string,List<Vote>> out_tally) {
+	void IRV_tallyVotes(List<Vote> ballots, List<Candidate> exhastedCandidates, Dictionary<Candidate,List<Vote>> out_tally) {
 		for(int i=0;i<ballots.Count;++i) {
 			Vote b = ballots[i];
 			int choiceIndex = IRV_getBestChoice(b, exhastedCandidates);
-			string bestChoice = (choiceIndex != -1)?b.vote[choiceIndex]:IRV_EX;
+			Candidate bestChoice = (choiceIndex != -1)?b.vote[choiceIndex]:IRV_EX;
 			List<Vote> supportForChoice = out_tally.ContainsKey(bestChoice) ? out_tally[bestChoice] : null;
 			if(supportForChoice == null) { // if nobody is supporting this candidate yet
 				supportForChoice = new List<Vote>();
@@ -849,23 +858,23 @@ public class IRV : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		if(randomlyGenerateTest > 0) {
-			List<string> candidates = new List<string> ();
-			candidates.Add ("Mr. V");
-			candidates.Add ("Professor V");
-			candidates.Add ("Vaganov");
-			candidates.Add ("V");
-			candidates.Add ("Sensei");
-			candidates.Add ("Cheif");
-			candidates.Add ("Chort");
-			candidates.Add ("Nunov");
-			candidates.Add ("Glokglok");
-			candidates.Add ("Naltron");
-			candidates.Add ("Dunhab");
-			candidates.Add ("Princes Hamster");
+			List<Candidate> candidates = new List<Candidate> ();
+			candidates.Add (new Candidate("Mr. V"));
+			candidates.Add (new Candidate("Professor V"));
+			candidates.Add (new Candidate("Vaganov"));
+			candidates.Add (new Candidate("V"));
+			candidates.Add (new Candidate("Sensei"));
+			candidates.Add (new Candidate("Cheif"));
+			candidates.Add (new Candidate("Chort"));
+			candidates.Add (new Candidate("Nunov"));
+			candidates.Add (new Candidate("Glokglok"));
+			candidates.Add (new Candidate("Naltron"));
+			candidates.Add (new Candidate("Dunhab"));
+			candidates.Add (new Candidate("Princes Hamster"));
 			for (int i = 0; i < randomlyGenerateTest; ++i) {
 				int picks = (int)(Random.value * Random.value * (candidates.Count-1)+2);
 				picks = (int)Mathf.Min (picks, candidates.Count);
-				string[] ranked = new string[picks];
+				Candidate[] ranked = new Candidate[picks];
 				for(int r = 0; r < ranked.Length; ++r) {
 					int pick;
 					do {
@@ -879,8 +888,6 @@ public class IRV : MonoBehaviour {
 				votes.Add (v);
 			}
 			IRV_calc (votes, transform, -1, (List<Results> results) => {
-				Debug.Log("Finished!");
-				Debug.Log(results);
 				MakeVisualization(results);
 			});
 		}
@@ -899,10 +906,10 @@ public class IRV : MonoBehaviour {
 				for (int b = 0; b < d.data [round].Count; b++) {
 					VoteBloc bloc = d.data [round] [b];
 					GameObject cube = Instantiate (this.basicBar);
-					cube.name = d.candidates [int.Parse (bloc.C)];
+					cube.name = bloc.C.name;//d.candidates [int.Parse (bloc.C)];
 					cube.transform.SetParent (rankObject.transform);
 //					Debug.Log (bloc.C);
-					cube.GetComponent<Renderer> ().material.color = d.colors[int.Parse(bloc.C)];//d.colorMap [bloc.C];
+					cube.GetComponent<Renderer> ().material.color = bloc.C.color;//d.colors[int.Parse(bloc.C)];//d.colorMap [bloc.C];
 					int width = bloc.v, start = bloc.s;
 					cube.transform.localScale = new Vector3 (width, cube.transform.localScale.y, cube.transform.localScale.z);
 					cube.transform.localPosition = new Vector3 (start + (width / 2.0f), -round * 2, 0);
