@@ -27,6 +27,7 @@ namespace OMU {
 		}
 
 		int indentationLevel = 0;
+		// TODO what is this variable for again?
 		int expressionDepth = 0;
 		StringBuilder builder;
 		Coord coord;
@@ -109,6 +110,10 @@ namespace OMU {
 			} else if (value is System.DateTime) {
 				DateTime dt = (System.DateTime)value;
 				Append (dt.ToString (Parser.dateFormats[0]));
+			} else if (value is UnityEngine.Color) {
+				Color c = (UnityEngine.Color)value;
+				Color32 c32 = c;
+				Append ("0x"+c32.a.ToString("X2")+c32.b.ToString("X2")+c32.g.ToString("X2")+c32.r.ToString("X2"));
 			} else {
 				object om = Data.SerializeToOm(value, hideZeroOrNull, compressNames, ignoreFieldPrefixes);
 				if(!Data.IsNativeType(value.GetType())) {

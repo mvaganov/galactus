@@ -95,7 +95,7 @@ namespace OMU {
 		}
 		
 		const string WORD_BREAK = "{}[],\":()\\"; // TODO sort and use binary search
-		const string EXPRESSION_BREAK = "+-=*/<>&|%^";
+		const string EXPRESSION_BREAK = "+-=*/<>&|%^!#@";
         string lastParsedToken;
 		FileParseResults output;
 		Coord coord = new Coord(1,1); // because most text editors count the first line as line 1, and the first column as column 1
