@@ -5,19 +5,15 @@ using UnityEngine;
 public class IRV_vis : MonoBehaviour {
 
 	public static void IRV_deserializeVisualizationBlocData(object serialized, float x, float y, float width, float height, Transform graphicOutput = null) {
-		IRV.SerializedResults deserialized = null;
+		IRV.RunoffHistory deserialized = null;
 		if(serialized is string) {
 			Debug.LogError ("missing string de-serialization. use objects please!");
 			// TODO javascript deserialization...
 			//eval("deserialized ="+serialized); // TODO safer javascript evaluation?
 		} else {
-			deserialized = serialized as IRV.SerializedResults; // TODO typecast to the results object?
+			deserialized = serialized as IRV.RunoffHistory; // TODO typecast to the results object?
 		}
 		IRV.IRV_EX = deserialized.candidates[0];
-		deserialized.colorMap = new Dictionary<IRV.Candidate, Color>(); // TODO why is the colormap cleared here?
-		for(var i=0;i<deserialized.candidates.Count;++i) {
-			deserialized.colorMap[deserialized.candidates[i]] = deserialized.colors[i];
-		}
 
 		IRV_convertVisualizationBlocIds(deserialized.data, deserialized.candidates);
 		if(height < 0) height = deserialized.data.Count*30; // FIXME this should never happen...
@@ -40,16 +36,16 @@ public class IRV_vis : MonoBehaviour {
 			for(int b=0;b<state.Count;++b){
 				IRV.VoteBloc bloc = state[b];
 				if(out_conversionsMade != null) {
-					out_conversionsMade[bloc.C] = (out_conversionsMade.ContainsKey(bloc.C))?(out_conversionsMade[bloc.C]+1):1;
+					out_conversionsMade[bloc.candidate] = (out_conversionsMade.ContainsKey(bloc.candidate))?(out_conversionsMade[bloc.candidate]+1):1;
 				}
 //				if(conversionTable != null) {bloc.C = conversionTable[int.Parse(bloc.C)];}
-				List<IRV.VoteBloc.NextBloc> nextList = bloc.n;
+				List<IRV.VoteBloc.BlocMigration> nextList = bloc.migrations;
 				if(nextList != null) {
 					for(var n=0;n<nextList.Count;++n) {
-						IRV.VoteBloc.NextBloc nextEntry = nextList[n];
+						IRV.VoteBloc.BlocMigration nextEntry = nextList[n];
 						if(out_conversionsMade != null) {
-							out_conversionsMade[nextEntry.D] = (out_conversionsMade.ContainsKey(nextEntry.D))
-								?(out_conversionsMade[nextEntry.D]+1):1;
+							out_conversionsMade[nextEntry.newBoss] = (out_conversionsMade.ContainsKey(nextEntry.newBoss))
+								?(out_conversionsMade[nextEntry.newBoss]+1):1;
 						}
 //						if(conversionTable != null) {nextEntry.D = conversionTable[int.Parse(nextEntry.D)];}
 					}
@@ -78,7 +74,7 @@ public class IRV_vis : MonoBehaviour {
 
 	public static void IRV_createVisualizationView(
 		List<List<IRV.VoteBloc>> visBlocs,
-		Dictionary<IRV.Candidate, Color> colorMap, 
+		//Dictionary<IRV.Candidate, Color> colorMap, 
 		List<IRV.Candidate> idToName,
 		int countBallots,
 		float x, float y, float width, float height,
@@ -106,24 +102,21 @@ public class IRV_vis : MonoBehaviour {
 			bool hasNext = false;
 			for(int b=0;b<visBlocs[state].Count;++b) {
 				IRV.VoteBloc bloc = visBlocs[state][b];
-				if(bloc.C == IRV.IRV_EX) continue; // don't draw exhausted ballots
+				if(bloc.candidate == IRV.IRV_EX) continue; // don't draw exhausted ballots
 				bool diesHere = true;
-				if(bloc.n != null) {
+				if(bloc.migrations != null) {
 					hasNext = true;
-					for(var n=0;n<bloc.n.Count;++n) {
-						if(bloc.n[n].D == bloc.C) {
+					for(var n=0;n<bloc.migrations.Count;++n) {
+						if(bloc.migrations[n].newBoss == bloc.candidate) {
 							diesHere = false;
 							break;
 						}
 					}
 				}
-				float rWidth = cursorWidth*bloc.v;
-				IRV.Candidate blocname = bloc.C;//idToName [int.Parse (bloc.C)];
-				Debug.Log (bloc.C+" "+blocname);
-				GameObject r = MakeRectangle(cursorx+rWidth/2, cursory+cursorHeight/2, rWidth-4, cursorHeight, colorMap[blocname]);
-				//r.opacity = 0.5;
-				//r.noStroke();
-				if(out_components != null) out_components.blocs[state][bloc.C] = r;
+				float rWidth = cursorWidth*bloc.voteCount;
+				IRV.Candidate blocname = bloc.candidate;
+				GameObject r = MakeRectangle(cursorx+rWidth/2, cursory+cursorHeight/2, rWidth-4, cursorHeight, bloc.candidate.coloration);//colorMap[blocname]);
+				if(out_components != null) out_components.blocs[state][bloc.candidate] = r;
 
 				if(diesHere) {
 					string align = "left";
@@ -132,8 +125,8 @@ public class IRV_vis : MonoBehaviour {
 						align = "right";
 						xPos = cursorx + rWidth;
 					}
-					GameObject label = MakeLabel(bloc.C.name, xPos, cursory+cursorHeight/2, align, Color.black);
-					if(out_components != null) { out_components.labels[bloc.C] = label; }
+					GameObject label = MakeLabel(bloc.candidate.name, xPos, cursory+cursorHeight/2, align, Color.black);
+					if(out_components != null) { out_components.labels[bloc.candidate] = label; }
 				}
 				cursorx += rWidth;
 			}
@@ -142,13 +135,13 @@ public class IRV_vis : MonoBehaviour {
 			if(hasNext) {
 				for(int b=0;b<visBlocs[state].Count;++b) {
 					IRV.VoteBloc bloc = visBlocs[state][b];
-					if(bloc.n != null) {
-						for(int n=0;n<bloc.n.Count;++n) {
-							if(bloc.n[n].D == IRV.IRV_EX) { continue; } // don't show shifts to exhaustion.
-							float fromMin = x+hM+cursorWidth * bloc.n[n].f;
-							float fromMax = x-hM+cursorWidth *(bloc.n[n].f+bloc.n[n].v);
-							float toMin = x+hM+cursorWidth * bloc.n[n].t;
-							float toMax = x-hM+cursorWidth *(bloc.n[n].t+bloc.n[n].v);
+					if(bloc.migrations != null) {
+						for(int n=0;n<bloc.migrations.Count;++n) {
+							if(bloc.migrations[n].newBoss == IRV.IRV_EX) { continue; } // don't show shifts to exhaustion.
+							float fromMin = x+hM+cursorWidth * bloc.migrations[n].fromPosition;
+							float fromMax = x-hM+cursorWidth *(bloc.migrations[n].fromPosition+bloc.migrations[n].population);
+							float toMin = x+hM+cursorWidth * bloc.migrations[n].toPosition;
+							float toMax = x-hM+cursorWidth *(bloc.migrations[n].toPosition+bloc.migrations[n].population);
 							float curveWeightY = 0, curveWeightX = 0;
 							// clean up this algorithm for adding whitespace around blocs...
 							float blarg = 0;//Mathf.Abs(bloc.n[n].f-bloc.n[n].t);//hMargin;
@@ -174,8 +167,8 @@ public class IRV_vis : MonoBehaviour {
 								new Vector3(fromMax, cursory, 0),
 							};
 							GameObject path = new GameObject();
-							IRV.Candidate blocname = bloc.C;//idToName [int.Parse (bloc.C)];
-							LineRenderer lr = NS.Lines.Make(ref path, pathV, pathV.Length, colorMap[blocname]);
+//							IRV.Candidate blocname = bloc.C;//idToName [int.Parse (bloc.C)];
+							LineRenderer lr = NS.Lines.Make(ref path, pathV, pathV.Length, bloc.candidate.coloration);//colorMap[blocname]);
 //							var curve = two.makePath(
 //								fromMin, cursory,
 //								fromMin, cursory,
@@ -199,7 +192,7 @@ public class IRV_vis : MonoBehaviour {
 //							curve.opacity = 0.75;
 //							if(out_components != null) out_components.transitions[state][bloc.n[n].D] = curve;
 							if (out_components != null) {
-								out_components.transitions[state][bloc.n[n].D] = lr.gameObject;
+								out_components.transitions[state][bloc.migrations[n].newBoss] = lr.gameObject;
 								lr.transform.SetParent (destinationForGraphic);
 							}
 						}

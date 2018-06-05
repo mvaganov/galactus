@@ -5,7 +5,6 @@ using UnityEngine;
 // author: mvaganov@hotmail.com
 // license: Copyfree, public domain. This is free code! Great artists, steal this code!
 // latest version at: https://pastebin.com/raw/h61nAC3E
-// requires Trigger at: https://pastebin.com/raw/tMNcQbTi
 namespace NS {
 	/* // example code:
 	NS.Timer.setTimeout (() => {
@@ -149,11 +148,6 @@ namespace NS {
 				leftOverTime = deltaTimeMs - deltaTimeMsLong;
 				now = alternativeTime;
 			}
-//			while (queue.Count > 0 && queue [0].when <= now) {
-//				ToDo todo = queue [0];
-//				queue.RemoveAt (0);
-//				NS.Trigger.DoActivateTrigger(gameObject, todo.what, gameObject, todo.activate);
-//			}
 			if (queue.Count > 0 && queue [0].when <= now) {
 				// the things to do in the toDoRightNow might add to the queue, so to prevent infinite looping...
 				// separate out the elements to do right now
