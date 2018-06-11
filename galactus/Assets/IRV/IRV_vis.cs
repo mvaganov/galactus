@@ -114,7 +114,7 @@ public class IRV_vis : MonoBehaviour {
 					}
 				}
 				float rWidth = cursorWidth*bloc.voteCount;
-				IRV.Candidate blocname = bloc.candidate;
+//				IRV.Candidate blocname = bloc.candidate;
 				GameObject r = MakeRectangle(cursorx+rWidth/2, cursory+cursorHeight/2, rWidth-4, cursorHeight, bloc.candidate.coloration);//colorMap[blocname]);
 				if(out_components != null) out_components.blocs[state][bloc.candidate] = r;
 

@@ -4,7 +4,6 @@ using UnityEngine;
 
 // author: mvaganov@hotmail.com
 // license: Copyfree, public domain. This is free code! Great artists, steal this code!
-// latest version at: https://pastebin.com/raw/h61nAC3E
 namespace NS {
 	/* // example code:
 	NS.Timer.setTimeout (() => {
@@ -15,9 +14,7 @@ namespace NS {
 		[Tooltip("When to trigger")]
 		public float seconds = 1;
 		[Tooltip("Transform to teleport to\nSceneAsset to load a new scene\nAudioClip to play audio\nGameObject to SetActivate(true)")]
-		public Object whatToTrigger;
-		[Tooltip("If true, activate whatToTrigger when the timer triggers, otherwise, deactivate it.")]
-		public bool activate = true;
+		public EditorGUIObjectReference whatToActivate = new EditorGUIObjectReference();
 		[Tooltip("If true, restart a timer after triggering")]
 		public bool repeat = false;
 
@@ -25,16 +22,19 @@ namespace NS {
 			if (repeat) {
 				SetTimeout (DoTimer, (long)(seconds * 1000));
 			}
-			SetTimeout (whatToTrigger, (long)(seconds * 1000));
+			SetTimeout (whatToActivate.data, (long)(seconds * 1000));
 		}
 
 		void Start() {
 			base.Init ();
-			if(whatToTrigger != null) { DoTimer(); }
+			if(whatToActivate.data != null) { DoTimer(); }
 		}
 	}
 
 	public class Chrono : MonoBehaviour {
+		[Tooltip("keeps track of how long each update takes. It longer than this, stop executing events and do them later. less than 0 for no limit.")]
+		public int maxMillisecondsPerUpdate = 100;
+
 		[System.Serializable]
 		public class ToDo {
 			public string description;
@@ -127,7 +127,7 @@ namespace NS {
 		void OnEnable() { OnApplicationPause (false); }
 
 		protected void Init() {
-			NS.Trigger.EquateUnityEditorPauseWithApplicationPause (OnApplicationPause);
+			NS.F.EquateUnityEditorPauseWithApplicationPause (OnApplicationPause);
 		}
 
 		void Start () {
@@ -157,11 +157,19 @@ namespace NS {
 					toDoRightNow.Add (queue [i]);
 				}
 				queue.RemoveRange (0, toDoRightNow.Count);
+				long nowReally = NowRealtime ();
 				// do what is scheduled to do right now
 				for (int i = 0; i < toDoRightNow.Count; ++i) {
 					ToDo todo = toDoRightNow [i];
 					// if todo.what adds to the queue, it won't get executed this cycle
-					NS.Trigger.DoActivateTrigger(gameObject, todo.what, gameObject, todo.activate);
+					NS.F.DoActivate(todo.what, gameObject, gameObject, todo.activate);
+					// if it took too long to do that thing, stop and hold the rest of the things to do till later.
+					if (maxMillisecondsPerUpdate >= 0 && ((NowRealtime() - nowReally) > maxMillisecondsPerUpdate)) {
+						toDoRightNow.RemoveRange (0, i+1);
+						queue.InsertRange (0, toDoRightNow);
+						// toDoRightNow.Clear (); // not strictly necessary, but could be useful if more code is added to this method.
+						break;
+					}
 				}
 			}
 		}
