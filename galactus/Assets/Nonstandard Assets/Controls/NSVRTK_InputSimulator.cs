@@ -167,8 +167,8 @@
             // rightHand.Find("Hand").GetComponent<Renderer>().material.color = Color.green;
             SDK_ControllerSim rightController = rightHand.GetComponent<SDK_ControllerSim>();
             SDK_ControllerSim leftController = leftHand.GetComponent<SDK_ControllerSim>();
-            rightController.Selected = true;
-            leftController.Selected = false;
+            rightController.selected = true;
+            leftController.selected = false;
             // destroyed = false;
 
             var controllerSDK = VRTK_SDK_Bridge.GetControllerSDK() as SDK_SimController;
@@ -203,9 +203,9 @@
             if(hc.GetMoveControllerIndex() != lastKnownMoveControllerIndex) {
                 lastKnownMoveControllerIndex = hc.GetMoveControllerIndex();
                 for(int i = 0; i < hc.moveControllerRoots.Length; ++i) {
-                    hc.moveControllerRoots[i].GetComponent<SDK_ControllerSim>().Selected = false;
+                    hc.moveControllerRoots[i].GetComponent<SDK_ControllerSim>().selected = false;
                 }
-                hc.moveControllerRoots[lastKnownMoveControllerIndex].GetComponent<SDK_ControllerSim>().Selected = true;
+                hc.moveControllerRoots[lastKnownMoveControllerIndex].GetComponent<SDK_ControllerSim>().selected = true;
             }
         }
 		#endif

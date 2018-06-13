@@ -34,9 +34,9 @@ namespace NS.Contingency {
 
 		void Reset() {
 			if (keyBindings.Count == 0) {
-				keyBindings.Add (new KeyBind(KeyCode.Escape, 
-					OnInputType.keyDown, 
-					NS.Contingency.Response.ScriptableString.Create("Hello") ) );
+				NS.Contingency.Response.DoActivateDebugLog d = gameObject.AddComponent<NS.Contingency.Response.DoActivateDebugLog>();
+				d.Text = "Hello";
+				keyBindings.Add (new KeyBind(KeyCode.Escape, OnInputType.keyDown, d) );
 			}
 		}
 

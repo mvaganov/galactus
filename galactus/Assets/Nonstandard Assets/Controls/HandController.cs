@@ -240,7 +240,6 @@ public class HandController : MonoBehaviour {
 	private void PopulateController(GameObject hand) {
 		Rigidbody rb = Procure<Rigidbody>(hand);
 		rb.useGravity = false; rb.isKinematic = true;
-		#if VRTK_SDK
 		VRTK.VRTK_InteractTouch toucher = Procure<VRTK.VRTK_InteractTouch>(hand);
 		//	sphere collider, or collider that matches fingers+hands
 		Collider c = hand.GetComponent<Collider>();
@@ -262,7 +261,6 @@ public class HandController : MonoBehaviour {
 		VRTK.VRTK_InteractUse user = Procure<VRTK.VRTK_InteractUse> (hand);
 		user.interactTouch = toucher;
 		user.interactGrab = grabber;
-		#endif
 	}
 
 	Vector3 GetCameraPivotPoint() {
@@ -419,15 +417,15 @@ public class HandController : MonoBehaviour {
 
 	void FixedUpdate() { UpdateGrabUse (); }
 
-//	public static GameObject GetInteractableAt(Vector3 p, float r) {
-//		Collider[] c = Physics.OverlapSphere (p, r);
-//		for (int i = 0; i < c.Length; ++i) {
-//			if (c [i].gameObject.GetComponent<VRTK.VRTK_InteractableObject> () != null) {
-//				return c[i].gameObject;
-//			}
-//		}
-//		return null;
-//	}
+	public static GameObject GetInteractableAt(Vector3 p, float r) {
+		Collider[] c = Physics.OverlapSphere (p, r);
+		for (int i = 0; i < c.Length; ++i) {
+			if (c [i].gameObject.GetComponent<VRTK.VRTK_InteractableObject> () != null) {
+				return c[i].gameObject;
+			}
+		}
+		return null;
+	}
 
 	Dictionary<GameObject, int> oldLayer = new Dictionary<GameObject, int>();
 	void CollisionSwitch(GameObject obj, bool isHeldNow) {

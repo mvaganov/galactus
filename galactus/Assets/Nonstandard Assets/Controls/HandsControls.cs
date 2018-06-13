@@ -221,7 +221,6 @@ namespace NS {
 		private void PopulateController(GameObject hand) {
 			Rigidbody rb = Procure<Rigidbody>(hand);
 			rb.useGravity = false; rb.isKinematic = true;
-			#if VRTK_SDK
 			VRTK.VRTK_InteractTouch toucher = Procure<VRTK.VRTK_InteractTouch>(hand);
 			//	sphere collider, or collider that matches fingers+hands
 			Collider c = hand.GetComponent<Collider>();
@@ -237,7 +236,6 @@ namespace NS {
 			VRTK.VRTK_InteractUse user = Procure<VRTK.VRTK_InteractUse> (hand);
 			user.interactTouch = toucher;
 			user.interactGrab = grabber;
-			#endif
 		}
 
 		Vector3 GetCameraPivotPoint() {
@@ -372,15 +370,12 @@ namespace NS {
 		public static GameObject GetInteractableAt(Vector3 p, float r) {
 			Collider[] c = Physics.OverlapSphere (p, r);
 			for (int i = 0; i < c.Length; ++i) {
-				#if VRTK_SDK
 				if (c [i].gameObject.GetComponent<VRTK.VRTK_InteractableObject> () != null) {
 					return c[i].gameObject;
 				}
-				#endif
 			}
 			return null;
 		}
-
 		void Update() {
 			GameObject hand = CurrentMoveController.gameObject;
 			bool wasGrab = grabButtonHeld[currentMoveControllerIndex], wasTrigger = useButtonHeld[currentMoveControllerIndex];
@@ -399,7 +394,6 @@ namespace NS {
 					if (wasTrigger != useButtonHeld[currentMoveControllerIndex]) { if (useButtonHeld[currentMoveControllerIndex]) { v.DoTrigger (); } else { v.UndoTrigger (); } }
 				}
 			}
-			#if VRTK_SDK
 			VRTK.VRTK_InteractGrab grabber = hand.GetComponent<VRTK.VRTK_InteractGrab> ();
 			if (grabButtonHeld[currentMoveControllerIndex]) {
 				if (grabber.GetGrabbedObject () == null) {
@@ -435,14 +429,12 @@ namespace NS {
 			} else {
 				user.ForceStopUsing ();
 			}
-			#endif
 		}
 		public void LetGoOfEverything() {
 			for (int i = 0; i < moveControllers.Length; ++i) {
 				Transform t = moveControllers [i];
 				if (t != null) {
 					GameObject hand = t.gameObject;
-					#if VRTK_SDK
 					VRTK.VRTK_InteractUse user = hand.GetComponent<VRTK.VRTK_InteractUse> ();
 					if (user != null) {
 						user.ForceStopUsing ();
@@ -455,7 +447,6 @@ namespace NS {
 						}
 						toucher.ForceStopTouching ();
 					}
-					#endif
 				}
 			}
 		}
@@ -490,9 +481,7 @@ namespace NS {
 					Vector3 movHorizonDir = movingCamera.GetHorizonalDirection(-body.gravityDirection);
 					Quaternion q = Quaternion.AngleAxis (-mainCameraVSMovingCameraHorizonalOffset, -body.gravityDirection);
 					Vector3 constantForward = q * movHorizonDir;
-					#if NS_LINES
 					Lines.MakeArrow (ref line_test, body.transform.position, body.transform.position + constantForward, Color.black, .1f, .1f);
-					#endif
 //					mainCamera.transform.rotation = Quaternion.LookRotation (constantForward, -body.gravityDirection);
 //					body.horizontalRotationOffset = -mainCameraVSMovingCameraHorizonalOffset;
 					Transform t = movingCamera.transform;

@@ -9,7 +9,7 @@ using System.Linq;
 #endif
 
 namespace _NS.Contingency.Response {
-	public class DoActivateBasedOnContingency : MonoBehaviour {
+	public class DoActivateBasedOnContingency : _NS.Contingency.Contingentable {
 		#if UNITY_EDITOR
 		public EditorGUI_BasedOnContingency pleaseConnectContingency = new EditorGUI_BasedOnContingency();
 		#endif
@@ -18,6 +18,7 @@ namespace _NS.Contingency.Response {
 			pleaseConnectContingency.data = c;
 			#endif
 		}
+		public override bool IsContingencyFor (Object whatToActivate) { return false; }
 	}
 }
 #if UNITY_EDITOR
