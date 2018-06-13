@@ -289,8 +289,7 @@ public class PropertyDrawer_EditorGUIObjectReference : PropertyDrawer {
 		}
 		Rect r = _position;
 		float w = PropertyDrawer_EditorGUIObjectReference.defaultOptionWidth, 
-		wl = PropertyDrawer_EditorGUIObjectReference.defaultLabelWidth,
-		h = PropertyDrawer_EditorGUIObjectReference.unitHeight;
+		wl = PropertyDrawer_EditorGUIObjectReference.defaultLabelWidth;
 		r.width = wl;
 		enumValue = EditorGUI_EnumPopup<T>(enumValue, r);
 		r.x += r.width;
