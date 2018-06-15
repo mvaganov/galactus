@@ -40,15 +40,8 @@ namespace NS.Contingency {
 			}
 		}
 
-		public override bool IsContingencyFor(UnityEngine.Object whatToActivate) {
-			for (int i = 0; i < keyBindings.Count; ++i) {
-				if (keyBindings [i].bound.data == whatToActivate) {
-					return true;
-				}
-			}
-			return false;
-		}
-
+		public override int GetChildContingencyCount() {return keyBindings.Count;}
+		public override UnityEngine.Object GetChildContingency(int index) { return keyBindings [index].bound.data; }
 		void Start() { }
 
 		void FixedUpdate() {

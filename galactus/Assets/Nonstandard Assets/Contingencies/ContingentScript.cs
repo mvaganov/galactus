@@ -10,7 +10,40 @@ using _NS.Contingency;
 
 namespace _NS.Contingency {
 	public abstract class Contingentable : MonoBehaviour {
-		public abstract bool IsContingencyFor(Object whatToActivate);
+		public abstract int GetChildContingencyCount();
+		public abstract Object GetChildContingency(int index);
+
+		public virtual bool IsContingencyFor(Object obj) {
+			for(int i = 0; i < GetChildContingencyCount(); ++i) {
+				if(GetChildContingency(i) == obj) return true;
+			}
+			return false;
+		}
+
+		public virtual Object ContingencyRecursionCheck(List<Contingentable> stack = null) {
+			if(stack == null) {
+				stack = new List<Contingentable>();
+			}
+			if(stack.Contains(this)) return this;
+			stack.Add(this);
+			//Debug.Log("recursion test "+this+"     "+stack.Count);
+			Object result = null;
+			for(int i = 0; i < GetChildContingencyCount(); ++i) {
+				Contingentable c = GetChildContingency(i) as Contingentable;
+				if(c != null) {
+					result = c.ContingencyRecursionCheck(stack);
+					if(result != null) {
+						return result;
+					}
+				}
+			}
+			if(stack[stack.Count-1] != this) {
+				throw new System.Exception("Malformed recursion stack exception");
+			}
+			stack.RemoveAt(stack.Count-1);
+			return null;
+		}
+
 		#if UNITY_EDITOR
 		public virtual Object DoGUI(Rect _position, Object obj, _NS.Contingency.Contingentable self, PropertyDrawer_EditorGUIObjectReference p) {
 			return p.StandardEditorGUIObjectReference (_position, obj, self);
@@ -32,7 +65,13 @@ namespace NS.Contingency {
 			"* IEnumerable: activate each element in the list")]
 		public EditorGUIObjectReference whatToActivate = new EditorGUIObjectReference();
 
-		public override bool IsContingencyFor (Object whatToActivate) { return this.whatToActivate.data == whatToActivate; }
+		public override bool IsContingencyFor (Object whatToActivate) { 
+			return this.whatToActivate.data == whatToActivate;
+		}
+
+		public override int GetChildContingencyCount() {return 1;}
+		public override Object GetChildContingency(int index) { return whatToActivate.data; }
+
 
 		// [System.Serializable]
 		// public struct ActivateOptions {
@@ -112,7 +151,13 @@ public class PropertyDrawer_EditorGUIObjectReference : PropertyDrawer {
 		}
 		Contingentable self = _property.serializedObject.targetObject as Contingentable;
 		if (asset != null) {
+			Object prevObj = asset.objectReferenceValue;
 			asset.objectReferenceValue = EditorGUIObjectReference(_position, asset.objectReferenceValue, self);
+			if(prevObj != asset.objectReferenceValue && self.ContingencyRecursionCheck() != null) {
+				Debug.LogWarning("Disallowing recursion of "+asset.objectReferenceValue);
+				asset.objectReferenceValue = prevObj;
+			}
+
 		}
 		EditorGUI.EndProperty( );
 	}
@@ -152,13 +197,18 @@ public class PropertyDrawer_EditorGUIObjectReference : PropertyDrawer {
 				DoActivateSceneLoad sceneLoad = go.AddComponent<DoActivateSceneLoad> ();
 				sceneLoad.RegisterContingency (self);
 				obj = sceneLoad;
-				Debug.Log (sa + ")  (" + sceneLoad);
 				sceneLoad.sceneName = sa.name;
 			}
 		}
 
 		// if the object needs to have it's alternate forms calculated
 		if (obj != prevSelection || choicesAreFor != obj || choices.Length == 0) {
+			// check if recursion is happening... if so, bail!
+			// if(obj == self || obj  == self) {
+			// 	Debug.LogWarning("preventing recursion...");
+			// 	return prevSelection;
+			// }
+
 			choicesAreFor = obj;
 			// if these choices are for an actual object
 			if (choicesAreFor != null) {
@@ -206,7 +256,6 @@ public class PropertyDrawer_EditorGUIObjectReference : PropertyDrawer {
 				System.Type nextT = possibleResponses [choice - 1];
 				if (nextT.IsSubclassOf (typeof(ScriptableObject))) {
 					obj = ScriptableObjectUtility.CreateAsset(nextT);
-					//obj = ScriptableObject.CreateInstance (nextT);
 				} else {
 					Component c = go.AddComponent (nextT);
 					_NS.Contingency.Response.DoActivateBasedOnContingency doEvent = 
@@ -238,6 +287,7 @@ public class PropertyDrawer_EditorGUIObjectReference : PropertyDrawer {
 					if(components == null && obj is Component && choice == 1) {
 						// TODO prevent recursion too...
 						if(prevSelection != self) {
+							Debug.LogWarning("prevent recursion");
 							obj = prevSelection;
 						}
 					}

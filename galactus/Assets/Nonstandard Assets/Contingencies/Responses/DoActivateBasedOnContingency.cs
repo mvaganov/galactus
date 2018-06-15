@@ -18,7 +18,8 @@ namespace _NS.Contingency.Response {
 			pleaseConnectContingency.data = c;
 			#endif
 		}
-		public override bool IsContingencyFor (Object whatToActivate) { return false; }
+		public override int GetChildContingencyCount() {return 0;}
+		public override Object GetChildContingency(int index) { return null; }
 	}
 }
 #if UNITY_EDITOR

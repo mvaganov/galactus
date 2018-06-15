@@ -23,13 +23,8 @@ namespace NS.Contingency.Response {
 			DoActivate (whatTriggeredThis, whatIsBeingTriggerd, false);
 		}
 
-		public override bool IsContingencyFor (Object whatToActivate) { 
-			for (int i = 0; i < this.elements.Count; ++i) {
-				if (this.elements [i].data == whatToActivate)
-					return true;
-			}
-			return false;
-		}
+		public override int GetChildContingencyCount() {return elements.Count;}
+		public override Object GetChildContingency(int index) { return elements[index].data; }
 
 		#if UNITY_EDITOR
 		public override Object DoGUI(Rect _position, Object obj, _NS.Contingency.Contingentable self, PropertyDrawer_EditorGUIObjectReference p) {
@@ -78,8 +73,15 @@ namespace NS.Contingency.Response {
 				r.y += h;
 				// draw the elements below
 				for (int i = 0; i < sl.elements.Count; ++i) {
+					Object prevObj = sl.elements [i].data;
 					Object eobj = p.EditorGUIObjectReference (r, sl.elements [i].data, self);
 					sl.elements [i] = new global::EditorGUIObjectReference (eobj);
+
+					if(eobj != prevObj && ContingencyRecursionCheck() != null) {
+						Debug.LogWarning("Disallowing recursion of "+eobj);
+						sl.elements [i] = new global::EditorGUIObjectReference (prevObj);
+					}
+
 					_NS.Contingency.Contingentable c = sl.elements [i].data as _NS.Contingency.Contingentable;
 					if(c != null) {
 						if(c.gameObject == null) {
