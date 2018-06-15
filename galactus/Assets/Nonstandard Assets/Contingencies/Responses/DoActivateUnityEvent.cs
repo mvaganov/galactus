@@ -23,7 +23,7 @@ namespace NS.Contingency.Response {
 			float h = PropertyDrawer_EditorGUIObjectReference.unitHeight;
 			_position.width = originalWidth - w;
 			DoActivateUnityEvent sl = obj as DoActivateUnityEvent;
-
+			if(sl == null) { return obj; }
 			SerializedObject childObj = new SerializedObject (sl);
 			SerializedProperty prop = childObj.FindProperty("howToActivate");
 			// float vpadding = 2, originalHeight = _position.height;
@@ -33,70 +33,27 @@ namespace NS.Contingency.Response {
 
 			EditorGUI.PropertyField (_position, prop);
 
-			// TODO also check for recursion...
-//			Debug.Log(prop.objectReferenceValue);
-//			Debug.Log(prop.serializedObject);
-			// if( prop.objectReferenceValue == this) {
-			// 	prop.objectReferenceValue = null;
-			// }
-			// _position.height = originalHeight;
-			// _position.width = originalWidth;
-			// if (EditorGUI.GetPropertyHeight (prop) > 16) {
-			// 	float originalY = _position.y;
-			// 	float cursor = _position.y + h + vpadding;
-			// 	float indent = 32;// + EditorGUI.indentLevel;
-			// 	Rect r = new Rect (indent, cursor, _position.width + _position.x - indent, h);
-			// 	int count = EditorGUI.IntField(r, sl.elements.Count);
-			// 	if (count != sl.elements.Count) {
-			// 		if (count < sl.elements.Count) {
-			// 			for (int i = sl.elements.Count - 1; i >= count; --i) {
-			// 				sl.elements.RemoveAt (i);
-			// 			}
-			// 		} else {
-			// 			for (int i = sl.elements.Count; i < count; ++i) {
-			// 				if (i > 0) {
-			// 					sl.elements.Add (sl.elements [i - 1]);
-			// 				} else {
-			// 					sl.elements.Add (new global::EditorGUIObjectReference (null));
-			// 				}
-			// 			}
-			// 		}
+			//p.choice = EditorGUI.Popup(new Rect(_position.x+_position.width, 
+			//	_position.y, w, h), 0, PropertyDrawer_EditorGUIObjectReference.editChoiceOrNullify);
+			// if (0 != p.choice) {
+			// 	if(PropertyDrawer_EditorGUIObjectReference.editChoiceOrNullify[p.choice] == PropertyDrawer_EditorGUIObjectReference.setToNull) {
+			// 		obj = null;
+			// 		p.choice = 0;
+			// 	} else if(PropertyDrawer_EditorGUIObjectReference.editChoiceOrNullify[p.choice] == PropertyDrawer_EditorGUIObjectReference.delete) {
+			// 		DestroyImmediate(obj);
+			// 		obj = null;
+			// 		p.choice = 0;
 			// 	}
-			// 	r.y += h + vpadding;
-			// 	//EditorGUI.indentLevel += 1;
-			// 	for (int i = 0; i < sl.elements.Count; ++i) {
-			// 		sl.elements [i] = new global::EditorGUIObjectReference (
-			// 			p.EditorGUIObjectReference (r, sl.elements [i].data, self));
-			// 		SerializedProperty prop2 = null;
-			// 		if(sl.elements [i].data != null) {
-			// 			SerializedObject childObj2 = new SerializedObject (sl.elements [i].data);
-			// 			prop2 = childObj2.FindProperty("elements");
-			// 		}
-			// 		float expectedHeight = (prop2!=null)?EditorGUI.GetPropertyHeight (prop2):h;
-			// 		r.y += expectedHeight + vpadding;
-			// 	}
-			// 	//EditorGUI.indentLevel -= 1;
-			// 	_position.y = originalY;
+
 			// }
-
-//				childObj.ApplyModifiedProperties ();
-
-			p.choice = EditorGUI.Popup(new Rect(_position.x+_position.width, 
-				_position.y, w, h), 0, PropertyDrawer_EditorGUIObjectReference.editChoiceOrNullify);
-			if (0 != p.choice && PropertyDrawer_EditorGUIObjectReference.editChoiceOrNullify[p.choice] == "null") {
-				obj = null;
-				p.choice = 0;
-			}
+			PropertyDrawer_EditorGUIObjectReference.StandardOptionPopup(new Rect(_position.x+_position.width, _position.y, w, h), ref obj);
 			return obj;
 		}
 
-		public override float GetPropertyHeight (SerializedProperty _property, GUIContent label, PropertyDrawer_EditorGUIObjectReference p) {
-			SerializedProperty asset = _property.FindPropertyRelative("data");
-			DoActivateUnityEvent cl = asset.objectReferenceValue as DoActivateUnityEvent;
-			SerializedObject childObj = new SerializedObject (cl);
+		public override float CalcPropertyHeight (PropertyDrawer_EditorGUIObjectReference p) {
+			SerializedObject childObj = new SerializedObject (this);
 			SerializedProperty prop = childObj.FindProperty("howToActivate");
-			float h = EditorGUI.GetPropertyHeight (prop);
-			return h;
+			return EditorGUI.GetPropertyHeight (prop);
 		}
 		#endif
 	}

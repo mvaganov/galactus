@@ -10,7 +10,8 @@ public class IRV : MonoBehaviour {
 	public class Candidate {
 		public string name;
 		public Color coloration = Color.clear;
-		public float tieWeight;
+		public float tieWeight = 0;
+		public int totalVotes = 0;
 		override public string ToString() { return name; }
 		public Candidate(string name){this.name=name;}
 		public Candidate(string name, Color color){this.name=name;this.coloration=color;}
@@ -423,34 +424,19 @@ public class IRV : MonoBehaviour {
 
 	/// <returns>list of Candidates by weight, which is used for tie-breaking when multiple candidates are about to be removed</returns>
 	List<Candidate> IRV_weightedVoteCalc(List<Ballot> ballots) {
-		// calculate a weighted score, which is a simpler algorithm than Instant Runoff Voting
-		Dictionary<Candidate,float> weightedScore = new Dictionary<IRV.Candidate,float>();
-		for(int v = 0; v < ballots.Count; ++v) {
-			Candidate[] voterRanks = ballots[v].vote;
-			for(int i=0;i<voterRanks.Length; ++i){
-				weightedScore[voterRanks[i]] = 0;
-			}
-		}
-		float max = 0;
-		int totalCandidateCount = weightedScore.Count;
-		// first-pick adds 1 point. 2nd pick adds half a point. 3rd pick 1/3, 4th pick 1/4, 5 pick 1/5, ...
+		// calculate a weighted score, and total-vote-count, which are simpler algorithms than Instant Runoff Voting
+		HashSet<Candidate> completeSet = new HashSet<Candidate>();
 		for(int v = 0; v < ballots.Count; ++v) {
 			Candidate[] voterRanks = ballots[v].vote;
 			for(int i=0;i<voterRanks.Length;++i){
 				Candidate candidate = voterRanks[i];
-				float currentScore = weightedScore [candidate];
-				weightedScore[candidate] = currentScore + 1/(i+1.0f);
-				if(currentScore > max) max = currentScore;
+				completeSet.Add(candidate);
+				candidate.totalVotes ++;
+				// first-pick adds 1 point. 2nd pick adds 1/2 a point. 3rd pick 1/3, 4th pick 1/4, 5 pick 1/5, ...
+				candidate.tieWeight += 1/(i+1.0f);
 			}
 		}
-		// put the weights directly into the candidate pool
-		foreach(KeyValuePair<Candidate, float> entry in weightedScore) {
-			entry.Key.tieWeight = entry.Value;
-		}
-		List<Candidate> candidateList = new List<Candidate>();
-		foreach(var k in weightedScore) {
-			candidateList.Add(k.Key);
-		}
+		List<Candidate> candidateList = completeSet.ToList();
 		candidateList.Sort((a,b) => {
 			return (int)((b.tieWeight - a.tieWeight) * 1024);
 		});

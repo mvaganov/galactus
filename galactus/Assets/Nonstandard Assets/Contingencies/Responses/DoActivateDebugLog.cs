@@ -7,10 +7,19 @@ using UnityEditor;
 
 namespace NS.Contingency.Response {
 	public class DoActivateDebugLog : _NS.Contingency.Response.DoActivateBasedOnContingency {
-		public string text;
+		[SerializeField]
+		protected string text;
 		public string Text { set { this.text = value; } get { return this.text; } }
-		public void DoActivateTrigger (object whatTriggeredThis) { Debug.Log(text); }
-		public void DoDeactivateTrigger (object whatTriggeredThis) { Debug.Log(text); }
+		public void DoActivateTrigger (object whatTriggeredThis) { DoActivateTrigger(); }
+		public void DoDeactivateTrigger (object whatTriggeredThis) { DoActivateTrigger(); }
+
+		public void DoActivateTrigger() {
+			switch(typeOfLog) {
+				case DebugLogTypes.Log:		Debug.Log(text);		break;
+				case DebugLogTypes.Warning:	Debug.LogWarning(text);	break;
+				case DebugLogTypes.Error:	Debug.LogError(text);	break;
+			}
+		}
 
 		public enum DebugLogTypes {Log, Warning, Error};
 		public DebugLogTypes typeOfLog = DebugLogTypes.Log;

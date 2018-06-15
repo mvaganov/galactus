@@ -7,6 +7,8 @@ using UnityEditor;
 
 namespace NS.Contingency.Response {
 	public class ContingentList : _NS.Contingency.Response.DoActivateBasedOnContingency {
+		public enum KindOfList {Normal_List, Sequence_List, Priority_List};
+		public KindOfList kindOfList;
 		public List<EditorGUIObjectReference> elements = new List<EditorGUIObjectReference>();
 		public virtual void DoActivateTrigger () { DoActivate(null, this, true); }
 		public void DoActivate (object whatTriggeredThis, object whatIsBeingTriggerd, bool active) {
@@ -33,7 +35,10 @@ namespace NS.Contingency.Response {
 		public override Object DoGUI(Rect _position, Object obj, _NS.Contingency.Contingentable self, PropertyDrawer_EditorGUIObjectReference p) {
 			float originalWidth = _position.width;
 			float w = PropertyDrawer_EditorGUIObjectReference.defaultOptionWidth;
+			float wl = PropertyDrawer_EditorGUIObjectReference.defaultLabelWidth;
 			float h = PropertyDrawer_EditorGUIObjectReference.unitHeight;
+			float indent = 32;
+
 			_position.width = originalWidth - w;
 			ContingentList sl = obj as ContingentList;
 
@@ -42,7 +47,6 @@ namespace NS.Contingency.Response {
 			float vpadding = 2, originalHeight = _position.height;
 			_position.height = h;
 			_position.width = originalWidth - w;
-
 
 			EditorGUI.PropertyField (_position, prop);
 
@@ -55,52 +59,38 @@ namespace NS.Contingency.Response {
 			_position.height = originalHeight;
 			_position.width = originalWidth;
 			if (EditorGUI.GetPropertyHeight (prop) > 16) {
-				float originalY = _position.y;
-				float cursor = _position.y + h + vpadding;
-				float indent = 32;// + EditorGUI.indentLevel;
-				Rect r = new Rect (indent, cursor, _position.width + _position.x - indent, h);
-				int count = EditorGUI.IntField(r, sl.elements.Count);
+				Rect r = new Rect (indent, _position.y + h, _position.width + _position.x - indent, h);
+				// label the type-of-list, and the number of elements
+				Rect labelr = r;
+				labelr.width = wl;
+				kindOfList = PropertyDrawer_EditorGUIObjectReference.EditorGUI_EnumPopup<KindOfList>(labelr, kindOfList);
+				labelr.width = r.width - wl;
+				labelr.x += wl;
+				int count = EditorGUI.IntField(labelr, sl.elements.Count);
+				// update the list with the new size, adding null
 				if (count != sl.elements.Count) {
 					if (count < sl.elements.Count) {
-						for (int i = sl.elements.Count - 1; i >= count; --i) {
-							sl.elements.RemoveAt (i);
-						}
+						for (int i = sl.elements.Count - 1; i >= count; --i) { sl.elements.RemoveAt (i); }
 					} else {
-						for (int i = sl.elements.Count; i < count; ++i) {
-							if (i > 0) {
-								sl.elements.Add (sl.elements [i - 1]);
-							} else {
-								sl.elements.Add (new global::EditorGUIObjectReference (null));
-							}
-						}
+						for (int i = sl.elements.Count; i < count; ++i) { sl.elements.Add (new global::EditorGUIObjectReference (null)); }
 					}
 				}
-				r.y += h + vpadding;
-				//EditorGUI.indentLevel += 1;
+				r.y += h;
+				// draw the elements below
 				for (int i = 0; i < sl.elements.Count; ++i) {
-					sl.elements [i] = new global::EditorGUIObjectReference (
-						p.EditorGUIObjectReference (r, sl.elements [i].data, self));
-					// SerializedProperty prop2 = null;
-					// if(sl.elements [i].data != null) {
-					// 	SerializedObject childObj2 = new SerializedObject (sl.elements [i].data);
-					// 	prop2 = childObj2.FindProperty("elements");
-					// }
-					// float expectedHeight = (prop2!=null)?EditorGUI.GetPropertyHeight (prop2):h;
+					Object eobj = p.EditorGUIObjectReference (r, sl.elements [i].data, self);
+					sl.elements [i] = new global::EditorGUIObjectReference (eobj);
+					_NS.Contingency.Contingentable c = sl.elements [i].data as _NS.Contingency.Contingentable;
+					if(c != null) {
+						if(c.gameObject == null) {
+							sl.elements [i] = new global::EditorGUIObjectReference (null);
+						}
+					}
 					float expectedHeight = CalculateElementHeight(p, sl.elements [i].data, h);
 					r.y += expectedHeight + vpadding;
 				}
-				//EditorGUI.indentLevel -= 1;
-				_position.y = originalY;
 			}
-
-//				childObj.ApplyModifiedProperties ();
-
-			p.choice = EditorGUI.Popup(new Rect(_position.x+_position.width-w, 
-				_position.y, w, h), 0, PropertyDrawer_EditorGUIObjectReference.editChoiceOrNullify);
-			if (0 != p.choice && PropertyDrawer_EditorGUIObjectReference.editChoiceOrNullify[p.choice] == "null") {
-				obj = null;
-				p.choice = 0;
-			}
+			PropertyDrawer_EditorGUIObjectReference.StandardOptionPopup(new Rect(_position.x+_position.width-w, _position.y, w, h), ref obj);
 			return obj;
 		}
 
@@ -108,19 +98,16 @@ namespace NS.Contingency.Response {
 		float CalculateElementHeight(PropertyDrawer_EditorGUIObjectReference p, Object o, float defaultHeight) {
 			SerializedProperty prop2 = null;
 			if(o != null) {
-				SerializedObject childObj2 = new SerializedObject (o);
-				prop2 = childObj2.FindProperty("elements");
-				if(prop2 == null) {
-					prop2 = childObj2.FindProperty("howToActivate");
+				_NS.Contingency.Contingentable childObj2 = o as _NS.Contingency.Contingentable;
+				if(childObj2 != null) {
+					return childObj2.CalcPropertyHeight(p);
 				}
 			}
 			float expectedHeight = (prop2!=null)?EditorGUI.GetPropertyHeight (prop2):defaultHeight;
 			return expectedHeight;
 		}
-		public override float GetPropertyHeight (SerializedProperty _property, GUIContent label, PropertyDrawer_EditorGUIObjectReference p) {
-			SerializedProperty asset = _property.FindPropertyRelative("data");
-			ContingentList cl = asset.objectReferenceValue as ContingentList;
-			SerializedObject childObj = new SerializedObject (cl);
+		public override float CalcPropertyHeight (PropertyDrawer_EditorGUIObjectReference p) {
+			SerializedObject childObj = new SerializedObject (this);
 			SerializedProperty prop = childObj.FindProperty("elements");
 			return EditorGUI.GetPropertyHeight (prop);
 		}
