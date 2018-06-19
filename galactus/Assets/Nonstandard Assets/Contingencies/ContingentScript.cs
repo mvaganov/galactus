@@ -45,11 +45,11 @@ namespace _NS.Contingency {
 		}
 
 		#if UNITY_EDITOR
-		public virtual Object DoGUI(Rect _position, Object obj, _NS.Contingency.Contingentable self, PropertyDrawer_EditorGUIObjectReference p) {
+		public virtual Object DoGUI(Rect _position, Object obj, Component self, PropertyDrawer_ObjectPtr p) {
 			return p.StandardEditorGUIObjectReference (_position, obj, self);
 		}
-		public virtual float CalcPropertyHeight (PropertyDrawer_EditorGUIObjectReference p) {
-			return p.StandardCalcPropertyHeight();
+		public virtual float CalcPropertyHeight (PropertyDrawer_ObjectPtr p) {
+			return PropertyDrawer_ObjectPtr.StandardCalcPropertyHeight();
 		}
 		#endif
 	}
@@ -63,14 +63,14 @@ namespace NS.Contingency {
 			"* Material: set this Renderer's .material property, make a note of what the previous material was\n"+
 			"* <any other>: activate a \'DoActivateTrigger()\' method (if available)\n"+
 			"* IEnumerable: activate each element in the list")]
-		public EditorGUIObjectReference whatToActivate = new EditorGUIObjectReference();
+		public ObjectPtr whatToActivate = new ObjectPtr();
 
 		public override bool IsContingencyFor (Object whatToActivate) { 
-			return this.whatToActivate.data == whatToActivate;
+			return this.whatToActivate.Data == whatToActivate;
 		}
 
 		public override int GetChildContingencyCount() {return 1;}
-		public override Object GetChildContingency(int index) { return whatToActivate.data; }
+		public override Object GetChildContingency(int index) { return whatToActivate.Data; }
 
 
 		// [System.Serializable]
@@ -82,10 +82,10 @@ namespace NS.Contingency {
 		// public ActivateOptions activateOptions = new ActivateOptions();
 		public virtual void DoActivateTrigger () { DoActivateTrigger(null); }
 		public virtual void DoActivateTrigger (object causedActivate) {
-			NS.F.DoActivate (whatToActivate.data, causedActivate, this, true);
+			NS.F.DoActivate (whatToActivate.Data, causedActivate, this, true);
 		}
 		public virtual void DoTriggerMouse() {
-			NS.F.DoActivate (whatToActivate.data, Input.mousePosition, this, true);
+			NS.F.DoActivate (whatToActivate.Data, Input.mousePosition, this, true);
 		}
 	}
 }
@@ -104,16 +104,21 @@ namespace _NS.Contingency {
 	}
 }
 
-/// Used to more easily reference Components within the Unity editor
-[System.Serializable] public struct EditorGUIObjectReference {
-	public Object data;
-	//public EditorGUIObjectReference(){data = null;}
-	public EditorGUIObjectReference(Object obj){ data = obj; }
+namespace NS {
+	/// Used to more easily reference Components within the Unity editor
+	[System.Serializable] public struct ObjectPtr {
+		[SerializeField]
+		public Object data;
+		public Object Data { get {return data as Object; } set { data = value; } }
+		//public ObjectPtr(){data = null;}
+		public ObjectPtr(Object obj){ data = obj; }
+		public override string ToString() { return "ObjectPtr -> "+data; }
+	}
 }
 
 #if UNITY_EDITOR
-[CustomPropertyDrawer(typeof(EditorGUIObjectReference))]
-public class PropertyDrawer_EditorGUIObjectReference : PropertyDrawer {
+[CustomPropertyDrawer(typeof(NS.ObjectPtr))]
+public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 	public static bool showLabel = true;
 	public int choice = 0;
 	string[] choices = new string[] {};
@@ -136,9 +141,9 @@ public class PropertyDrawer_EditorGUIObjectReference : PropertyDrawer {
 		}
 		return StandardCalcPropertyHeight ();
 	}
-	public float StandardCalcPropertyHeight() {
+	public static float StandardCalcPropertyHeight() {
 		// SerializedProperty asset = _property.FindPropertyRelative("data");
-		return unitHeight+2;//base.GetPropertyHeight (asset, label);
+		return unitHeight;//base.GetPropertyHeight (asset, label);
 	}
 
 	public static float defaultOptionWidth = 16, defaultLabelWidth = 100, unitHeight = 16;
@@ -146,19 +151,23 @@ public class PropertyDrawer_EditorGUIObjectReference : PropertyDrawer {
 	public override void OnGUI(Rect _position, SerializedProperty _property, GUIContent _label) {
 		EditorGUI.BeginProperty(_position, GUIContent.none, _property);
 		SerializedProperty asset = _property.FindPropertyRelative("data");
-		if(PropertyDrawer_EditorGUIObjectReference.showLabel) {
+		int oldIndent = EditorGUI.indentLevel;
+		EditorGUI.indentLevel = 0;
+		if(PropertyDrawer_ObjectPtr.showLabel) {
 			_position = EditorGUI.PrefixLabel(_position, GUIUtility.GetControlID(FocusType.Passive), _label);
 		}
-		Contingentable self = _property.serializedObject.targetObject as Contingentable;
+		Component self = _property.serializedObject.targetObject as Component;
 		if (asset != null) {
 			Object prevObj = asset.objectReferenceValue;
 			asset.objectReferenceValue = EditorGUIObjectReference(_position, asset.objectReferenceValue, self);
-			if(prevObj != asset.objectReferenceValue && self.ContingencyRecursionCheck() != null) {
+			Contingentable cself = self as Contingentable;
+			if(prevObj != asset.objectReferenceValue && cself != null && cself.ContingencyRecursionCheck() != null) {
 				Debug.LogWarning("Disallowing recursion of "+asset.objectReferenceValue);
 				asset.objectReferenceValue = prevObj;
 			}
 
 		}
+		EditorGUI.indentLevel = oldIndent;
 		EditorGUI.EndProperty( );
 	}
 
@@ -173,17 +182,20 @@ public class PropertyDrawer_EditorGUIObjectReference : PropertyDrawer {
 		}
 		return value;
 	}
-	public Object EditorGUIObjectReference(Rect _position, Object obj, Contingentable self) {
+	public Object EditorGUIObjectReference(Rect _position, Object obj, Component self) {
+		int oldIndent = EditorGUI.indentLevel;
+		EditorGUI.indentLevel = 0;
 		if (obj is Contingentable) {
 			Contingentable c = obj as Contingentable;
 			obj = c.DoGUI(_position, obj, self, this);
 		} else {
 			obj = StandardEditorGUIObjectReference (_position, obj, self);
 		}
+		EditorGUI.indentLevel = oldIndent;
 		return obj;
 	}
 
-	public Object StandardEditorGUIObjectReference(Rect _position, Object obj, Contingentable self) {
+	public Object StandardEditorGUIObjectReference(Rect _position, Object obj, Component self) {
 		float originalWidth = _position.width;
 		_position.width = originalWidth - defaultOptionWidth;
 		Object prevSelection = obj;
@@ -195,7 +207,7 @@ public class PropertyDrawer_EditorGUIObjectReference : PropertyDrawer {
 			if (go) {
 				SceneAsset sa = obj as SceneAsset;
 				DoActivateSceneLoad sceneLoad = go.AddComponent<DoActivateSceneLoad> ();
-				sceneLoad.RegisterContingency (self);
+				sceneLoad.RegisterContingency (self as Contingentable);
 				obj = sceneLoad;
 				sceneLoad.sceneName = sa.name;
 			}
@@ -260,12 +272,12 @@ public class PropertyDrawer_EditorGUIObjectReference : PropertyDrawer {
 					Component c = go.AddComponent (nextT);
 					_NS.Contingency.Response.DoActivateBasedOnContingency doEvent = 
 						c as _NS.Contingency.Response.DoActivateBasedOnContingency;
-					if (c != null) {
-						Contingentable contingencyMaster = self;
+					if (c != null && doEvent != null) {
+						Contingentable contingencyMaster = self as Contingentable;
 						if(self is ContingentScript){
 							ContingentScript cs = self as ContingentScript;
-							if(cs.whatToActivate.data is ContingentList) {
-								contingencyMaster = cs.whatToActivate.data as ContingentList;
+							if(cs.whatToActivate.Data is ContingentList) {
+								contingencyMaster = cs.whatToActivate.Data as ContingentList;
 							}
 						}
 						doEvent.RegisterContingency (contingencyMaster);
@@ -310,14 +322,16 @@ public class PropertyDrawer_EditorGUIObjectReference : PropertyDrawer {
 		return obj;
 	}
 
-	public static Object DoGUIEnumLabeledString<T>(Rect _position, Object obj, _NS.Contingency.Contingentable self, PropertyDrawer_EditorGUIObjectReference p,
+	public static Object DoGUIEnumLabeledString<T>(Rect _position, Object obj, Component self, PropertyDrawer_ObjectPtr p,
 		ref T enumValue, ref string textValue, string[] options = null) {
 		if(options == null) {
 			options = editChoiceOrNullify;
 		}
+		int oldindent = EditorGUI.indentLevel;
+		EditorGUI.indentLevel = 0;
 		Rect r = _position;
-		float w = PropertyDrawer_EditorGUIObjectReference.defaultOptionWidth, 
-		wl = PropertyDrawer_EditorGUIObjectReference.defaultLabelWidth;
+		float w = PropertyDrawer_ObjectPtr.defaultOptionWidth, 
+		wl = PropertyDrawer_ObjectPtr.defaultLabelWidth;
 		r.width = wl;
 		enumValue = EditorGUI_EnumPopup<T>(r, enumValue);
 		r.x += r.width;
@@ -326,28 +340,29 @@ public class PropertyDrawer_EditorGUIObjectReference : PropertyDrawer {
 		r.x += r.width;
 		r.width = w;
 		StandardOptionPopup(r, ref obj);
-		p.choice = EditorGUI.Popup(r, 0, options);
-		if (0 != p.choice) {
-			if(options[p.choice] == setToNull) {
-				obj = null;
-				p.choice = 0;
-			} else if(options[p.choice] == delete) {
-				// Debug.Log("delete "+obj);
-				GameObject.DestroyImmediate(obj);
-				obj = null;
-				p.choice = 0;
-			}
-		}
+		EditorGUI.indentLevel = oldindent;
+		//p.choice = EditorGUI.Popup(r, 0, options);
+		// if (0 != p.choice) {
+		// 	if(options[p.choice] == setToNull) {
+		// 		obj = null;
+		// 		p.choice = 0;
+		// 	} else if(options[p.choice] == delete) {
+		// 		// Debug.Log("delete "+obj);
+		// 		GameObject.DestroyImmediate(obj);
+		// 		obj = null;
+		// 		p.choice = 0;
+		// 	}
+		// }
 		return obj;
 	}
 
 	public static int StandardOptionPopup(Rect r, ref Object obj) {
-		int choice = EditorGUI.Popup(r, 0, PropertyDrawer_EditorGUIObjectReference.editChoiceOrNullify);
+		int choice = EditorGUI.Popup(r, 0, PropertyDrawer_ObjectPtr.editChoiceOrNullify);
 		if (0 != choice){
-			if(PropertyDrawer_EditorGUIObjectReference.editChoiceOrNullify[choice] == PropertyDrawer_EditorGUIObjectReference.setToNull) {
+			if(PropertyDrawer_ObjectPtr.editChoiceOrNullify[choice] == PropertyDrawer_ObjectPtr.setToNull) {
 				obj = null;
 				choice = 0;
-			} else if(PropertyDrawer_EditorGUIObjectReference.editChoiceOrNullify[choice] == PropertyDrawer_EditorGUIObjectReference.delete) {
+			} else if(PropertyDrawer_ObjectPtr.editChoiceOrNullify[choice] == PropertyDrawer_ObjectPtr.delete) {
 				GameObject.DestroyImmediate(obj);
 				obj = null;
 				choice = 0;

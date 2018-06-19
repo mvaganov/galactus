@@ -11,7 +11,7 @@ namespace NS.Contingency {
 		public struct KeyBind {
 			public KeyCode key;
 			public OnInputType act;
-			public EditorGUIObjectReference bound;// = new EditorGUIObjectReference();
+			public ObjectPtr bound; //= new ObjectPtr(null);
 			public bool IsActive() {
 				switch (act) {
 				case OnInputType.keyDown: return (Input.GetKeyDown (key));
@@ -26,7 +26,7 @@ namespace NS.Contingency {
 				}
 			}
 			public KeyBind(KeyCode key, OnInputType act, UnityEngine.Object obj) {
-				this.key=key;this.act=act;this.bound.data=obj;
+				this.key=key;this.act=act;this.bound=new ObjectPtr(obj);
 			}
 		}
 
@@ -34,14 +34,14 @@ namespace NS.Contingency {
 
 		void Reset() {
 			if (keyBindings.Count == 0) {
-				NS.Contingency.Response.DoActivateDebugLog d = gameObject.AddComponent<NS.Contingency.Response.DoActivateDebugLog>();
+				NS.Contingency.Response.DoString d = gameObject.AddComponent<NS.Contingency.Response.DoString>();
 				d.Text = "Hello";
 				keyBindings.Add (new KeyBind(KeyCode.Escape, OnInputType.keyDown, d) );
 			}
 		}
 
 		public override int GetChildContingencyCount() {return keyBindings.Count;}
-		public override UnityEngine.Object GetChildContingency(int index) { return keyBindings [index].bound.data; }
+		public override UnityEngine.Object GetChildContingency(int index) { return keyBindings [index].bound.Data; }
 		void Start() { }
 
 		void FixedUpdate() {

@@ -29,8 +29,8 @@ public class F {
 		bool activate			// whether this is an activate or deactivate request
 	) {
 		if (whatToActivate == null) { Debug.LogError ("Don't know how to activate null"); return; }
-		if (whatToActivate is EditorGUIObjectReference) {
-			whatToActivate = ((EditorGUIObjectReference)whatToActivate).data;
+		if (whatToActivate is ObjectPtr) {
+			whatToActivate = ((ObjectPtr)whatToActivate).Data;
 		}
 		System.Type type = whatToActivate.GetType ();
 		if (typeof(System.Action).IsAssignableFrom (type)) {

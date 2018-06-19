@@ -82,6 +82,7 @@ namespace VRTK.Controllables.PhysicsBased
         {
             if (controlRigidbody != null)
             {
+                Debug.Log("jerk! "+newVelocity);
                 controlRigidbody.velocity = newVelocity;
             }
         }

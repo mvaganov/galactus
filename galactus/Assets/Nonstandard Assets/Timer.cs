@@ -14,7 +14,7 @@ namespace NS {
 		[Tooltip("When to trigger")]
 		public float seconds = 1;
 		[Tooltip("Transform to teleport to\nSceneAsset to load a new scene\nAudioClip to play audio\nGameObject to SetActivate(true)")]
-		public EditorGUIObjectReference whatToActivate = new EditorGUIObjectReference();
+		public ObjectPtr whatToActivate = new ObjectPtr();
 		[Tooltip("If true, restart a timer after triggering")]
 		public bool repeat = false;
 
@@ -22,12 +22,12 @@ namespace NS {
 			if (repeat) {
 				SetTimeout (DoTimer, (long)(seconds * 1000));
 			}
-			SetTimeout (whatToActivate.data, (long)(seconds * 1000));
+			SetTimeout (whatToActivate.Data, (long)(seconds * 1000));
 		}
 
 		void Start() {
 			base.Init ();
-			if(whatToActivate.data != null) { DoTimer(); }
+			if(whatToActivate.Data != null) { DoTimer(); }
 		}
 	}
 

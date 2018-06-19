@@ -11,7 +11,7 @@ namespace NS.Contingency.Response {
 		protected float secondsDelay;
 		public bool activate = true;
 		
-		public EditorGUIObjectReference next;
+		public ObjectPtr next;
 
 		public float Seconds { set { this.secondsDelay = value; } get { return this.secondsDelay; } }
 		public void DoActivate (object whatTriggeredThis, object whatIsBeingTriggerd, bool activate) {
@@ -23,12 +23,12 @@ namespace NS.Contingency.Response {
 		private static string[] activeOptions = new string[]{"sec,  do", "sec,undo"};
 
 		#if UNITY_EDITOR
-		public override Object DoGUI(Rect _position, Object obj, _NS.Contingency.Contingentable self, PropertyDrawer_EditorGUIObjectReference p) {
+		public override Object DoGUI(Rect _position, Object obj, Component self, PropertyDrawer_ObjectPtr p) {
 			if(this == null) return null;
 			//[seconds] "sec, do" [thing]
 			Rect r = _position;
-			float w = PropertyDrawer_EditorGUIObjectReference.defaultOptionWidth, 
-			wl = PropertyDrawer_EditorGUIObjectReference.defaultLabelWidth;
+			float w = PropertyDrawer_ObjectPtr.defaultOptionWidth, 
+			wl = PropertyDrawer_ObjectPtr.defaultLabelWidth;
 			r.width = wl * 2 / 5;
 			secondsDelay = EditorGUI.FloatField(r, secondsDelay);
 			r.x += r.width;
@@ -42,18 +42,18 @@ namespace NS.Contingency.Response {
 			SerializedProperty asset = prop.FindPropertyRelative("data");
 			Object o = asset.objectReferenceValue;
 			//asset.objectReferenceValue = p.EditorGUIObjectReference(r, asset.objectReferenceValue, this);
-			PropertyDrawer_EditorGUIObjectReference.showLabel = false;
+			PropertyDrawer_ObjectPtr.showLabel = false;
 			EditorGUI.PropertyField (r, prop);
-			next.data = asset.objectReferenceValue;
-			PropertyDrawer_EditorGUIObjectReference.showLabel = true;
+			next.Data = asset.objectReferenceValue;
+			PropertyDrawer_ObjectPtr.showLabel = true;
 
 			r.x += r.width;
 			r.width = w;
-			PropertyDrawer_EditorGUIObjectReference.StandardOptionPopup(r, ref obj);
+			PropertyDrawer_ObjectPtr.StandardOptionPopup(r, ref obj);
 			return obj;
 		}
 
-		public override float CalcPropertyHeight (PropertyDrawer_EditorGUIObjectReference p) {
+		public override float CalcPropertyHeight (PropertyDrawer_ObjectPtr p) {
 			SerializedObject childObj = new SerializedObject (this);
 			SerializedProperty prop = childObj.FindProperty("next");
 			return EditorGUI.GetPropertyHeight (prop);
