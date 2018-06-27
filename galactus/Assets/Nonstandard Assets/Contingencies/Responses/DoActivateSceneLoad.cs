@@ -7,7 +7,7 @@ namespace NS.Contingency.Response {
 		public string sceneName;
 		public enum SceneLoadType {LoadScene, AddScene, RemoveScene};
 		public SceneLoadType loadType = SceneLoadType.LoadScene;
-		public EditorGUIObjectReference activateWhenDone;
+		public ObjectPtr activateWhenDone;
 		public void DoActivateTrigger () { DoActivateTrigger(null); }
 		public void DoActivateTrigger (object whatTriggeredThis) {
 			DoLoad(whatTriggeredThis, loadType, true);
@@ -25,7 +25,7 @@ namespace NS.Contingency.Response {
 				op = SceneManager.UnloadSceneAsync(sceneName);
 				break;
 			}
-			if(activateWhenDone.data != null) {
+			if(activateWhenDone.Data != null) {
 				op.completed += (AsyncOperation a)=> {
 					NS.F.DoActivate(activateWhenDone, whatTriggeredThis, this, activating);
 				};
@@ -35,8 +35,8 @@ namespace NS.Contingency.Response {
 			DoLoad(whatTriggeredThis, loadType, false);
 		}
 		#if UNITY_EDITOR
-		public override Object DoGUI(Rect _position, Object obj, _NS.Contingency.Contingentable self, PropertyDrawer_EditorGUIObjectReference p) {
-			obj = PropertyDrawer_EditorGUIObjectReference.DoGUIEnumLabeledString<SceneLoadType>(
+		public override Object DoGUI(Rect _position, Object obj, Component self, PropertyDrawer_ObjectPtr p) {
+			obj = PropertyDrawer_ObjectPtr.DoGUIEnumLabeledString<SceneLoadType>(
 				_position, obj, self, p, ref loadType, ref sceneName);
 			return obj;
 		}

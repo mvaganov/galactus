@@ -29,8 +29,8 @@ public class F {
 		bool activate			// whether to activate or deactivate. In "The straw that broke the camel's back", this is whether to break-or-unbreak the-camel's-back.
 	) {
 		if (whatToActivate == null) { Debug.LogError ("Don't know how to activate null"); return; }
-		if (whatToActivate is EditorGUIObjectReference) {
-			whatToActivate = ((EditorGUIObjectReference)whatToActivate).data;
+		if (whatToActivate is ObjectPtr) {
+			whatToActivate = ((ObjectPtr)whatToActivate).Data;
 		}
 		System.Type type = whatToActivate.GetType ();
 		if (typeof(System.Action).IsAssignableFrom (type)) {

@@ -17,10 +17,10 @@ namespace NS.Contingency.Response {
 		}
 
 		#if UNITY_EDITOR
-		public override Object DoGUI(Rect _position, Object obj, _NS.Contingency.Contingentable self, PropertyDrawer_EditorGUIObjectReference p) {
+		public override Object DoGUI(Rect _position, Object obj, Component self, PropertyDrawer_ObjectPtr p) {
 			float originalWidth = _position.width;
-			float w = PropertyDrawer_EditorGUIObjectReference.defaultOptionWidth;
-			float h = PropertyDrawer_EditorGUIObjectReference.unitHeight;
+			float w = PropertyDrawer_ObjectPtr.defaultOptionWidth;
+			float h = PropertyDrawer_ObjectPtr.unitHeight;
 			_position.width = originalWidth - w;
 			DoActivateUnityEvent sl = obj as DoActivateUnityEvent;
 			if(sl == null) { return obj; }
@@ -46,11 +46,11 @@ namespace NS.Contingency.Response {
 			// 	}
 
 			// }
-			PropertyDrawer_EditorGUIObjectReference.StandardOptionPopup(new Rect(_position.x+_position.width, _position.y, w, h), ref obj);
+			PropertyDrawer_ObjectPtr.StandardOptionPopup(new Rect(_position.x+_position.width, _position.y, w, h), ref obj);
 			return obj;
 		}
 
-		public override float CalcPropertyHeight (PropertyDrawer_EditorGUIObjectReference p) {
+		public override float CalcPropertyHeight (PropertyDrawer_ObjectPtr p) {
 			SerializedObject childObj = new SerializedObject (this);
 			SerializedProperty prop = childObj.FindProperty("howToActivate");
 			return EditorGUI.GetPropertyHeight (prop);
