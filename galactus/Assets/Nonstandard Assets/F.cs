@@ -88,7 +88,12 @@ public class F {
 				ps.Stop ();
 			}
 		} else if (type == typeof(GameObject)) {
-			(whatToActivate as GameObject).SetActive (activate);
+			GameObject go = (whatToActivate as GameObject);
+			if(go == null) {
+				Debug.LogWarning("GameObject destroyed?");
+			} else {
+				go.SetActive (activate);
+			}
 		} else if (type == typeof(UnityEngine.Material)) {
 			GameObject go = ConvertToGameObject(doingActivate);
 			RememberedOriginalMaterial r = go.GetComponent<RememberedOriginalMaterial> ();
@@ -138,7 +143,7 @@ public class F {
 				}
 			}
 			if(!invoked) {
-				Debug.LogError ("Don't know how to "+((activate)?"DoActivateTrigger":"DoDeactivateTrigger")+" a \'" + type + "\'");
+				Debug.LogError ("Don't know how to "+((activate)?"DoActivateTrigger":"DoDeactivateTrigger")+" a \'" + type + "\' ("+whatToActivate+") with \'"+doingActivate+"\', triggered by \'"+causedActivate+"\'");
 			}
 		}
 	}
