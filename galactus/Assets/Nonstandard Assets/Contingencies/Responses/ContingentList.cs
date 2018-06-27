@@ -9,6 +9,7 @@ namespace NS.Contingency.Response {
 	public class ContingentList : _NS.Contingency.Response.DoActivateBasedOnContingency {
 		public enum KindOfList {Normal_List, Sequence_List, Priority_List};
 		public KindOfList kindOfList;
+		public string description;
 		public List<EditorGUIObjectReference> elements = new List<EditorGUIObjectReference>();
 		public virtual void DoActivateTrigger () { DoActivate(null, this, true); }
 		public void DoActivate (object whatTriggeredThis, object whatIsBeingTriggerd, bool active) {
@@ -28,6 +29,8 @@ namespace NS.Contingency.Response {
 
 		#if UNITY_EDITOR
 		public override Object DoGUI(Rect _position, Object obj, _NS.Contingency.Contingentable self, PropertyDrawer_EditorGUIObjectReference p) {
+			// TODO implement description to give more visible customization to lists.
+			// TODO indent sub-lists
 			float originalWidth = _position.width;
 			float w = PropertyDrawer_EditorGUIObjectReference.defaultOptionWidth;
 			float wl = PropertyDrawer_EditorGUIObjectReference.defaultLabelWidth;

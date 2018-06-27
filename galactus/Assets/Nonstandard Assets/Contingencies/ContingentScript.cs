@@ -54,6 +54,7 @@ namespace _NS.Contingency {
 		#endif
 	}
 }
+// TODO rename namespace to Z.
 namespace NS.Contingency {
 	public class ContingentScript : Contingentable {
 		[Tooltip("* Transform: teleport activating object to the Transform\n"+

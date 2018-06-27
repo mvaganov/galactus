@@ -9,6 +9,8 @@ namespace NS.Contingency.Response {
 	public class DoActivateDebugLog : _NS.Contingency.Response.DoActivateBasedOnContingency {
 		[SerializeField]
 		protected string text;
+		public enum DebugLogTypes {Log, Warning, Error};
+		public DebugLogTypes typeOfLog = DebugLogTypes.Log;
 		public string Text { set { this.text = value; } get { return this.text; } }
 		public void DoActivateTrigger (object whatTriggeredThis) { DoActivateTrigger(); }
 		public void DoDeactivateTrigger (object whatTriggeredThis) { DoActivateTrigger(); }
@@ -21,8 +23,6 @@ namespace NS.Contingency.Response {
 			}
 		}
 
-		public enum DebugLogTypes {Log, Warning, Error};
-		public DebugLogTypes typeOfLog = DebugLogTypes.Log;
 		#if UNITY_EDITOR
 		public override Object DoGUI(Rect _position, Object obj, _NS.Contingency.Contingentable self, PropertyDrawer_EditorGUIObjectReference p) {
 			string t = Text;

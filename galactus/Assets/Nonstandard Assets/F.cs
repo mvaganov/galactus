@@ -23,10 +23,10 @@ public class F {
 
 	//public static void DoActivate(object whatToActivate) { DoActivate(whatToActivate, null, null, true); }
 	public static void DoActivate(
-		object whatToActivate,	// what needs to be activated
-		object causedActivate,	// what triggered the activation
-		object doingActivate,	// what is doing the activation
-		bool activate			// whether this is an activate or deactivate request
+		object whatToActivate,	// what needs to be activated. In "The straw that broke the camel's back", this is the "camel's back".
+		object causedActivate,	// what triggered the activation. In "The straw that broke the camel's back", this is "the straw".
+		object doingActivate,	// what is doing the activation. In "The straw that broke the camel's back", this is "the camel".
+		bool activate			// whether to activate or deactivate. In "The straw that broke the camel's back", this is whether to break-or-unbreak the-camel's-back.
 	) {
 		if (whatToActivate == null) { Debug.LogError ("Don't know how to activate null"); return; }
 		if (whatToActivate is EditorGUIObjectReference) {
