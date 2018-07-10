@@ -24,6 +24,7 @@ limitations under the License.
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
+using Assets.OVR.Scripts;
 
 /// <summary>
 ///Scans the project and warns about the following conditions:
@@ -34,7 +35,7 @@ using System.Collections.Generic;
 ///Preload audio setting on individual audio clips
 ///Decompressing audio clips on load
 ///Disabling occlusion mesh
-///Android target API level set to 19 or higher
+///Android target API level set to 21 or higher
 ///Unity skybox use (on by default, but if you can't see the skybox switching to Color is much faster on Gear)
 ///Lights marked as "baked" but that were not included in the last bake (and are therefore realtime).
 ///Lack of static batching and dynamic batching settings activated.
@@ -73,34 +74,11 @@ public class OVRLint : EditorWindow
 	///Use of Unity WWW (exceptionally high overhead for large file downloads, but acceptable for tiny gets).
 	///Declared but empty Awake/Start/Update/OnCollisionEnter/OnCollisionExit/OnCollisionStay.  Also OnCollision* star methods that declare the Collision  argument but do not reference it (omitting it short-circuits the collision contact calculation).
 
-	public delegate void FixMethodDelegate(UnityEngine.Object obj, bool isLastInSet, int selectedIndex);
-
-	public struct FixRecord
-	{
-		public string category;
-		public string message;
-		public FixMethodDelegate fixMethod;
-		public UnityEngine.Object targetObject;
-		public string[] buttonNames;
-		public bool complete;
-
-
-		public FixRecord(string cat, string msg, FixMethodDelegate fix, UnityEngine.Object target, string[] buttons)
-		{
-			category = cat;
-			message = msg;
-			buttonNames = buttons;
-			fixMethod = fix;
-			targetObject = target;
-			complete = false;
-		}
-	}
-
 	private static List<FixRecord> mRecords = new List<FixRecord>();
 	private Vector2 mScrollPosition;
 
 
-	[MenuItem("Tools/Oculus/Audit Project for VR Performance Issues")]
+	[MenuItem("Tools/Oculus/OVR Performance Lint Tool")]
 	static void Init()
 	{
 		// Get existing open window or if none, make a new one:
@@ -110,7 +88,7 @@ public class OVRLint : EditorWindow
 
 	void OnGUI()
 	{
-		GUILayout.Label("OVR Lint Tool", EditorStyles.boldLabel);
+		GUILayout.Label("OVR Performance Lint Tool", EditorStyles.boldLabel);
 		if (GUILayout.Button("Refresh", EditorStyles.toolbarButton, GUILayout.ExpandWidth(false)))
 		{
 			RunCheck();
@@ -383,8 +361,8 @@ public class OVRLint : EditorWindow
 				{
 					AddFix("Optimize Audio Source Count", "For CPU performance, please disable all but the top 16 AudioSources.", delegate (UnityEngine.Object obj, bool last, int selected)
 					{
-						AudioSource audioSource = (AudioSource)obj;
-						audioSource.enabled = false;
+					AudioSource audioSource = (AudioSource)obj;
+					audioSource.enabled = false;
 					}, playingAudioSources[i], "Disable");
 				}
 			}
@@ -493,6 +471,32 @@ public class OVRLint : EditorWindow
 					OVROverlay.instances[i].enabled = false;
 				}
 			}, null, "Fix");
+		}
+
+		var splashScreen = PlayerSettings.virtualRealitySplashScreen;
+		if (splashScreen != null)
+		{
+			if (splashScreen.filterMode != FilterMode.Trilinear)
+			{
+				AddFix("Optimize VR Splash Filtering", "For visual quality, please use trilinear filtering on your VR splash screen.", delegate (UnityEngine.Object obj, bool last, int EditorSelectedRenderState)
+				{
+					var assetPath = AssetDatabase.GetAssetPath(splashScreen);
+					var importer = (TextureImporter)TextureImporter.GetAtPath(assetPath);
+					importer.filterMode = FilterMode.Trilinear;
+					AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+				}, null, "Fix");
+			}
+
+			if (splashScreen.mipmapCount <= 1)
+			{
+				AddFix("Generate VR Splash Mipmaps", "For visual quality, please use mipmaps with your VR splash screen.", delegate (UnityEngine.Object obj, bool last, int EditorSelectedRenderState)
+				{
+					var assetPath = AssetDatabase.GetAssetPath(splashScreen);
+					var importer = (TextureImporter)TextureImporter.GetAtPath(assetPath);
+					importer.mipmapEnabled = true;
+					AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate);
+				}, null, "Fix");
+			}
 		}
 	}
 

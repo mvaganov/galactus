@@ -1,0 +1,24 @@
+BT.Sequence {desc*"entire process"c*[
+	BT.SetVariableToGlobalObject {n*"box"o*"random area"desc*"set the random area box"}
+	BT.SetVariableToGlobalObject {n*"marker"o*"marker"desc*"set the MoveAt marker"}
+	BT.SetVariableToResource {n*"explosion"o*"poof"desc*"set the explosion"}
+	BT.NextRoot {desc*"switch to main process"c*:
+		BT.Selector {desc*"select behavior"c*[
+			BT.Sequence {desc*"target seeking option"c*[
+				BT.HasVariable {n*"target"desc*"if has target"}
+				BT.Selector {desc*"I have a target now what"c*[
+					BT.Sequence {desc*"Am I there yet?"c*[
+						BT.WithinRange {v*"target"r*:2 desc*"checking if I'm there"}
+						BT.Instantiate {prefab*"explosion"loc*"target"desc*"victory particle effect!"}
+						BT.ClearVariable {v*"target"desc*"don't need this target anymore"}
+					]}
+					BT.MoveAt {t*"target"desc*"not there? I should move there!"}
+				]}
+			]}
+			BT.Sequence {desc*"no target to seek"c*[
+				BT.RandomLocationFromBox {box*"box"v*"target"desc*"pick a random location in box, put it in target"}
+				BT.TeleportObject {t*"marker"dest*"target"desc*"move my marker object to the target"}
+			]}
+		]}
+	}
+]}

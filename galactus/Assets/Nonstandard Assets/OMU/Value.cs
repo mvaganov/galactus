@@ -8,9 +8,9 @@ using OBJ_TYPE = System.Collections.Generic.Dictionary<object,object>;
 
 namespace OMU {
 	/// <summary>Value-type wrapper around:
-	/// OM.Object(Dictionary<object,object>)
-	/// OM.Array(List<object>)
-	/// OM.Expression
+	/// OMU.Object(Dictionary&lt;object,object&rt;)
+	/// OMU.Array(List&lt;object&rt;)
+	/// OMU.Expression
 	/// Value types (string, int, double, bool, Vector2, Vector3, object, ...)
 	/// made to simplify use of the ObjectModel system</summary>
 	public class Value {
@@ -184,6 +184,38 @@ namespace OMU {
 		public static implicit operator Value(Vector3 value) { return new Value(value); }
         public static implicit operator Value(Quaternion value) { return new Value(value); }
 
+		public static int GetInt(object fromWhat, string nameOfInt, int defaultValue = 0) {
+			int returnedValue = defaultValue;
+			if(!TryGetInt(fromWhat, nameOfInt, out returnedValue)){
+				return defaultValue;
+			}
+			return returnedValue;
+		}
+		public static long GetLong(object fromWhat, string nameOfInt, long defaultValue = 0L) {
+			long returnedValue = defaultValue;
+			if(!TryGetLong(fromWhat, nameOfInt, out returnedValue)){
+				return defaultValue;
+			}
+			return returnedValue;
+		}
+		public static bool TryGetInt(object fromWhat, string intName, out int value) {
+			object obj;
+			value = 0;
+			if(OMU.Data.TryDeReferenceGet(fromWhat, intName, out obj)) {
+				value = (int)obj;
+				return true;
+			}
+			return false;
+		}
+		public static bool TryGetLong(object fromWhat, string intName, out long value) {
+			object obj;
+			value = 0;
+			if(OMU.Data.TryDeReferenceGet(fromWhat, intName, out obj)) {
+				value = (long)obj;
+				return true;
+			}
+			return false;
+		}
         public static Value FromScript(string omScript, string sourceName = "unnamed script") {
 			FileParseResults results = null;
 			return new Value(Parser.Parse (Parser.ParseType.JSON, sourceName, omScript, ref results));

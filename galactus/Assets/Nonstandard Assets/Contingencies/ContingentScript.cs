@@ -44,6 +44,8 @@ namespace _NS.Contingency {
 			return null;
 		}
 
+		
+
 		#if UNITY_EDITOR
 		public virtual Object DoGUI(Rect _position, Object obj, Component self, PropertyDrawer_ObjectPtr p) {
 			return p.StandardEditorGUIObjectReference (_position, obj, self);
@@ -275,7 +277,7 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 						c as _NS.Contingency.Response.DoActivateBasedOnContingency;
 					if (c != null && doEvent != null) {
 						Contingentable contingencyMaster = self as Contingentable;
-						if(self is ContingentScript){
+						if(self is ContingentScript) {
 							ContingentScript cs = self as ContingentScript;
 							if(cs.whatToActivate.Data is ContingentList) {
 								contingencyMaster = cs.whatToActivate.Data as ContingentList;

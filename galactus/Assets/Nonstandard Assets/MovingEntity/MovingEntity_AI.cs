@@ -6,6 +6,9 @@ public class MovingEntity_AI : MonoBehaviour {
 	MovingEntity me;
 
 	public Transform target;
+	public Vector3 targetPoint;
+	public bool useTargetPoint = false;
+	public bool useRandomWalkWithoutTarget = false;
 
 	public MovingEntity.DirectionMovementIsPossible moveType;
 
@@ -16,15 +19,28 @@ public class MovingEntity_AI : MonoBehaviour {
 		me = GetComponent<MovingEntity>();
 	}
 	
+	public void SetSeekLocation(Vector3 v) {
+		targetPoint = v;
+		useTargetPoint = true;
+	}
+
+	public void ClearSeekLocation() {
+		useTargetPoint = false;
+	}
+
 	// Update is called once per frame
 	void FixedUpdate () {
 		timer += Time.deltaTime;
 		if(timer >= aiUpdateTimer) {
 			timer -= aiUpdateTimer;
-			if(target){
+			if(useTargetPoint) {
+				me.Seek(targetPoint, moveType);
+			} else if(target) {
 				me.Seek(target.position, moveType);
-			} else {
+			} else if(useRandomWalkWithoutTarget) {
 				me.RandomWalk();
+			} else {
+				me.Seek(transform.position, moveType);
 			}
 		}
 	}

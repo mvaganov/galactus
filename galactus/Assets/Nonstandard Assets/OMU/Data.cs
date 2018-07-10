@@ -7,8 +7,9 @@ using System.Text;
 using System.IO;
 
 using LIST_TYPE = System.Collections.Generic.List<object>;
+// TODO replace with IDictionary.
+// check if IDictionay with objType.IsGenericType && objType.GetGenericTypeDefinition() == typeof(Dictionary<,>)
 using OBJ_TYPE = System.Collections.Generic.Dictionary<object,object>;
-// TODO replace use of OM.Object with IDictionary
 
 namespace OMU {
 	/// <summary>
@@ -1277,7 +1278,7 @@ namespace OMU {
 			return dict;
 		}
 		/// <summary></summary>
-		/// <returns>The compiled value (made of Om.Object, ARRAY, and basic types including OM.Expression)</returns>
+		/// <returns>The compiled value (made of Dictionary&lt;object,object&rt;, List&lt;object&rt;, and basic types including OM.Expression)</returns>
 		/// <param name="value">Value.</param>
 		/// <param name="ft">what type is being parsed (not the type that will be returned)</param>
 		static public object SerializedToOm(object objToCompile, Type ft, bool hideZeroNull, bool compressNames, string[] ignoreFieldsPrefixedWith, LIST_TYPE objectHierarchy) {

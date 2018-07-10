@@ -42,6 +42,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aed62bf3ae2456c408f247f96808ce96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_modelGearVrController: {fileID: 1000010178323718}
+  m_modelOculusGoController: {fileID: 1956530202777762}
+  m_controller: 33554432
 --- !u!1001 &100100000
 Prefab:
   m_ObjectHideFlags: 1
