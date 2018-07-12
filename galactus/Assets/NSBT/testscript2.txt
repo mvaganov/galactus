@@ -1,5 +1,5 @@
-BT.Sequence {desc*"entire process"c*[
-	BT.SetVariableToGlobalObject {n*"box"o*"random area"desc*"set the random area box"}
+BT.Sequence { description: "entire process" children:[
+	BT.SetVariableToGlobalObject { nameOfVariable:"box" objectName:"random area" description:"set the random area box" }
 	BT.SetVariableToGlobalObject {n*"marker"o*"marker"desc*"set the MoveAt marker"}
 	BT.SetVariableToResource {n*"explosion"o*"poof"desc*"set the explosion"}
 	BT.NextRoot {desc*"switch to main process"c*:

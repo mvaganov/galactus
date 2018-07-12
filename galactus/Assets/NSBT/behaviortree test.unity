@@ -229,7 +229,7 @@ MonoBehaviour:
   targetPoint: {x: 0, y: 0, z: 0}
   useTargetPoint: 0
   useRandomWalkWithoutTarget: 0
-  moveType: 4
+  moveType: 1
   aiUpdateTimer: 0.5
 --- !u!114 &3401357
 MonoBehaviour:
