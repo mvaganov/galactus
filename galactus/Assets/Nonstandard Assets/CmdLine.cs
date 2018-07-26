@@ -266,7 +266,16 @@ public class CmdLine : MonoBehaviour {
 		tmpInputField = tmpGo.AddComponent<TMP_InputField> ();
 		tmpInputField.lineType = TMP_InputField.LineType.MultiLineNewline;
 		tmpInputField.textViewport = tmpInputField.GetComponent<RectTransform> ();
-		TextMeshProUGUI tmpText = (new GameObject ("Text")).AddComponent<TextMeshProUGUI> ();
+		TextMeshProUGUI tmpText;
+		#if UNITY_EDITOR
+		try {
+		#endif
+			tmpText = (new GameObject ("Text")).AddComponent<TextMeshProUGUI> ();
+		#if UNITY_EDITOR
+		} catch(System.Exception) {
+			throw new System.Exception("Could not create a TextMeshProUGUI object. Did you get default fonts into TextMeshPro? Window -> TextMeshPro -> Import TMP Essential Resources");
+		}
+		#endif
 		if (textMeshProFont != null) {
 			tmpText.font = textMeshProFont;
 		}
