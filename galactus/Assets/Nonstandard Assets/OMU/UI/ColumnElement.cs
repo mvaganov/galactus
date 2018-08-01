@@ -2,26 +2,27 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public abstract class ColumnElement : MonoBehaviour, R3.Reusable, ListUI.HasDirtyFlag {
 	public static float DEFAULT_HEIGHT = 7;
-	public RowElement ve;
+	public RowElement row;
 	public int columnIndex;
 	private bool hasInitializedUI = false;
 	public bool IsUIReady(){return hasInitializedUI;}
-	public ListUI.ColumnRule GetRule() { return ve.manager.format.columnRules[columnIndex]; }
+	public ListUI.ColumnRule GetRule() { return row.manager.format.columnRules[columnIndex]; }
 	abstract public void InitializeUI();
 	protected bool isDirty = false;public void SetDirty(bool dirty){isDirty=dirty;}public bool IsDirty(){return isDirty;}
 	public virtual void Set(int columnIndex,RowElement e){
-		if(ve==e&&this.columnIndex==columnIndex)return;
-		SetDirty(true);ve=e;this.columnIndex=columnIndex;
-		if(!IsUIReady()){transform.SetParent(ve.transform); InitializeUI();hasInitializedUI=true;}
+		if(row==e&&this.columnIndex==columnIndex)return;
+		SetDirty(true);row=e;this.columnIndex=columnIndex;
+		if(!IsUIReady()){transform.SetParent(row.transform); InitializeUI();hasInitializedUI=true;}
 	}
-	public void RefreshPosition() {
-		transform.SetParent(ve.transform);
+	public virtual void RefreshPosition() {
+		transform.SetParent(row.transform);
 		RectTransform rc = GetComponent<RectTransform>();
 		UGUI.UPPERLEFT_ANCHOR(rc);
 		rc.anchoredPosition = new Vector2(GetRule().GetX(), 0);
-		rc.sizeDelta = new Vector2(GetRule().width, ve.manager.GetStandardElementHeight());
+		rc.sizeDelta = new Vector2(GetRule().width, row.manager.GetStandardElementHeight());
 	}
 	public void SetHeight(float height) {
 		RectTransform r = transform.GetComponent<RectTransform>();
@@ -35,12 +36,15 @@ public abstract class ColumnElement : MonoBehaviour, R3.Reusable, ListUI.HasDirt
 		elem.Set(columnIndex,row);
 		return elem;
 	}
-	public virtual void Refresh(){
-		if(textProxy!=null)textProxy.text=ve.Resolve(columnIndex).ToString();
-		RefreshPosition();SetDirty(false);
+	public virtual void Refresh() {
+        if(textProxy!=null) {
+            textProxy.text=row.Resolve(columnIndex).ToString();
+        }
+		RefreshPosition();
+        SetDirty(false);
 	}
 	/// cleans self up for parent system so it can be repurposed
-	public virtual void Recycle(){ve=null;columnIndex=-1;transform.SetParent(null);SetDirty(true);}
+	public virtual void Recycle(){row=null;columnIndex=-1;transform.SetParent(null);SetDirty(true);}
 	public virtual void Select() {UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(gameObject);}
 	public virtual void Deselect(){}
 	/// convenience, since most UI elements have some kind of text output.
@@ -85,13 +89,14 @@ public abstract class ColumnElement : MonoBehaviour, R3.Reusable, ListUI.HasDirt
 		public bool reverseSort = false;
 		override public void InitializeUI() {
 			base.InitializeUI();
-			ListUI.ColumnRule cr = ve.manager.format.columnRules[columnIndex];
+			ListUI.ColumnRule cr = row.manager.format.columnRules[columnIndex];
 			GetComponent<UnityEngine.UI.Button>().onClick.AddListener(()=>{
-				cr.Sort(ve.manager.GetObjects(), reverseSort);
-				ve.manager.ForceRefreshAllElements(ve.Index);
+				cr.Sort(row.manager.GetObjects(), reverseSort);
+				row.manager.ForceRefreshAllElements(row.Index);
+                reverseSort = !reverseSort;
 			});
 		}
-		override public void Refresh(){string t=ve.GetLabel(columnIndex);textProxy.text=t;RefreshPosition();SetDirty(false);}
+		override public void Refresh(){string t=row.GetLabel(columnIndex);textProxy.text=t;RefreshPosition();SetDirty(false);}
 	}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -104,9 +109,14 @@ public abstract class ColumnElement : MonoBehaviour, R3.Reusable, ListUI.HasDirt
 			UnityEngine.UI.InputField inf = gameObject.AddComponent<UnityEngine.UI.InputField>();
 			UnityEngine.UI.Text t = gameObject.AddComponent<UnityEngine.UI.Text>();
 			inf.textComponent = textProxy = t;
-			ListUI.ColumnRule cr = ve.manager.format.columnRules[columnIndex];
 			inf.onEndEdit.AddListener((s)=>{
-				if(ve != null){cr.Assign(ve.Subject, s);}
+				if(row != null) {
+                    ListUI.ColumnRule cr = row.manager.format.columnRules[columnIndex];
+                    //Debug.Log("~~~ " + row.manager.format.signature + " ~~ " + row.UI_Signature + "  " +
+                    //          OMU.Serializer.Stringify(row.manager.format.columnRules));
+                    //Debug.Log("assigning in " + row.GetPath());
+                    cr.Assign(row.Subject, s);
+                }
 			//Debug.Log("Set "+s+" "+inf.selectionFocusPosition+" "+inf.selectionAnchorPosition);
 			});
 		}
@@ -118,8 +128,9 @@ public abstract class ColumnElement : MonoBehaviour, R3.Reusable, ListUI.HasDirt
 					if(c.name.EndsWith("Input Caret")) {
 						RectTransform rt = GetComponent<RectTransform>();
 						RectTransform ct = c.GetComponent<RectTransform>();
-						if(rt.anchorMin==ct.anchorMin&&rt.anchorMax==ct.anchorMax
-						&&rt.offsetMin==ct.offsetMin&&ct.offsetMax==ct.offsetMax){
+						if(rt.anchorMin == ct.anchorMin && rt.anchorMax == ct.anchorMax
+						&& rt.offsetMin == ct.offsetMin && ct.offsetMax == ct.offsetMax){
+                        //&& rt.offsetMin == ct.offsetMin && rt.offsetMax == ct.offsetMax){ // TODO is this better?
 							InputCaret ic = c.GetComponent<InputCaret>();
 							if(ic==null){ic=c.gameObject.AddComponent<InputCaret>();ic.input=this;caret=c;}break;
 						}
@@ -129,9 +140,9 @@ public abstract class ColumnElement : MonoBehaviour, R3.Reusable, ListUI.HasDirt
 		}
 		override public void Refresh(){
 			RefreshPosition();
-			string t=ve.Resolve(columnIndex).ToString();
+			string t=row.Resolve(columnIndex).ToString();
 			UnityEngine.UI.InputField inf = GetComponent<UnityEngine.UI.InputField>();
-			ListUI.UIAdjustmentState adj = ve.manager.ADJUST_Get(ve.Index,columnIndex,true);
+			ListUI.UIAdjustmentState adj = row.manager.ADJUST_Get(row.Index,columnIndex,true);
 			if(adj != null) {
 				if(adj.adjustment == ListUI.UIAdjustmentState.Adjustment.selected) {
 					Select();
@@ -165,22 +176,22 @@ public abstract class ColumnElement : MonoBehaviour, R3.Reusable, ListUI.HasDirt
 		override public void Select() {GetInputField().Select();}
 		override public void Deselect() {
 			UnityEngine.UI.InputField inf = GetInputField();
-			inf.text=ve.Resolve(columnIndex).ToString();
+			inf.text=row.Resolve(columnIndex).ToString();
 			inf.selectionFocusPosition=inf.selectionAnchorPosition=0;
 			FinishCancelTextEdit();
 		}
 		override public void Recycle() {
-			if(ve != null) {
-				int selectedColumn = ve.GetSelectedColumn();
+			if(row != null) {
+				int selectedColumn = row.GetSelectedColumn();
 				if(selectedColumn == columnIndex) {
-					ListUI.UIAdjustmentState uias = new ListUI.UIAdjustmentState(ve.Index,columnIndex);
+					ListUI.UIAdjustmentState uias = new ListUI.UIAdjustmentState(row.Index,columnIndex);
 					uias.adjustment = ListUI.UIAdjustmentState.Adjustment.selected;
 					UnityEngine.UI.InputField inf = GetInputField();
 					uias.textAsItWas = inf.text;
 					// Debug.Log("remembering "+uias.textAsItWas+" -->"+ve.Index+" "+columnIndex);
 					uias.caretAnchor = inf.selectionAnchorPosition;
 					uias.caretFocus = inf.selectionFocusPosition;
-					ve.manager.ADJUST_Add(uias);
+					row.manager.ADJUST_Add(uias);
 					Deselect();
 				}
 			}
@@ -190,9 +201,23 @@ public abstract class ColumnElement : MonoBehaviour, R3.Reusable, ListUI.HasDirt
 	}
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /// can only deal with lists or non-value types
 	public class SublistButton : TextButton {
-		ListUI sublist=null;
-		public IList GetList() {return ve.Resolve(columnIndex) as IList;}
+		ListUI sublist = null;
+        private bool isSingleObject = false;
+		public IList GetList() {
+            object data = row.Resolve(columnIndex);
+            IList list = data as IList;
+            if(list == null) {
+                list = new List<object>();
+                if(data != null) {
+                    list.Add(data);
+                }
+                isSingleObject = true;
+            }
+            return list;
+        }
 		/// prevent recursive expansion. best case, double-up on elements. worst case, stack overflow. TODO remove once HasDirtyFlag is working
 		private bool inTheMiddleOfExpanding = false;
 		public bool IsExpanded() { return sublist != null && sublist.gameObject.activeInHierarchy; }
@@ -200,25 +225,25 @@ public abstract class ColumnElement : MonoBehaviour, R3.Reusable, ListUI.HasDirt
 			if(sublist != null) {
 				sublist.Recycle(); // recycle children.
 				// recycle self, using data compiled by children, that just recycled themselves
-				ListUI.UIAdjustmentState adj = new ListUI.UIAdjustmentState(ve.Index,columnIndex);
+				ListUI.UIAdjustmentState adj = new ListUI.UIAdjustmentState(row.Index,columnIndex);
 				if(IsExpanded()) { adj.adjustment = ListUI.UIAdjustmentState.Adjustment.expanded; }
 				if(sublist.adjustments != null && sublist.adjustments.Count != 0) {
 					adj.subAdjustments = sublist.adjustments;
 					sublist.adjustments = null;
 				}
 				if(adj.adjustment != ListUI.UIAdjustmentState.Adjustment.none || adj.subAdjustments != null) {
-					ve.manager.ADJUST_Add(adj);
+					row.manager.ADJUST_Add(adj);
 				}
 				R3.Add(sublist);sublist=null;
 			}
 			base.Recycle();
 		}
 		public void ExpandSubtable(bool show) {
-			if(inTheMiddleOfExpanding)return;
+			if(inTheMiddleOfExpanding) return;
 			inTheMiddleOfExpanding = true;
 			// whether enabling the table or disabling, the location of the next element must be calculated
-			float yOfThisElement = ve.manager.GetOffsetY(ve.Index);
-			float yOfNextElement = yOfThisElement + ve.manager.GetStandardElementHeight();
+			float yOfThisElement = row.manager.GetOffsetY(row.Index);
+			float yOfNextElement = yOfThisElement + row.manager.GetStandardElementHeight();
 			bool needUpdate = show != IsExpanded();
 			// enable or disable
 			if(show) {
@@ -232,8 +257,8 @@ public abstract class ColumnElement : MonoBehaviour, R3.Reusable, ListUI.HasDirt
 					sublist.transform.SetParent(transform.parent);
 				} 
 				// expand the recorded height of this VisibleElement to include the sub-table
-				sublist.Set(GetList(), null, ve.manager);
-				float xIndent = sublist.IndentationLevel * ve.manager.uiSettings.indentation;
+                sublist.Set(GetList(), null, row.manager, row.Index);
+				float xIndent = sublist.IndentationLevel * row.manager.uiSettings.indentation;
 				RectTransform r = sublist.GetComponent<RectTransform>();
 				r.anchoredPosition = new Vector2(xIndent, -yOfNextElement);
 				yOfNextElement += sublist.CalculateHeight();//r.sizeDelta.y;
@@ -242,16 +267,21 @@ public abstract class ColumnElement : MonoBehaviour, R3.Reusable, ListUI.HasDirt
 			} else {
 				if(sublist!=null){sublist.gameObject.SetActive(false);}
 			}
-			// TODO verify that if !show, yOfNextElement is the standard calculated value expected for (ve.Index+1)
-			// float stdexpected = ve.manager.GetOffsetY(ve.Index) + ve.manager.GetStandardElementHeight();
-			// Debug.Log((ve.Index+1)+" "+yOfNextElement+" "+stdexpected);
+            // TODO verify that if !show, yOfNextElement is the standard calculated value expected for (ve.Index+1)
+            // float stdexpected = ve.manager.GetOffsetY(ve.Index) + ve.manager.GetStandardElementHeight();
+            // Debug.Log((ve.Index+1)+" "+yOfNextElement+" "+stdexpected);
 
+            //Debug.Log("update? " + needUpdate);
 			if(needUpdate) {
-				// TODO ve.manager.MarkItemDimensions
-				ve.manager.MarkItemDimensions(ve.Index, yOfThisElement, yOfNextElement-yOfThisElement);
-				// ve.manager.itemPositions.AddInconsistency(ve.Index, yOfNextElement-yOfThisElement, yOfThisElement);
-				// ve.manager.MarkItemAt(ve.Index+1, yOfNextElement);
-				// ve.manager.ForceRefreshAllElements(ve.Index+1);
+                // TODO ve.manager.MarkItemDimensions
+                //				ve.manager.MarkItemDimensions(ve.Index, yOfThisElement, yOfNextElement-yOfThisElement);
+                // ve.manager.itemPositions.AddInconsistency(ve.Index, yOfNextElement-yOfThisElement, yOfThisElement);
+                // ve.manager.MarkItemAt(ve.Index+1, yOfNextElement);
+                // ve.manager.ForceRefreshAllElements(ve.Index+1);
+                float nextHeight = yOfNextElement - yOfThisElement;
+                //Debug.Log("next: " + nextHeight);
+                row.manager.MarkItemDimension(row.Index, nextHeight);
+                row.manager.ForceRefreshAllElements(row.Index + 1);
 			}
 			SetDirty(true);
 			inTheMiddleOfExpanding = false;
@@ -261,14 +291,25 @@ public abstract class ColumnElement : MonoBehaviour, R3.Reusable, ListUI.HasDirt
 			GetButton().onClick.AddListener(()=>{ExpandSubtable(!IsExpanded());});
 		}
 		override public void Refresh() {
+            //Debug.Log("Refresh ColumnElement "+this.GetPath());
 			RefreshPosition();
-			ListUI.UIAdjustmentState adj = ve.manager.ADJUST_Get(ve.Index,columnIndex,true);
-			string t=ve.GetLabel(columnIndex);
+			ListUI.UIAdjustmentState adj = row.manager.ADJUST_Get(row.Index,columnIndex,true);
+			string t = row.GetLabel(columnIndex);
 			IList l = GetList();
-			if(l != null){t+="("+l.Count+")";}
-			textProxy.text=t;
+            if (!isSingleObject) {
+                if (l != null) { t += "(" + l.Count + ")"; }
+            } else {
+                if (l != null) {
+                    if(l.Count == 0) {
+                        t = "(null)";
+                    } else {
+                        t = "(" + t + ")";
+                    }
+                }
+            }
+			textProxy.text = t;
 			if(adj != null) {
-				if(adj.subAdjustments != null) {ve.manager.adjustments=adj.subAdjustments;}
+				if(adj.subAdjustments != null) {row.manager.adjustments=adj.subAdjustments;}
 				if(adj.adjustment == ListUI.UIAdjustmentState.Adjustment.expanded) {
 					if(sublist == null) { ExpandSubtable(true); }
 				} else {
@@ -277,5 +318,16 @@ public abstract class ColumnElement : MonoBehaviour, R3.Reusable, ListUI.HasDirt
 			}
 			SetDirty(false);
 		}
+        override public void RefreshPosition() {
+            base.RefreshPosition();
+            // update the sublist if there is one
+            if(sublist != null) {
+                float yOfThisElement = row.manager.GetOffsetY(row.Index);
+                float yOfNextElement = yOfThisElement + row.manager.GetStandardElementHeight();
+                float xIndent = sublist.IndentationLevel * row.manager.uiSettings.indentation;
+                RectTransform r = sublist.GetComponent<RectTransform>();
+                r.anchoredPosition = new Vector2(xIndent, -yOfNextElement);
+            }
+        }
 	}
 }

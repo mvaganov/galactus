@@ -8,6 +8,7 @@ public class TestListUI : ListUI {
 		public string word; public int n;
 		public TC_(string str) { word = str; n = str.Length; } 	
 		public override string ToString(){return "{"+word+":"+n+"}";}
+        public TC_ next;
 	}
 
 	public class TC {
@@ -24,6 +25,9 @@ public class TestListUI : ListUI {
 		for(int i =0;i<15;++i) { thingies.Add(new TC()); (thingies[i] as TC).name += i; }
 		(thingies[2] as TC).words.Add(new TC_("Hello"));
 		(thingies[2] as TC).words.Add(new TC_("World!"));
+        (thingies[2] as TC).words[1].next = new TC_("Wow!");
+        (thingies[9] as TC).words.Add(new TC_("another"));
+        (thingies[9] as TC).words.Add(new TC_("test"));
 		// table.columnRules = ColumnRule.GenerateFor(typeof(TC));
 		Set(thingies);
 		GameObject sphere = null, tac = null, arrow = null, arc=null;

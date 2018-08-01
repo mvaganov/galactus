@@ -4,21 +4,28 @@ using UnityEngine;
 
 public class RowElement : MonoBehaviour, R3.Reusable, ListUI.HasDirtyFlag {
 
-	protected bool isDirty = false;public void SetDirty(bool dirty){
-		isDirty=dirty;
-		if(dirty && columnElements != null) System.Array.ForEach(columnElements, (e)=>e.SetDirty(dirty));
+    protected bool isDirty=false;public void SetDirty(bool dirty){isDirty=dirty;
+		if(dirty&&columnElements!=null)System.Array.ForEach(columnElements,(e)=>e.SetDirty(dirty));
 	}
 	public bool IsDirty(){return isDirty;}
+
+    /// parent object
+    public ListUI manager;
 	[SerializeField]
+    /// reflective ability for a row to know what index in the list it is explaining.
 	private int indexOfSubject;
+    [SerializeField]
+    /// description of what this row is showing, including types and order. should be used to better recycle elements.
+    private string uiSignature;
+    /// full meta description of what this row is showing
 	public ColumnElement[] columnElements;
-	[SerializeField]
-	private string uiSignature;
-	public int Index{ get{return indexOfSubject;} }
-	public ListUI manager;
+
+	public int Index{ get{ return indexOfSubject; } }
 	public object Subject { get{return manager.GetObjects().GetValue(indexOfSubject);} }
-	public bool Equals(RowElement o) { return o.manager==manager&&o.indexOfSubject==indexOfSubject; }
+	public bool Equals(RowElement o) { return o.manager==manager && o.indexOfSubject==indexOfSubject; }
 	public bool IsUIReady(){return GetComponent<CanvasRenderer>() != null;}
+    public string UI_Signature { get { return uiSignature; } }
+
 	public void Set(ListUI manager, int indexOfSubject){
 		if(!IsUIReady()){InitializeUI();}
 		if(this.manager == manager && this.indexOfSubject == indexOfSubject
@@ -28,9 +35,9 @@ public class RowElement : MonoBehaviour, R3.Reusable, ListUI.HasDirtyFlag {
 	}
 	public static RowElement Create(ListUI uilist, int index) {
 		GameObject go = new GameObject("|");
-		RowElement ve = go.AddComponent<RowElement>();
-		ve.Set(uilist, index);
-		return ve;
+		RowElement re = go.AddComponent<RowElement>();
+		re.Set(uilist, index);
+		return re;
 	}
 	public void InitializeUI(){
 		RectTransform r = gameObject.AddComponent<RectTransform>();
@@ -38,6 +45,7 @@ public class RowElement : MonoBehaviour, R3.Reusable, ListUI.HasDirtyFlag {
 		UGUI.UPPERLEFT_ANCHOR(r);
 	}
 	public void Recycle() {
+        //Debug.Log("RowElement Recycle");
 		R3.AddRange(columnElements); columnElements = null;
 		transform.SetParent(null);
 		SetDirty(true);
@@ -62,6 +70,7 @@ public class RowElement : MonoBehaviour, R3.Reusable, ListUI.HasDirtyFlag {
 		ListUI.ColumnRule[] rules = manager.format.columnRules;
 		if(columnElements == null || columnElements.Length != rules.Length
 		|| uiSignature != manager.format.signature) {
+            //Debug.Log("Freshen!");
 			const float DEFAULT_HEIGHT = 8;
 			if(columnElements != null) { R3.AddRange(columnElements); }
 			// make sure this VisibleElement (row of data) has the correct UI columns
@@ -87,6 +96,7 @@ public class RowElement : MonoBehaviour, R3.Reusable, ListUI.HasDirtyFlag {
 		}
 		if(indexOfSubject >= 0) {
 			float y = manager.GetOffsetY(indexOfSubject);
+            //Debug.Log(y+" "+manager.itemPositions.GetRate(0));
 			r.anchoredPosition = new Vector2(0, -y);
 			ApplySetting(manager.uiSettings.element);
 		} else {
@@ -101,6 +111,7 @@ public class RowElement : MonoBehaviour, R3.Reusable, ListUI.HasDirtyFlag {
 		float xPosition=0;for(int i=0;i<columnIndex;++i){xPosition += r[i].width;}return xPosition;
 	}
 	public void ApplySetting(ListUI.TextSetting textSetting) {
+        //Debug.Log("RowElement ApplySettings");
 		RectTransform selfR = GetComponent<RectTransform>();
 		if(selfR.sizeDelta.y != textSetting.height) {
 			selfR.sizeDelta = new Vector2(selfR.sizeDelta.x, textSetting.height);

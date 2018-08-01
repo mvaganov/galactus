@@ -335,9 +335,9 @@ namespace OMU {
 			object lval = (lexp != null)?lexp.Resolve(scope, output, typeof(double)):expList[0], 
 			       rval = (rexp != null)?rexp.Resolve(scope, output, typeof(double)):expList[1];
 			bool lParsed = Data.TryParseDouble(lval, out lv);
-			if(!lParsed) { Debug.LogError("could not parse L-value "+lval.ToString()+" to a double."); }
+			if(!lParsed) { Debug.LogError("could not parse L-value "+lval+" to a double."); }
 			bool rParsed = Data.TryParseDouble(rval, out rv);
-			if(!rParsed) { Debug.LogError("could not parse R-value "+rval.ToString()+" to a double."); }
+			if(!rParsed) { Debug.LogError("could not parse R-value "+rval+" to a double."); }
 			return lParsed && rParsed;
 		}
 		public static object OP_RESOLVE_SCRIPTED_VALUE(LIST_TYPE expList, object scope, Type expectedType, FileParseResults output) {
@@ -360,7 +360,9 @@ namespace OMU {
 					if(Data.IsNumericType(expectedType))		return 0;
 					else if(Data.IsStringType(expectedType))	return "";
 					else if(expectedType == typeof(bool))		return false;
-					else Debug.LogWarning("found null, expected <"+expectedType+">   ");
+                    else if(expectedType.IsValueType) {
+                        Debug.LogWarning("found null, expected <"+expectedType+">   ");
+                    }
 				}
 				if(Data.IsNumericType(expectedType) && Data.IsStringType(result.GetType())) {
 					double dub;
