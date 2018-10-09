@@ -230,29 +230,27 @@ MonoBehaviour:
   uiSettings:
     labeling: 1
     element:
-      font: {fileID: 0}
       size: 10
       height: 12
       color: {r: 0, g: 0, b: 0, a: 1}
+      font: {fileID: 0}
       alignment: 0
     label:
-      font: {fileID: 0}
       size: 10
       height: 12
       color: {r: 0, g: 0.303, b: 0, a: 1}
+      font: {fileID: 0}
       alignment: 4
     title:
-      font: {fileID: 0}
       size: 10
       height: 12
       color: {r: 0, g: 0, b: 0.566, a: 1}
+      font: {fileID: 0}
       alignment: 1
     padding: {x: 2, y: 2}
     scrollbarWidth: 8
     indentation: 20
   calculatedBaseOffset: -1
-  itemPositions:
-    flux: []
 --- !u!114 &522958437
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -469,11 +467,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cube: {fileID: 1399086490}
-  flux:
-    flux:
-    - t: 0
-      position: 0
-      rate: 1
   defaultSize: 0.5
   cubes:
   - {fileID: 0}
@@ -597,7 +590,7 @@ GameObject:
   - component: {fileID: 1370895379}
   m_Layer: 0
   m_Name: Camera
-  m_TagString: Untagged
+  m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

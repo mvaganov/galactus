@@ -11,7 +11,7 @@ UpgradeLog*
 [Tt]emp/
 [Oo]bj/
 UnityGenerated/
-# Visual Studio / MonoDevelop generated
+# Visual Studio / MonoDevelop / Idea generated
 ExportedObj/
 *.svd
 *.userprefs
@@ -23,6 +23,9 @@ ExportedObj/
 *.unityproj
 *.booproj
 .vs
+.idea
+JetBrains/
+JetBrains.meta
 # Windows image file caches
 Thumbs.db
 Thumbs.db.meta

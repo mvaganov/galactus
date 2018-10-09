@@ -183,20 +183,36 @@ public class Lines : MonoBehaviour {
 	/// <param name="center">Absolute world-space 3D coordinate</param>
 	/// <param name="normal">Which way the circle is facing</param>
 	/// <param name="radius"></param>
+	/// <param name="pointCount">How many points to use for the circle. If zero, will do 24*PI*r</param>
 	/// <param name="linesize">The width of the line</param>
-	public static LineRenderer MakeCircle(ref GameObject lineObj,
-		Vector3 center, Vector3 normal, Color color = default(Color), float radius = 1, float linesize = 0.125f) {
-		Vector3 crossDir = (normal != Vector3.up) ? Vector3.up : Vector3.forward;
-		Vector3 r = Vector3.Cross(normal, crossDir).normalized;
-		LineRenderer lr = Lines.MakeArc(ref lineObj, 360, 24, normal, r * radius, center, color,
-			linesize, linesize);
+	public static LineRenderer MakeCircle(ref GameObject lineObj, Vector3 center, Vector3 normal, 
+		Color color = default(Color), float radius = 1, int pointCount = 0, float lineSize = 0.125f)
+	{
+		Vector3[] points = null;
+		WriteCircle(ref points, center, normal, radius, pointCount);
+		LineRenderer lr = Lines.Make(ref lineObj, points, points.Length, color, lineSize, lineSize);
 		lr.loop = true;
 		return lr;
 	}
+	public static int WriteCircle(ref Vector3[] points,
+		Vector3 center, Vector3 normal, float radius = 1, int pointCount = 0)
+	{
+		if (pointCount == 0) {
+			pointCount = (int)Mathf.Round(24 * 3.14159f * radius + 0.5f);
+			if (points != null) {
+				pointCount = Mathf.Min(points.Length, pointCount);
+			}
+		}
+		Vector3 crossDir = (normal == Vector3.up || normal == Vector3.down) ? Vector3.forward : Vector3.up;
+		Vector3 r = Vector3.Cross(normal, crossDir).normalized;
+		WriteArc(ref points, pointCount, normal, r * radius, 360, center);
+		return pointCount;
+	}
 	/// <summary>As MakeCircle, but using an assured GameObject</summary>
-	public static LineRenderer MakeCircle_With(GameObject lineObj,
-		Vector3 center, Vector3 normal, Color color = default(Color), float radius = 1, float linesize = 0.125f) {
-		return MakeCircle (ref lineObj, center, normal, color, radius, linesize);
+	public static LineRenderer MakeCircle_With(GameObject lineObj, Vector3 center, Vector3 normal, 
+		Color color = default(Color), float radius = 1, int pointCount = 0, float lineSize = 0.125f)
+	{
+		return MakeCircle (ref lineObj, center, normal, color, radius, pointCount, lineSize);
 	}
 
 	/// <returns>a line renderer in the shape of a sphere made of 3 circles, for the x.y.z axis</returns>

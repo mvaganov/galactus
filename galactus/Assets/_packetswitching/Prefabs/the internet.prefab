@@ -1,0 +1,109 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &100100000
+Prefab:
+  m_ObjectHideFlags: 1
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications: []
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 0}
+  m_RootGameObject: {fileID: 1470239169311096}
+  m_IsPrefabAsset: 1
+--- !u!1 &1470239169311096
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4565556698573336}
+  - component: {fileID: 65553063964790602}
+  - component: {fileID: 114631590352261806}
+  m_Layer: 0
+  m_Name: the internet
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4565556698573336
+Transform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1470239169311096}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &65553063964790602
+BoxCollider:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1470239169311096}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 15, y: 10, z: 15}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &114631590352261806
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1470239169311096}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2aa1d069b1ca1480db60b79ca370dce2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prefabNode: {fileID: 114653758873173668, guid: 62c9911f22c2c42d9909edabe8bd6514,
+    type: 2}
+  nodes: []
+  prefabPacket: {fileID: 114680867856790066, guid: 52891050b0514443db466f90af528b66,
+    type: 2}
+  prefabNodelabel: {fileID: 114516698810634338, guid: b1b1caf57ebf943fbae02a6c3d5710fd,
+    type: 2}
+  packetsPerNode: 1
+  randomPackets: 0
+  generationRadius: 2
+  enforceBoundary: 4
+  showPathsFor: 
+  nodeSettings:
+  - name: default
+    settings:
+      minPackets: 0
+      neighborTriggerRadius: 1.5
+      communityForce: 0.125
+      spreadForce: 1
+      switchLag: 0.25
+      baseRadius: 0.5
+      orbitRadius: 0.125
+      lineradius: 0.03125
+      edgeBreakDistance: 6
+      maxComfortablyFarFromNeighbor: 4
+      uncomfortablyCloseToNeighbor: 3
+      color:
+        r: 0.5372549
+        g: 0.8784314
+        b: 1
+        a: 1
+      lineColor:
+        r: 0
+        g: 0
+        b: 0
+        a: 1
+      linesize: 0.0625
+      maxNeighbors: 2
+      inventoryRadius: 1
+      useNeighborGates: 1
+      showEdges: 1
+    nodeCount: 20
+    nodesCreated: 0

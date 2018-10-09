@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿//#define CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 using System;
@@ -8,6 +9,7 @@ using System.Text;
 using UnityEngine.UI;
 // make sure you have "TextMesh Pro" downloaded and imported from the Unity Asset Store. "Examples" unnecessary
 using TMPro;
+using UnityEngine.Serialization;
 
 /// <summary>A Command Line emulation for Unity3D v5.6+. Just use 'CmdLine.Log()'
 /// Latest version at: https://pastebin.com/nphdEi1z added colored log text when intercepting Debug</summary>
@@ -32,15 +34,15 @@ public class CmdLine : MonoBehaviour {
 			if (args.Length > 1) {
 				if(args[1] == ".") { args[1] = SceneManager.GetActiveScene ().name; }
 				SceneManager.LoadScene (args[1]);
-			} else { log("to reload current scene, type <#"+colorSet.special+">load "+
+			} else { log("to reload current scene, type <#"+ColorSet.SpecialTextHex+">load "+
 				SceneManager.GetActiveScene ().name+"</color>"); }
 		}, "loads given scene. use: load <scene name>");
 		addCommand ("pref", (args) => {
 			for (int i = 1; i < args.Length; ++i) {
 				string output = null;
-				try{ output = "<#"+colorSet.special+">"+PlayerPrefs.GetString (args [i])+"</color>"; } 
-				catch(System.Exception e){ output = "<#"+colorSet.error+">"+e.ToString()+"</color>"; }
-				if(output == null) { output =  "<#"+colorSet.error+">null</color>"; }
+				try{ output = "<#"+ColorSet.SpecialTextHex+">"+PlayerPrefs.GetString (args [i])+"</color>"; } 
+				catch(System.Exception e){ output = "<#"+ColorSet.ErrorTextHex+">"+e.ToString()+"</color>"; }
+				if(output == null) { output =  "<#"+ColorSet.ErrorTextHex+">null</color>"; }
 				log (args [i] + ":" + output);
 			}
 		}, "shows player prefs value. use: pref [variableName, ...]");
@@ -56,7 +58,105 @@ public class CmdLine : MonoBehaviour {
 			PlayerPrefs.DeleteAll ();
 			PlayerPrefs.Save ();
 		}, "clears player prefs.");
+		addCommand ("exit", (args) => {
+			#if UNITY_EDITOR
+				UnityEditor.EditorApplication.isPlaying = false;
+			#elif UNITY_WEBPLAYER
+				Application.OpenURL(webplayerQuitURL);
+			#else
+				Application.Quit();
+			#endif
+		}, "quits this application");
+		#region os_commandline_terminal
+		#if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
+		addCommand ("cmd", (args) => {
+			if(sysprocdir == null){
+				sysprocdir = PWD();
+			}
+			sysproc_cmd = args[1];
+			sysproc_args = "";
+			for(int i = 2; i <args.Length; ++i) {
+				if(i > 2) sysproc_args += " ";
+				sysproc_args += args[i];
+			}
+			// UnityEngine.Debug.Log(cmdargs);
+			sysproc = new System.Diagnostics.Process {
+				StartInfo = new System.Diagnostics.ProcessStartInfo {
+					FileName = sysproc_cmd,
+					Arguments = sysproc_args,
+					UseShellExecute = false,
+					RedirectStandardOutput = true,
+					RedirectStandardError = true,
+					CreateNoWindow = true,
+					WorkingDirectory = sysprocdir
+				}
+			};
+			sysproc_fail = false;
+			needToShowUserPrompt = false;
+			sysproc.Start();
+		}, "passes commands to the OS command line terminal");
+		#endif
 	}
+	#if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
+	public string PWD() {
+		System.Diagnostics.Process pwdproc =new System.Diagnostics.Process {
+			StartInfo = new System.Diagnostics.ProcessStartInfo {
+				FileName = "pwd",
+				UseShellExecute = false,
+				RedirectStandardOutput = true,
+				RedirectStandardError = true,
+				CreateNoWindow = true,
+			}
+		};
+		pwdproc.Start();
+		string pwd = pwdproc.StandardOutput.ReadLine();
+		return pwd;
+	}
+	System.Diagnostics.Process sysproc;
+	private string sysprocdir = null;
+	private string sysproc_cmd = "";
+	private string sysproc_args = "";
+	private bool sysproc_fail = false;
+
+	private void sysproc_Update() {
+		do {
+			if (!sysproc.StandardOutput.EndOfStream) {
+				string line = sysproc.StandardOutput.ReadLine();
+				HandleLog(line, "", LogType.Log);
+			} else if(!sysproc.StandardError.EndOfStream) {
+				string line = sysproc.StandardError.ReadLine();
+				HandleLog(line, "", LogType.Error);
+				sysproc_fail = true;
+			}else {break;}
+		} while(true);
+		if(sysproc_cmd.ToLower() == "cd") {
+			if(sysproc_args == "." || sysproc_args.StartsWith(". ")) {
+				// do nothing, no change to the directory
+			} else if (sysproc_args == ".." || sysproc_args.StartsWith(".. ")) {
+				// back dir
+				int i = sysprocdir.LastIndexOf("/");
+				if(i == 0) { sysprocdir = "/"; }
+				else if(sysprocdir.Length > 0) {
+					sysprocdir = sysprocdir.Substring(0, i);
+				}
+			} else {
+				// change the directory
+				if(!sysproc_fail) {
+					if(!sysprocdir.EndsWith("/")) {
+						sysprocdir += "/";
+					}
+					// TODO what about extra args that should be ignored?
+					// TODO what about directories with spaces in the name?
+					sysprocdir += sysproc_args;
+				}
+			}
+		}
+		sysproc = null;
+		needToShowUserPrompt = true;
+	}
+	#endif
+	#endregion // os_commandline_terminal
+
 	/// <param name="command">name of the command to add (case insensitive)</param>
 	/// <param name="handler">code to execute with this command, think standard main</param>
 	/// <param name="help">reference information, think concise man-pages. Make help <c>"\b"</c> for hidden commands</param>
@@ -105,8 +205,8 @@ public class CmdLine : MonoBehaviour {
 		} else if (onInput != null) {
 			onInput(commandWithArguments);
 		} else {
-			if (commandWithArguments == null || commandWithArguments.Length == 0) { return; }
-			string s = commandWithArguments.Trim (whitespace); // cut leading & trailing whitespace
+			if (string.IsNullOrEmpty(commandWithArguments)) { return; }
+			string s = commandWithArguments.Trim (WHITESPACE); // cut leading & trailing whitespace
 			string[] args = ParseArguments (s).ToArray();
 			if (args.Length < 1) { return; }
 			if (onCommand != null) { onCommand (args); }
@@ -140,24 +240,24 @@ public class CmdLine : MonoBehaviour {
 	}
 	#endregion // commands
 	#region user interface
-	public string promptArtifact = "$ ";
+	[FormerlySerializedAs("promptArtifact")] public string PromptArtifact = "$ ";
 	[Tooltip ("the main viewable UI component")]
-	private Canvas mainview;
-	public enum Interactivity { disabled, screenOverlayOnly, worldSpaceOnly, activeScreenInactiveWorld };
-	public Interactivity interactivity = Interactivity.activeScreenInactiveWorld;
-	[Tooltip ("Which key shows the terminal")]
-	public KeyCode keyToActivate = KeyCode.BackQuote;
-	[Tooltip ("Which key hides the terminal")]
-	public KeyCode keyToDeactivate = KeyCode.Escape;
+	private Canvas _mainView;
+	public enum InteractivityEnum { Disabled, ScreenOverlayOnly, WorldSpaceOnly, ActiveScreenInactiveWorld };
+	[FormerlySerializedAs("interactivity")] public InteractivityEnum Interactivity = InteractivityEnum.ActiveScreenInactiveWorld;
+	[FormerlySerializedAs("keyToActivate")] [Tooltip ("Which key shows the terminal")]
+	public KeyCode KeyToActivate = KeyCode.BackQuote;
+	[FormerlySerializedAs("keyToDeactivate")] [Tooltip ("Which key hides the terminal")]
+	public KeyCode KeyToDeactivate = KeyCode.Escape;
 	[Tooltip ("used to size the console Rect Transform on creation as a UI overlay")]
-	public RectTransformSettings screenOverlaySettings;
+	public RectTransformSettings ScreenOverlaySettings;
 	[Tooltip ("fill this out to set the console in the world someplace")]
-	public PutItInWorldSpace worldSpaceSettings = new PutItInWorldSpace(0.005f, Vector2.zero);
+	public PutItInWorldSpace WorldSpaceSettings = new PutItInWorldSpace(0.005f, Vector2.zero);
 	[Tooltip ("used to color the console on creation")]
-	public InitialColorSettings colorSet = new InitialColorSettings();
-	private TMPro.TMP_InputField tmpInputField;
+	public InitialColorSettings ColorSet = new InitialColorSettings();
+	private TMPro.TMP_InputField _tmpInputField;
 	/// <summary>used to prevent multiple simultaneous toggles of visibility</summary>
-	private bool togglingVisiblityWithMultitouch = false;
+	private bool _togglingVisiblityWithMultitouch = false;
 	[Tooltip ("If true, will show up and take user input immediately")]
 	public bool activeOnStart = true;
 	[Tooltip ("If true, will hide the 3D canvas representation, only show when the commandline button is pressed")]
@@ -172,21 +272,23 @@ public class CmdLine : MonoBehaviour {
 
 	[System.Serializable]
 	public class InitialColorSettings {
-		public Color background = new Color (0, 0, 0, 0.5f);
-		public Color text = new Color (1, 1, 1);
-		public Color errorText = new Color (1, 0, 0);
-		public Color specialText = new Color (1, .75f, 0);
-		public Color scrollbar = new Color (1, 1, 1, 0.5f);
-		public Color userInput = new Color(.5f,1,.75f);
-		public Color userSelection = new Color(1,.75f,.75f,.75f);
-		public string input { get{ return CmdLine.ColorToHexCode (userInput); } }
-		public string error { get{ return CmdLine.ColorToHexCode (errorText); } }
-		public string special { get{ return CmdLine.ColorToHexCode (specialText); } }
+		public Color Background = new Color (0, 0, 0, 0.5f);
+		public Color Text = new Color (1, 1, 1);
+		public Color ErrorText = new Color (1, 0, 0);
+		public Color SpecialText = new Color (1, .75f, 0);
+		public Color Scrollbar = new Color (1, 1, 1, 0.5f);
+		public Color UserInput = new Color(.5f,1,.75f);
+		public Color UserSelection = new Color(1,.75f,.75f,.75f);
+		public string UserInputHex { get{ return CmdLine.ColorToHexCode (UserInput); } }
+		public string ErrorTextHex { get{ return CmdLine.ColorToHexCode (ErrorText); } }
+		public string SpecialTextHex { get{ return CmdLine.ColorToHexCode (SpecialText); } }
 	}
 	[System.Serializable]
 	public class RectTransformSettings {
-		public Vector2 anchorMin = Vector2.zero, anchorMax = Vector2.one,
-		offsetMin = Vector2.zero, offsetMax = Vector2.zero;
+		public Vector2 AnchorMin = Vector2.zero;
+		public Vector2 AnchorMax = Vector2.one;
+		public Vector2 OffsetMin = Vector2.zero;
+		public Vector2 OffsetMax = Vector2.zero;
 	}
 	[System.Serializable]
 	public class PutItInWorldSpace {
@@ -208,64 +310,64 @@ public class CmdLine : MonoBehaviour {
 		}
 	}
 	public bool IsInOverlayMode() {
-		return mainview.renderMode == RenderMode.ScreenSpaceOverlay;
+		return _mainView.renderMode == RenderMode.ScreenSpaceOverlay;
 	}
 	public void PositionInWorld(Vector3 center, Vector2 size = default(Vector2), float scale = 0.005f) {
 		if (size == Vector2.zero) size = new Vector2 (Screen.width, Screen.height);
 		PutItInWorldSpace ws = new PutItInWorldSpace(scale, size);
-		if (mainview == null) {
-			worldSpaceSettings = ws;
+		if (_mainView == null) {
+			WorldSpaceSettings = ws;
 		} else {
-			ws.ApplySettingsTo (mainview);
+			ws.ApplySettingsTo (_mainView);
 		}
 	}
 	public void SetOverlayModeInsteadOfWorld(bool useOverlay) {
-		if (useOverlay && mainview.renderMode != RenderMode.ScreenSpaceOverlay) {
-			mainview.renderMode = RenderMode.ScreenSpaceOverlay;
+		if (useOverlay && _mainView.renderMode != RenderMode.ScreenSpaceOverlay) {
+			_mainView.renderMode = RenderMode.ScreenSpaceOverlay;
 		} else if(!useOverlay) {
-			mainview.renderMode = RenderMode.WorldSpace;
-			worldSpaceSettings.ApplySettingsTo (mainview);
+			_mainView.renderMode = RenderMode.WorldSpace;
+			WorldSpaceSettings.ApplySettingsTo (_mainView);
 		}
 		if (hideInWorldSpace) {
-			switch (mainview.renderMode) {
+			switch (_mainView.renderMode) {
 			case RenderMode.WorldSpace:
-				mainview.gameObject.SetActive (false);
+				_mainView.gameObject.SetActive (false);
 				break;
 			case RenderMode.ScreenSpaceOverlay:
-				mainview.gameObject.SetActive (true);
+				_mainView.gameObject.SetActive (true);
 				break;
 			}
 		}
 	}
 	private Canvas CreateUI () {
-		mainview = FindComponentUpHierarchy<Canvas> (transform);
-		if (!mainview) {
-			mainview = (new GameObject ("canvas")).AddComponent<Canvas> (); // so that the UI can be drawn at all
-			mainview.renderMode = RenderMode.ScreenSpaceOverlay;
-			if (!mainview.GetComponent<CanvasScaler> ()) {
-				mainview.gameObject.AddComponent<CanvasScaler> (); // so that text is pretty when zoomed
+		_mainView = FindComponentUpHierarchy<Canvas> (transform);
+		if (!_mainView) {
+			_mainView = (new GameObject ("canvas")).AddComponent<Canvas> (); // so that the UI can be drawn at all
+			_mainView.renderMode = RenderMode.ScreenSpaceOverlay;
+			if (!_mainView.GetComponent<CanvasScaler> ()) {
+				_mainView.gameObject.AddComponent<CanvasScaler> (); // so that text is pretty when zoomed
 			}
-			if (!mainview.GetComponent<GraphicRaycaster> ()) {
-				mainview.gameObject.AddComponent<GraphicRaycaster> (); // so that mouse can select input area
+			if (!_mainView.GetComponent<GraphicRaycaster> ()) {
+				_mainView.gameObject.AddComponent<GraphicRaycaster> (); // so that mouse can select input area
 			}
-			mainview.transform.SetParent (transform);
+			_mainView.transform.SetParent (transform);
 		}
 		GameObject tmpGo = new GameObject ("TextMeshPro - InputField");
-		tmpGo.transform.SetParent (mainview.transform);
+		tmpGo.transform.SetParent (_mainView.transform);
 		Image img = tmpGo.AddComponent<Image> ();
-		img.color = colorSet.background;
-		if (screenOverlaySettings == null) {
+		img.color = ColorSet.Background;
+		if (ScreenOverlaySettings == null) {
 			MaximizeRectTransform (tmpGo.transform);
 		} else {
 			RectTransform r = tmpGo.GetComponent<RectTransform> ();
-			r.anchorMin = screenOverlaySettings.anchorMin;
-			r.anchorMax = screenOverlaySettings.anchorMax;
-			r.offsetMin = screenOverlaySettings.offsetMin;
-			r.offsetMax = screenOverlaySettings.offsetMax;
+			r.anchorMin = ScreenOverlaySettings.AnchorMin;
+			r.anchorMax = ScreenOverlaySettings.AnchorMax;
+			r.offsetMin = ScreenOverlaySettings.OffsetMin;
+			r.offsetMax = ScreenOverlaySettings.OffsetMax;
 		}
-		tmpInputField = tmpGo.AddComponent<TMP_InputField> ();
-		tmpInputField.lineType = TMP_InputField.LineType.MultiLineNewline;
-		tmpInputField.textViewport = tmpInputField.GetComponent<RectTransform> ();
+		_tmpInputField = tmpGo.AddComponent<TMP_InputField> ();
+		_tmpInputField.lineType = TMP_InputField.LineType.MultiLineNewline;
+		_tmpInputField.textViewport = _tmpInputField.GetComponent<RectTransform> ();
 		TextMeshProUGUI tmpText;
 		#if UNITY_EDITOR
 		try {
@@ -281,51 +383,51 @@ public class CmdLine : MonoBehaviour {
 		}
 		tmpText.fontSize = 14;
 		tmpText.transform.SetParent (tmpGo.transform);
-		tmpInputField.textComponent = tmpText;
-		tmpInputField.fontAsset = tmpText.font;
-		tmpInputField.pointSize = tmpText.fontSize;
+		_tmpInputField.textComponent = tmpText;
+		_tmpInputField.fontAsset = tmpText.font;
+		_tmpInputField.pointSize = tmpText.fontSize;
 		MaximizeRectTransform (tmpText.transform);
 		tmpGo.AddComponent<RectMask2D> ();
-		tmpInputField.onFocusSelectAll = false;
-		tmpText.color = colorSet.text;
-		tmpInputField.selectionColor = colorSet.userSelection;
-		tmpInputField.customCaretColor = true;
-		tmpInputField.caretColor = colorSet.userInput;
-		tmpInputField.caretWidth = 5;
-		tmpInputField.ActivateInputField ();
-		tmpInputField.onValueChanged.AddListener (listener_OnValueChanged);
-		tmpInputField.characterValidation = TMP_InputField.CharacterValidation.CustomValidator;
-		tmpInputField.inputValidator = GetInputValidator();
-		if (tmpInputField.verticalScrollbar == null) {
+		_tmpInputField.onFocusSelectAll = false;
+		tmpText.color = ColorSet.Text;
+		_tmpInputField.selectionColor = ColorSet.UserSelection;
+		_tmpInputField.customCaretColor = true;
+		_tmpInputField.caretColor = ColorSet.UserInput;
+		_tmpInputField.caretWidth = 5;
+		_tmpInputField.ActivateInputField ();
+		_tmpInputField.onValueChanged.AddListener (listener_OnValueChanged);
+		_tmpInputField.characterValidation = TMP_InputField.CharacterValidation.CustomValidator;
+		_tmpInputField.inputValidator = GetInputValidator();
+		if (_tmpInputField.verticalScrollbar == null) {
 			GameObject scrollbar = new GameObject ("scrollbar vertical");
-			scrollbar.transform.SetParent (tmpInputField.transform);
+			scrollbar.transform.SetParent (_tmpInputField.transform);
 			scrollbar.AddComponent<RectTransform> ();
-			tmpInputField.verticalScrollbar = scrollbar.AddComponent<Scrollbar> ();
-			tmpInputField.verticalScrollbar.direction = Scrollbar.Direction.TopToBottom;
+			_tmpInputField.verticalScrollbar = scrollbar.AddComponent<Scrollbar> ();
+			_tmpInputField.verticalScrollbar.direction = Scrollbar.Direction.TopToBottom;
 			RectTransform r = scrollbar.GetComponent<RectTransform> ();
 			r.anchorMin = new Vector2 (1, 0);
 			r.anchorMax = Vector2.one;
 			r.offsetMax = Vector3.zero;
 			r.offsetMin = new Vector2 (-16, 0);
 		}
-		if (tmpInputField.verticalScrollbar.handleRect == null) {
+		if (_tmpInputField.verticalScrollbar.handleRect == null) {
 			GameObject slideArea = new GameObject ("sliding area");
-			slideArea.transform.SetParent (tmpInputField.verticalScrollbar.transform);
+			slideArea.transform.SetParent (_tmpInputField.verticalScrollbar.transform);
 			RectTransform r = slideArea.AddComponent<RectTransform> ();
 			MaximizeRectTransform (slideArea.transform);
 			r.offsetMin = new Vector2 (10, 10);
 			r.offsetMax = new Vector2 (-10, -10);
 			GameObject handle = new GameObject ("handle");
 			Image bimg = handle.AddComponent<Image> ();
-			bimg.color = colorSet.scrollbar;
+			bimg.color = ColorSet.Scrollbar;
 			handle.transform.SetParent (slideArea.transform);
 			r = handle.GetComponent<RectTransform> ();
 			r.anchorMin = r.anchorMax = Vector2.zero;
 			r.offsetMax = new Vector2 (5, 5);
 			r.offsetMin = new Vector2 (-5, -5);
 			r.pivot = Vector2.one;
-			tmpInputField.verticalScrollbar.handleRect = r;
-			tmpInputField.verticalScrollbar.targetGraphic = img;
+			_tmpInputField.verticalScrollbar.handleRect = r;
+			_tmpInputField.verticalScrollbar.targetGraphic = img;
 		}
 		// an event system is required... if there isn't one, make one
 		StandaloneInputModule input = FindObjectOfType (typeof(StandaloneInputModule)) as StandaloneInputModule;
@@ -333,15 +435,15 @@ public class CmdLine : MonoBehaviour {
 			input = (new GameObject ("<EventSystem>")).AddComponent<StandaloneInputModule> ();
 		}
 		// put all UI in the UI layer
-		SetLayerRecursive (mainview.gameObject, LayerMask.NameToLayer ("UI"));
+		SetLayerRecursive (_mainView.gameObject, LayerMask.NameToLayer ("UI"));
 		// turn it off and then back on again... that fixes some things.
 		tmpGo.SetActive (false); tmpGo.SetActive (true);
 		// put it in the world (if needed)
-		if (interactivity == Interactivity.worldSpaceOnly
-			|| interactivity == Interactivity.activeScreenInactiveWorld) {
-			worldSpaceSettings.ApplySettingsTo (mainview);
+		if (Interactivity == InteractivityEnum.WorldSpaceOnly
+			|| Interactivity == InteractivityEnum.ActiveScreenInactiveWorld) {
+			WorldSpaceSettings.ApplySettingsTo (_mainView);
 		}
-		return mainview;
+		return _mainView;
 	}
 	private static RectTransform MaximizeRectTransform (Transform t) {
 		return MaximizeRectTransform (t.GetComponent<RectTransform> ());
@@ -352,55 +454,55 @@ public class CmdLine : MonoBehaviour {
 		return r;
 	}
 	public bool IsVisible () {
-		return mainview != null && mainview.gameObject.activeInHierarchy;
+		return _mainView != null && _mainView.gameObject.activeInHierarchy;
 	}
 	/// <summary>shows (true) or hides (false).</summary>
 	public void SetVisibility (bool visible) {
-		if (mainview == null) {
+		if (_mainView == null) {
 			activeOnStart = visible;
 		} else {
-			mainview.gameObject.SetActive (visible);
+			_mainView.gameObject.SetActive (visible);
 		}
 	}
 	/// <param name="enabled">If <c>true</c>, reads from keybaord. if <c>false</c>, stops reading from keyboard</param>
 	public void SetInputActive(bool enabled) {
 		if (enabled) {
-			tmpInputField.ActivateInputField ();
+			_tmpInputField.ActivateInputField ();
 		} else {
-			tmpInputField.DeactivateInputField ();
+			_tmpInputField.DeactivateInputField ();
 		}
 	}
 	/// <param name="enableInteractive"><c>true</c> to turn this on (and turn the previous CmdLine off)</param>
 	public void SetInteractive(bool enableInteractive) {
-		bool activityWhenStarted = tmpInputField.interactable;
+		bool activityWhenStarted = _tmpInputField.interactable;
 		if (enableInteractive && currentlyActiveCmdLine != null) {
 			currentlyActiveCmdLine.SetInteractive (false);
 		}
-		tmpInputField.interactable = enableInteractive; // makes focus possible
-		switch (interactivity) {
-		case Interactivity.screenOverlayOnly:
+		_tmpInputField.interactable = enableInteractive; // makes focus possible
+		switch (Interactivity) {
+		case InteractivityEnum.ScreenOverlayOnly:
 			if (!IsInOverlayMode ()) {
 				SetOverlayModeInsteadOfWorld (true);
 			}
 			SetVisibility (enableInteractive);
 			break;
-		case Interactivity.worldSpaceOnly:
+		case InteractivityEnum.WorldSpaceOnly:
 			if (!IsVisible ()) {
 				SetVisibility (true);
 			}
 			if (enableInteractive)
 				SetOverlayModeInsteadOfWorld (false);
 			break;
-		case Interactivity.activeScreenInactiveWorld:
+		case InteractivityEnum.ActiveScreenInactiveWorld:
 			if (!IsVisible ()) {
 				SetVisibility (true);
 			}
 			SetOverlayModeInsteadOfWorld (enableInteractive);
 			break;
 		}
-		tmpInputField.verticalScrollbar.value = 1; // scroll to the bottom
+		_tmpInputField.verticalScrollbar.value = 1; // scroll to the bottom
 		MoveCaretToEnd (); // move caret focus to end
-		SetInputActive (tmpInputField.interactable); // request/deny focus
+		SetInputActive (_tmpInputField.interactable); // request/deny focus
 		if (enableInteractive) {
 			currentlyActiveCmdLine = this;
 		} else if (currentlyActiveCmdLine == this) {
@@ -414,7 +516,7 @@ public class CmdLine : MonoBehaviour {
 			currentlyActiveCmdLine = null;
 		}
 	}
-	public bool IsInteractive() { return tmpInputField != null && tmpInputField.interactable; }
+	public bool IsInteractive() { return _tmpInputField != null && _tmpInputField.interactable; }
 	/// <summary>Moves the caret to the end, clearing all selections in the process</summary>
 	public void MoveCaretToEnd () {
 		int lastPoint = GetRawText ().Length;
@@ -454,14 +556,14 @@ public class CmdLine : MonoBehaviour {
 		public CmdLine cmd;
 		public bool isUserEnteringInput = false;
 		public void AddUserInput(string userInput) {
-			string s = cmd.tmpInputField.text;
-			int cursor = cmd.tmpInputField.caretPosition; // should this be caretPosition?
+			string s = cmd._tmpInputField.text;
+			int cursor = cmd._tmpInputField.caretPosition; // should this be caretPosition?
 			for(int i = 0; i < userInput.Length; ++i) {
 				char c = userInput [i];
 				Validate(ref s, ref cursor, c);
 			}
-			cmd.tmpInputField.text = s;
-			cmd.tmpInputField.caretPosition = cursor;
+			cmd._tmpInputField.text = s;
+			cmd._tmpInputField.caretPosition = cursor;
 		}
 		int AddUserInput(ref string text, char letter) {
 			int added = 0;
@@ -478,16 +580,16 @@ public class CmdLine : MonoBehaviour {
 		public int EndUserInput(bool forced) {
 			if (forced)
 				isUserEnteringInput = true;
-			string s = cmd.tmpInputField.text;
+			string s = cmd._tmpInputField.text;
 			int returned = EndUserInput (ref s);
-			cmd.tmpInputField.text = s;
+			cmd._tmpInputField.text = s;
 			return returned;
 		}
 		public bool HasProperInputTags(string text) {
 			List<string> tags = CmdLine.CalculateTextMeshProTags(text, false);
 			if (tags.Count == 0 || !tags.Contains ("noparse"))
 				return false;
-			string colorTag = "#" + cmd.colorSet.input;
+			string colorTag = "#" + cmd.ColorSet.UserInputHex;
 			return tags.Contains(colorTag);
 		}
 		public bool CheckIfUserInputTagsArePresent(string text) {
@@ -495,7 +597,7 @@ public class CmdLine : MonoBehaviour {
 			return isUserEnteringInput = HasProperInputTags(text);
 		}
 		public string BEGIN_USER_INPUT() {
-			return "<#" + cmd.colorSet.input + "><noparse>";
+			return "<#" + cmd.ColorSet.UserInputHex + "><noparse>";
 		}
 		public string END_USER_INPUT() { return "</noparse></color>"; }
 		private int EndUserInput(ref string text) {
@@ -632,17 +734,15 @@ public class CmdLine : MonoBehaviour {
 	#endregion // input validation
 	#region singleton
 	/// <summary>the singleton instance. One will be created if none exist.</summary>
-	private static CmdLine instance;
+	private static CmdLine _instance;
 	public static CmdLine Instance {
 		get {
-			if (instance == null) {
-				if ((instance = FindObjectOfType (typeof(CmdLine)) as CmdLine) == null) {
-					GameObject g = new GameObject ();
-					instance = g.AddComponent<CmdLine> ();
-					g.name = "<" + instance.GetType ().Name + ">";
-				}
+			if (_instance == null && (_instance = FindObjectOfType (typeof(CmdLine)) as CmdLine) == null) {
+				GameObject g = new GameObject ();
+				_instance = g.AddComponent<CmdLine> ();
+				g.name = "<" + _instance.GetType ().Name + ">";
 			}
-			return instance;
+			return _instance;
 		}
 	}
 	#endregion // singleton
@@ -719,29 +819,29 @@ public class CmdLine : MonoBehaviour {
 		int r = (int)(255 * c.r),  g = (int)(255 * c.g), b = (int)(255 * c.b), a = (int)(255 * c.a);
 		return r.ToString("X2")+g.ToString("X2")+b.ToString("X2")+((c.a!=1)?a.ToString("X2"):"");
 	}
-	private static readonly char[] quotes = new char[] { '\'', '\"' },
-	whitespace = new char[] { ' ', '\t', '\n', '\b', '\r' };
+	private static readonly char[] QUOTES = new char[] { '\'', '\"' },
+	WHITESPACE = new char[] { ' ', '\t', '\n', '\b', '\r' };
 	/// <returns>index of the end of the token that starts at the given index 'i'</returns>
 	public static int FindEndArgumentToken (string str, int i) {
 		bool isWhitespace;
 		do {
-			isWhitespace = System.Array.IndexOf (whitespace, str [i]) >= 0;
+			isWhitespace = System.Array.IndexOf (WHITESPACE, str [i]) >= 0;
 			if (isWhitespace) { ++i; }
 		} while (isWhitespace && i < str.Length);
-		int index = System.Array.IndexOf (quotes, str [i]);
-		char startQuote = (index >= 0) ? quotes [index] : '\0';
+		int index = System.Array.IndexOf (QUOTES, str [i]);
+		char startQuote = (index >= 0) ? QUOTES [index] : '\0';
 		if (startQuote != '\0') { ++i; }
 		while (i < str.Length) {
 			if (startQuote != '\0') {
 				if (str [i] == '\\') {
 					i++; // skip the next character for an escape sequence. just leave it there.
 				} else {
-					index = System.Array.IndexOf (quotes, str [i]);
-					bool endsQuote = index >= 0 && quotes [index] == startQuote;
+					index = System.Array.IndexOf (QUOTES, str [i]);
+					bool endsQuote = index >= 0 && QUOTES [index] == startQuote;
 					if (endsQuote) { i++; break; }
 				}
 			} else {
-				isWhitespace = System.Array.IndexOf (whitespace, str [i]) >= 0;
+				isWhitespace = System.Array.IndexOf (WHITESPACE, str [i]) >= 0;
 				if (isWhitespace) { break; }
 			}
 			i++;
@@ -752,15 +852,14 @@ public class CmdLine : MonoBehaviour {
 	/// <returns>split command-line arguments</returns>
 	public static List<string> ParseArguments (string commandLineInput) {
 		int index = 0;
-		string token;
 		List<string> tokens = new List<string> ();
 		while (index < commandLineInput.Length) {
 			int end = FindEndArgumentToken (commandLineInput, index);
 			if (index != end) {
-				token = commandLineInput.Substring (index, end - index).TrimStart (whitespace);
+				string token = commandLineInput.Substring (index, end - index).TrimStart (WHITESPACE);
 				token = Unescape (token);
-				int qi = System.Array.IndexOf (quotes, token [0]);
-				if (qi >= 0 && token [token.Length - 1] == quotes [qi]) {
+				int qi = System.Array.IndexOf (QUOTES, token [0]);
+				if (qi >= 0 && token [token.Length - 1] == QUOTES [qi]) {
 					token = token.Substring (1, token.Length - 2);
 				}
 				tokens.Add (token);
@@ -770,11 +869,11 @@ public class CmdLine : MonoBehaviour {
 		return tokens;
 	}
 	/* https://msdn.microsoft.com/en-us/library/aa691087(v=vs.71).aspx */
-	private readonly static SortedDictionary<char, char> EscapeMap = new SortedDictionary<char, char> {
+	private static readonly SortedDictionary<char, char> EscapeMap = new SortedDictionary<char, char> {
 		{ '0','\0' }, { 'a','\a' }, { 'b','\b' }, { 'f','\f' }, 
 		{ 'n','\n' }, { 'r','\r' }, { 't','\t' }, { 'v','\v' },
 	};
-	/// <summary>convenience method to unescape standard escape sequence strings</summary>
+	/// <summary>convenience method to un-escape standard escape sequence strings</summary>
 	/// <param name="escaped">Escaped.</param>
 	public static string Unescape (string escaped) {
 		if (escaped == null) { return escaped; }
@@ -811,7 +910,7 @@ public class CmdLine : MonoBehaviour {
 	public delegate void DoAfterVisiblityChange ();
 	public static void SetText(string text) { Instance.setText (text); }
 	/// <returns>The all text, including user input</returns>
-	public string GetAllText () { return (tmpInputField) ? GetRawText () : nonUserInput; }
+	public string GetAllText () { return (_tmpInputField) ? GetRawText () : nonUserInput; }
 	/// <param name="text">Text to add as output, also turning current user input into text output</param>
 	public void AddText (string text) {
 		EndUserInputIfNeeded ();
@@ -820,7 +919,7 @@ public class CmdLine : MonoBehaviour {
 	/// <param name="text">line to add as output, also turning current user input into text output</param>
 	public void println (string line) { AddText (line + "\n"); }
 	public void readLineAsync (DoAfterStringIsRead stringCallback) {
-		if (!IsInteractive () && tmpInputField != null) { SetInteractive (true); }
+		if (!IsInteractive () && _tmpInputField != null) { SetInteractive (true); }
 		waitingToReadLine += stringCallback;
 	}
 	public void getInputAsync(DoAfterStringIsRead stringCallback) { readLineAsync (stringCallback); }
@@ -830,10 +929,10 @@ public class CmdLine : MonoBehaviour {
 	public static void Log (string line) { Instance.println (line); }
 	public void log (string line) { println (line); }
 	public void readLine (DoAfterStringIsRead stringCallback) { readLineAsync (stringCallback); }
-	public string GetRawText () { return tmpInputField.text; }
-	public void SetRawText (string s) { if(tmpInputField != null){ tmpInputField.text = s; } }
-	public int GetCaretPosition () { return tmpInputField.stringPosition; }
-	public void SetCaretPosition (int pos) { tmpInputField.stringPosition = pos; }
+	public string GetRawText () { return _tmpInputField.text; }
+	public void SetRawText (string s) { if(_tmpInputField != null){ _tmpInputField.text = s; } }
+	public int GetCaretPosition () { return _tmpInputField.stringPosition; }
+	public void SetCaretPosition (int pos) { _tmpInputField.stringPosition = pos; }
 	#endregion // pubilc API
 	#region Debug.Log intercept
 	[SerializeField, Tooltip ("If true, all Debug.Log messages will be intercepted and duplicated here.")]
@@ -855,13 +954,15 @@ public class CmdLine : MonoBehaviour {
 	private void HandleLog (string logString, string stackTrace, LogType type) {
 		switch (type) {
 		case LogType.Error:
-			AddText ("<#"+ColorToHexCode(Color.Lerp(colorSet.text, Color.red, 0.5f))+">"+logString+"</color>\n");
+			AddText ("<#"+ColorToHexCode(Color.Lerp(ColorSet.Text, Color.red, 0.5f))+">"+logString+"</color>\n");
 			break;
 		case LogType.Exception:
-			AddText ("<#"+ColorToHexCode(Color.Lerp(colorSet.text, Color.magenta, 0.5f))+">"+logString+"</color>\n");
+			string c = "<#"+ColorToHexCode(Color.Lerp(ColorSet.Text, Color.magenta, 0.5f))+">";
+			AddText (c+logString+"</color>\n");
+			AddText (c+stackTrace+"</color>\n");
 			break;
 		case LogType.Warning:
-			AddText ("<#"+ColorToHexCode(Color.Lerp(colorSet.text, Color.yellow, 0.5f))+">"+logString+"</color>\n");
+			AddText ("<#"+ColorToHexCode(Color.Lerp(ColorSet.Text, Color.yellow, 0.5f))+">"+logString+"</color>\n");
 			break;
 		default:
 			log (logString);
@@ -880,12 +981,12 @@ public class CmdLine : MonoBehaviour {
 			_editorMesh.RecalculateNormals ();
 			_editorMesh.RecalculateBounds ();
 		}
-		Vector3 s = this.worldSpaceSettings.screenSize;
+		Vector3 s = this.WorldSpaceSettings.screenSize;
 		if (s == Vector3.zero) {
 			s = new Vector3 (
-				Screen.width*transform.lossyScale.x*worldSpaceSettings.textScale,
-				Screen.height*transform.lossyScale.y*worldSpaceSettings.textScale,
-				1*transform.lossyScale.z*worldSpaceSettings.textScale);
+				Screen.width*transform.lossyScale.x*WorldSpaceSettings.textScale,
+				Screen.height*transform.lossyScale.y*WorldSpaceSettings.textScale,
+				1*transform.lossyScale.z*WorldSpaceSettings.textScale);
 		}
 		Gizmos.DrawMesh(_editorMesh, transform.position, transform.rotation, s);
 		Transform t = transform;
@@ -893,7 +994,7 @@ public class CmdLine : MonoBehaviour {
 		Vector3[] points = new Vector3[]{(t.up*s.y/2 + t.right*s.x/-2),(t.up*s.y/2 + t.right*s.x/2),
 			(t.up*s.y/-2 + t.right*s.x/2),(t.up*s.y/-2 + t.right*s.x/-2)};
 		for (int i = 0; i < points.Length; ++i) { points[i] += t.position; }
-		Gizmos.color = colorSet.background;
+		Gizmos.color = ColorSet.Background;
 		for (int i = 0; i < points.Length; ++i) {
 			Gizmos.DrawLine (points [i], points [(i + 1) % points.Length]);
 		}
@@ -926,24 +1027,25 @@ public class CmdLine : MonoBehaviour {
 	}
 	void Update () {
 		// toggle visibility based on key presses
-		bool toggle = Input.GetKeyDown(IsInteractive () ? keyToDeactivate : keyToActivate );
+		bool toggle = Input.GetKeyDown(IsInteractive () ? KeyToDeactivate : KeyToActivate );
 		// or toggle visibility when 5 fingers touch
 		if (Input.touches.Length == 5) {
-			if (!togglingVisiblityWithMultitouch) {
+			if (!_togglingVisiblityWithMultitouch) {
 				toggle = true;
-				togglingVisiblityWithMultitouch = true;
+				_togglingVisiblityWithMultitouch = true;
 			}
 		} else {
-			togglingVisiblityWithMultitouch = false;
+			_togglingVisiblityWithMultitouch = false;
 		}
 		if (toggle) {
 			if (!IsInteractive ()) {
 				// check to see how clearly the user is looking at this CmdLine
-				if (mainview.renderMode == RenderMode.ScreenSpaceOverlay) {
+				if (_mainView.renderMode == RenderMode.ScreenSpaceOverlay) {
 					this.viewscore = 1;
 				} else {
-					Vector3 lookPosition = Camera.main.transform.position;
-					Vector3 gaze = Camera.main.transform.forward;
+					Transform cameraTransform = Camera.main.transform;
+					Vector3 lookPosition = cameraTransform.position;
+					Vector3 gaze = cameraTransform.forward;
 					Vector3 delta = transform.position - lookPosition;
 					float distFromCam = delta.magnitude;
 					float viewAlignment = Vector3.Dot (gaze, delta / distFromCam);
@@ -965,27 +1067,34 @@ public class CmdLine : MonoBehaviour {
 		}
 		// stop trying to show the bottom if the user wants to scroll
 		if (Input.GetAxis ("Mouse ScrollWheel") != 0) {
-			showBottomWhenTextIsAdded = tmpInputField.verticalScrollbar.value == 1;
+			showBottomWhenTextIsAdded = _tmpInputField.verticalScrollbar.value == 1;
 		}
 		if (showBottomWhenTextIsAdded) {
-			tmpInputField.verticalScrollbar.value = 1;
+			_tmpInputField.verticalScrollbar.value = 1;
 		}
 		if (needToShowUserPrompt && onInput == null && (waitingToReadLine == null || waitingToReadLine.GetInvocationList ().Length == 0)) {
 			// in case of keyboard mashing...
 			if (GetUserInputLength () > 0) {
 				string userInput = GetUserInput ();
 				SetText (nonUserInput);  GetInputValidator().EndUserInput (true);
-				AddText (promptArtifact); GetInputValidator ().AddUserInput (userInput);
-				nonUserInput = tmpInputField.text.Substring (0, tmpInputField.text.Length - userInput.Length);
-			} else { AddText (promptArtifact); }
+				AddText (PromptArtifact); GetInputValidator ().AddUserInput (userInput);
+				nonUserInput = _tmpInputField.text.Substring (0, _tmpInputField.text.Length - userInput.Length);
+			} else { AddText (PromptArtifact); }
 			needToShowUserPrompt = false;
 		}
-		// run any queued-up commands
-		while (instructionList.Count > 0) {
-			Run (instructionList[0]);
-			instructionList.RemoveAt (0);
-			needToShowUserPrompt = true;
+		#if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
+		if(sysproc != null) {
+			sysproc_Update();
+		} else {
+		#endif
+			// run any queued-up commands
+			if (instructionList.Count > 0) {
+				Run (instructionList[0]);
+				instructionList.RemoveAt (0);
+			}
+		#if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
 		}
+		#endif
 		// if this is the active command line and it has not yet disabled user controls. done in update to stop many onStart and onStop calls from being invoked in series
 		if (currentlyActiveCmdLine == this && disabledUserControls != this) {
 			// if another command line disabled user controls

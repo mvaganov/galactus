@@ -180,7 +180,12 @@ public class ListUI : MonoBehaviour, R3.Reusable, ListUI.HasDirtyFlag
     {
         int index = 0;
         if (adjustments != null) { index = adjustments.BinarySearch(uias); }
-        else { adjustments = new List<UIAdjustmentState>(); }
+        else {
+            adjustments = new List<UIAdjustmentState>();
+            //if(parentListUI != null) {
+            //    parentListUI.adjustments[parentListUIindex].subAdjustments = adjustments;
+            //}
+        }
         if (index >= 0 && adjustments.Count > 0)
         {
             //Debug.Log("overwriting...");
@@ -275,6 +280,9 @@ public class ListUI : MonoBehaviour, R3.Reusable, ListUI.HasDirtyFlag
             IndentationLevel = 1;//parentList.IndentationLevel+1; // but also indented
             parentListUI = parentList;
             parentListUIindex = parentListIndex;
+            //if(parentList.adjustments != null) {
+            //    adjustments = parentList.adjustments[parentListIndex].subAdjustments;
+            //}
 		}
         uiSettings.FixIfMissingValues();
 		if(format == null && data != null) { CreateInferredFormatIfNeeded(data); }
@@ -326,11 +334,17 @@ public class ListUI : MonoBehaviour, R3.Reusable, ListUI.HasDirtyFlag
     public void MarkItemDimension(int index, float size) {
         itemPositions.MakeRateChangeAt(index, 1, size);
         // change current height
-        float height = (objectsList != null) ? GetOffsetY(objectsList.Length) : 0;
-        RectTransform contentArea = scrollView.content;
-        contentArea.sizeDelta = new Vector2(contentArea.sizeDelta.x, height);
-        // if there is a parent ListUI, update that height too ???
+        // if there is a parent ListUI, update this main height, and update the parent height too
         if(parentListUI != null) {
+            float height = CalculateHeight(); //(objectsList != null) ? GetOffsetY(objectsList.Length) : 0;
+            //height += 20;
+            height += uiSettings.element.height;
+            RectTransform contentArea = scrollView.content;
+            //contentArea.sizeDelta = new Vector2(contentArea.sizeDelta.x, height);
+            Debug.Log(": " + GetOffsetY(0) + " to " + GetOffsetY(objectsList.Length));
+            RectTransform rect = Self();
+            Debug.Log("Rect " + rect.sizeDelta.y + "     content " + contentArea.sizeDelta.y + "     height " + height);
+            rect.sizeDelta = new Vector2(rect.sizeDelta.x, height);
             parentListUI.MarkItemDimension(parentListUIindex, height);
             parentListUI.ForceRefreshAllElements(parentListUIindex);
         }
