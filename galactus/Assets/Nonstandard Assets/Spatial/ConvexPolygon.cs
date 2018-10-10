@@ -47,7 +47,6 @@ namespace Spatial
                 b = c;
             }
             n /= points.Length;
-            // TODO average this out better plz!
             return n.normalized;
         }
 
