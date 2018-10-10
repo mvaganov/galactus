@@ -43,8 +43,11 @@ namespace Spatial
             {
                 c = points[i];
                 n += Vector3.Cross(a - b, b - c).normalized;
+                a = b;
+                b = c;
             }
             n /= points.Length;
+            // TODO average this out better plz!
             return n.normalized;
         }
 
