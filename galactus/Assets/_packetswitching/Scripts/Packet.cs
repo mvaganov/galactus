@@ -24,7 +24,9 @@ public class Packet : MonoBehaviour {
 	void Start () {
 		rb = GetComponent<Rigidbody>();
 		tr = GetComponent<TrailRenderer> ();
-		current.packets.Add(this);
+        if (current != null) {
+            current.packets.Add(this);
+        }
 		SetColor (defaultColor);
 	}
 

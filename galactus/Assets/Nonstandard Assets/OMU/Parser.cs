@@ -335,7 +335,7 @@ namespace OMU {
 		}
 		
 		object ParseJSON () {
-			return ParseByToken (NextToken (false));
+            return ParseByToken (NextToken (false));
 		}
 		
 		object ParseCSV () {
@@ -391,24 +391,27 @@ namespace OMU {
 			} while(c != (char)0);
 			return entireCSV;
 		}
-		
-		object ParseByToken (TOKEN token) {
+
+        object ParseByToken (TOKEN token) {
+            object result = null;
 			switch (token) {
-			case TOKEN.STRING:		return ParseString ();
-			case TOKEN.NUMBER:		return ParseNumber ();
-			case TOKEN.CURLY_OPEN:	return ParseObject ();
-			case TOKEN.SQUARED_OPEN:return ParseArray ();
-			case TOKEN.PAREN_OPEN:	return ParseExpression ();
-			case TOKEN.TRUE:		return true;
-			case TOKEN.FALSE:		return false;
-			case TOKEN.NULL:		return null;
-			case TOKEN.DATETIME:	return ParseDateTime(lastParsedToken.ToString());
-			case TOKEN.UNDEFINED:	return lastParsedToken;
-			case TOKEN.SPECIFIC_OBJECT_TYPE:	return ParseSerializedObject();
-			default:
+			case TOKEN.STRING:  		result = ParseString ();    break;
+			case TOKEN.NUMBER:          result = ParseNumber();     break;
+			case TOKEN.CURLY_OPEN:      result = ParseObject();     break;
+			case TOKEN.SQUARED_OPEN:    result = ParseArray();      break;
+			case TOKEN.PAREN_OPEN:      result = ParseExpression(); break;
+			case TOKEN.TRUE:            result = true;  break;
+			case TOKEN.FALSE:           result = false; break;
+			case TOKEN.NULL:            result = null;  break;
+			case TOKEN.DATETIME:        result = ParseDateTime(lastParsedToken.ToString()); break;
+			case TOKEN.UNDEFINED:       result = lastParsedToken;   break;
+			case TOKEN.SPECIFIC_OBJECT_TYPE:    result = ParseSerializedObject(); break;
+            default:
 				Log (Result.Type.warning, "unable to parse data from <" + token + "> \"" + PeekChar () + "\" at " + coord);
-				return null;
+                break;
 			}
+            //Debug.Log("TOKEN: \""+result+"\"");
+            return result;
 		}
 		
 		string ParseString () {

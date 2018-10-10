@@ -13,13 +13,14 @@ public class Debugger : MonoBehaviour {
         //"Spatial.Sphere{c*:[8,0,0]r*:3}"
         //"Spatial.Box{s*:[1,3,5],c*:[0,5,0],r*:[0,45,45]}"
         //"Spatial.Planar{p*[3,3,3]n*[1,1,1]}"
-		//"Spatial.Line{s*[3,3,3]e*[-3,-3,-5]}"
-		//"Spatial.Circle{c*[3,1,3]r* 5}"
+        //"Spatial.Line{s*[3,3,3]e*[-3,-3,-5]}"
+        //"Spatial.Circle{c*[3,1,3]r* 5}"
 
-		//"Spatial.Triangle{a[1,1,1]b[3,3,3]c[-2,2,2]}"
-		// TODO next!
-		"Spatial.Cone{s*[-1,1,1]e*[3,3,3]rS* 1,rE* 3}"
-		//"Spatial.Capsule{s*[1,1,1]e*[3,3,3]rS* 1,rE* 3}"
+        //"Spatial.Triangle{a[1,1,1]b[3,3,3]c[-2,2,2]}"
+        // TODO next!
+        "Spatial.ConvexPolygon{p*[[1,1,1][3,2,1][2,1.5,3][1.5,1.5,3]]}"
+        //"Spatial.Cone{s*[-1,1,1]e*[3,3,3]rS* 1,rE* 3}"
+        //"Spatial.Capsule{s*[1,1,1]e*[3,3,3]rS* 1,rE* 3}"
         ;
 
     private GameObject lines;
@@ -73,16 +74,23 @@ public class Debugger : MonoBehaviour {
 //		Lines.Make (ref THELINE, Color.black, r.origin, r.origin+r.direction*3, 0.5f, 0.0f);
 
         //print(areaType.ToString());
-		object o = OMU.Parser.Compile("geometry input", geometry);
+        object o = null;
+        try
+        {
+            o = OMU.Parser.Compile("geometry input", geometry);
+        } catch(System.Exception e){
+            o = null;
+            Debug.Log(e);
+        }
         print(o);
         area = o as Spatial.Area;
 
-		if (area is Spatial.ConcreteArea) {
+        if (area is Spatial.ConcreteArea) {
 			Spatial.ConcreteArea a = area as Spatial.ConcreteArea;
 			a.FixGeometryProblems ();
 			a.Outline (ref lines, Color.white);
-			lines.transform.SetParent (transform);
-		}
+            lines.transform.SetParent (transform);
+        }
         closestMarkers = new Transform[test.Length];
         line_surfaces = new GameObject[test.Length];
         line_rays = new GameObject[test.Length];
@@ -102,19 +110,20 @@ public class Debugger : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-		Spatial.Line output = new Spatial.Line();
-		Vector3 pX = test [0].position, dX = test [0].forward;
-		Spatial.Line.GetShortestLineBetweenLines (
-			new Spatial.Line (new Vector3 (3, 3, 3), new Vector3 (-3, -3, -5)), 
-			new Spatial.Line (pX, pX + dX * 10), output);
-		NS.Lines.Make (ref shortLine, output.start, output.end, Color.blue);
-	    NS.Lines.Make (ref longline, pX, pX + dX * 10, Color.red);
+		//Spatial.Line output = new Spatial.Line();
+		//Vector3 pX = test [0].position, dX = test [0].forward;
+		//Spatial.Line.GetShortestLineBetweenLines (
+		//	new Spatial.Line (new Vector3 (3, 3, 3), new Vector3 (-3, -3, -5)), 
+		//	new Spatial.Line (pX, pX + dX * 10), output);
+		//NS.Lines.Make (ref shortLine, output.start, output.end, Color.blue);
+	    //NS.Lines.Make (ref longline, pX, pX + dX * 10, Color.red);
 
-		if (test != null && test.Length > 0) {
+		if (area != null && test != null && test.Length > 0) {
             for (int i = 0; i < test.Length; ++i) {
                 Transform t = test[i];
                 Vector3 closest = area.GetClosestPointTo(t.position);
                 closestMarkers[i].position = closest;
+
                 Vector3 s;
                 Vector3 p = area.GetClosestPointOnSurface(t.position, out s);
                 GameObject line_surface = line_surfaces[i];
@@ -128,7 +137,8 @@ public class Debugger : MonoBehaviour {
 	                NS.Lines.Make(ref line_ray, hit.point, hit.point + hit.normal, Color.red);
                     if (line_ray) line_ray.SetActive(true);
 	                NS.Lines.Make(ref line_view, r.origin, hit.point, (hit.distance >= 0)?Color.magenta:Color.green);
-                } else {
+                } else
+                {
                     if (line_ray) line_ray.SetActive(false);
 	                NS.Lines.Make(ref line_view, r.origin, r.origin + r.direction, Color.magenta);
                 }

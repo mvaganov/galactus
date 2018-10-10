@@ -6,15 +6,23 @@ namespace Spatial
 {
     public class ConvexPolygon : ConcreteArea {
         public Vector3[] points;
-        public ConvexPolygon() { }
+        public ConvexPolygon() { points = new Vector3[0]; }
         public ConvexPolygon(Vector3[] points) {
             this.points = points;
-            Vector3 avg = GetAverageLocation();
-            Vector3 n = SurfaceNormalExhastive();
-            Planar p = new Planar(avg, n);
-            // clamp all points onto the plane
-            for (int i = 0; i < points.Length; ++i) {
-                points[i] = p.GetClosestPointOnSurface(points[i], out n);
+            ForcePointsToPlane();
+        }
+        public override void FixGeometryProblems() { ForcePointsToPlane(); }
+
+        public void ForcePointsToPlane() {
+            if (points.Length > 3) {
+                Vector3 avg = GetAverageLocation();
+                Vector3 n = SurfaceNormalExhastive();
+                Planar p = new Planar(avg, n);
+                // clamp all points onto the plane
+                for (int i = 0; i < points.Length; ++i)
+                {
+                    points[i] = p.GetClosestPointOnSurface(points[i], out n);
+                }
             }
         }
 
@@ -36,6 +44,7 @@ namespace Spatial
                 c = points[i];
                 n += Vector3.Cross(a - b, b - c).normalized;
             }
+            n /= points.Length;
             return n.normalized;
         }
 
@@ -87,9 +96,9 @@ namespace Spatial
         {
             Line closestLine = null;
             float howClose = -1, dist;
-            surfaceNormal = SurfaceNormal();
             Vector3 a = points[points.Length - 1], b, side, testPlaneNormal, 
                 p = Vector3.zero, closestPoint = p;
+            surfaceNormal = SurfaceNormal();
             for (int i = 0; i < points.Length; ++i) {
                 b = points[i];
                 side = b - a;
@@ -97,7 +106,7 @@ namespace Spatial
                 if (!Planar.IsFacing(point, a, testPlaneNormal))
                 {
                     Line line = new Line(a, b);
-                    p = GetClosestPointTo(point);
+                    p = line.GetClosestPointTo(point);
                     // if there is no closest line, or this line is closer to the point than the closest line
                     dist = (p - point).sqrMagnitude;
                     if(closestLine == null || dist < howClose) {
@@ -112,6 +121,8 @@ namespace Spatial
             // if the point should be in the plane proper (not on an outer edge)
             if(closestLine == null) {
                 closestPoint = Planar.GetClosestPointOnSurface(point, out surfaceNormal, points[0], surfaceNormal);
+            } else {
+                surfaceNormal = (point - closestPoint).normalized;
             }
             return closestPoint;
         }
@@ -127,13 +138,16 @@ namespace Spatial
             return false;
         }
 
-        public override int Wireframe(Vector3[] out_points)
-        {
-            for (int i = 0; i < points.Length; ++i) {
-                out_points[i] = points[i];
+        public override int Wireframe(Vector3[] out_points) {
+            if (points != null && points.Length > 0) {
+                for (int i = 0; i < points.Length; ++i) {
+                    out_points[i] = points[i];
+                }
+                out_points[points.Length] = points[0];
+                return points.Length + 1;
+            } else {
+                return 0;
             }
-            out_points[points.Length] = points[0];
-            return points.Length+1;
         }
 
         // TODO FIXME

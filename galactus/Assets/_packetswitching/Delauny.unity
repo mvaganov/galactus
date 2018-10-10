@@ -210,7 +210,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &770686697
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -249,12 +249,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &800318450 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 114653758873173668, guid: 62c9911f22c2c42d9909edabe8bd6514,
-    type: 2}
-  m_PrefabInternal: {fileID: 2039277854}
-  m_Script: {fileID: 11500000, guid: d8a3030a5e6624cedaa291ea80be036e, type: 3}
 --- !u!4 &800318455 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4831018710743440, guid: 62c9911f22c2c42d9909edabe8bd6514,
@@ -303,7 +297,7 @@ Prefab:
         type: 2}
       propertyPath: current
       value: 
-      objectReference: {fileID: 800318450}
+      objectReference: {fileID: 1450263499}
     - target: {fileID: 1900765913982730, guid: 52891050b0514443db466f90af528b66, type: 2}
       propertyPath: m_Name
       value: packet (1)
@@ -359,7 +353,7 @@ Prefab:
         type: 2}
       propertyPath: current
       value: 
-      objectReference: {fileID: 800318450}
+      objectReference: {fileID: 1450263499}
     - target: {fileID: 1900765913982730, guid: 52891050b0514443db466f90af528b66, type: 2}
       propertyPath: m_Name
       value: packet (2)
@@ -398,7 +392,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &1437844958
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -440,6 +434,12 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1450263499 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 114594559896465308, guid: 62c9911f22c2c42d9909edabe8bd6514,
+    type: 2}
+  m_PrefabInternal: {fileID: 2039277854}
+  m_Script: {fileID: 11500000, guid: 3ca32be19a6fd4c258b9a170494aedef, type: 3}
 --- !u!1001 &1453173255
 Prefab:
   m_ObjectHideFlags: 0
@@ -483,7 +483,7 @@ Prefab:
         type: 2}
       propertyPath: current
       value: 
-      objectReference: {fileID: 800318450}
+      objectReference: {fileID: 1450263499}
     - target: {fileID: 114680867856790066, guid: 52891050b0514443db466f90af528b66,
         type: 2}
       propertyPath: orbitRadius
