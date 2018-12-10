@@ -18,7 +18,7 @@ public class Debugger : MonoBehaviour {
 
         //"Spatial.Triangle{a[1,1,1]b[3,3,3]c[-2,2,2]}"
         // TODO next!
-        "Spatial.ConvexPolygon{p*[[1,1,1][3,2,1][2,1.5,3][1.5,1.5,3]]}"
+        "Spatial.Polygon{p*[[1,1,1][3,2,1][2,1.5,3][1.5,1.5,3]]}"
         //"Spatial.Cone{s*[-1,1,1]e*[3,3,3]rS* 1,rE* 3}"
         //"Spatial.Capsule{s*[1,1,1]e*[3,3,3]rS* 1,rE* 3}"
         ;

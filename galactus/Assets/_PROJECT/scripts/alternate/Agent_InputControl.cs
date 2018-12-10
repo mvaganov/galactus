@@ -37,14 +37,14 @@ public class Agent_InputControl : MovingEntity_CameraInput {
 //			float ratio = inputController.cameraDistance / oldRadius;
 //			float newDist = ratio * newRadius;
 //			inputController.cameraDistance = newDist;
-			inputController.cameraDistance = inputController.cameraDistance * newRadius / oldRadius;
+//			inputController.cameraDistance = inputController.cameraDistance * newRadius / oldRadius;
 			lastKnownRadius = newRadius;
 		}
 	}
 
 	// TODO make some kind of "undoable value change" object, and a manager for it. or better yet, make a "user controlled" effect that adjusts the transparency
 	private float oldTransparency;
-	public override void Control(MovingEntityBase me) {
+	public override void Control(MOB me) {
 		if (controlling) {
 			// re-enable old mob
 			Agent_TargetFinder tf = controlling.GetComponent<Agent_TargetFinder> ();

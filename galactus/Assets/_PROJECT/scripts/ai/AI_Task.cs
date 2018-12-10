@@ -246,7 +246,7 @@ public class AI_Flee : AI_TargetTask {
 		float rawDist = delta.magnitude;
 		dist = rawDist - (targetProps.GetRadius () + self.GetRadius ());
 		Vector3 aScaryDir = delta / -rawDist;
-		float comingAtMe = Vector3.Dot(aScaryDir, targetProps.GetMOB().GetVelocity());
+		float comingAtMe = Vector3.Dot(aScaryDir, targetProps.GetMOB().Velocity);
 		float d = (idealDist - dist);
 		// fleeing is a higher priority if the agent is heading toward us!
 		return d * d * (1+self["cowardice"]) + idealDist * comingAtMe;
@@ -530,8 +530,8 @@ public class AI_CompositeSteering : AI_Task {
 		Vector3 move = Vector3.zero, look = Vector3.zero;
 		CalcPriorities ();
 		GetSteering (ref move, ref look);
-		if(look != Vector3.zero) { m.LookDirection = look; }//m.UpdateLookDirection (look); }
-		if(move != Vector3.zero) { m.MoveDirection = move; }//m.ApplyForceToward (move); }
+		if(look != Vector3.zero) { m.InputLookDirection = look; }//m.UpdateLookDirection (look); }
+		if(move != Vector3.zero) { m.InputMoveDirection = move; }//m.ApplyForceToward (move); }
 	}
 	public override string GetDescription () { return "steering behavior"; }
 	public override bool IsValid(ref string whyNot) {

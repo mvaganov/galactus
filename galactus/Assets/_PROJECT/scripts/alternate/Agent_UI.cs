@@ -70,7 +70,7 @@ public class Agent_UI : MonoBehaviour {
 			uiText.text = sizeAndEffects.name +
 				"\nsize: " + System.String.Format("{0:0.##}", sizeAndEffects.GetSize()) +
 				"\nenergy: " + System.String.Format("{0:0.##}", sizeAndEffects.GetEnergy()) +
-				"\ncurrent speed: " + System.String.Format("{0:0.##}", mob.CurrentSpeed) +
+				"\ncurrent speed: " + System.String.Format("{0:0.##}", mob.VelocityMagnitude) +
 				"\nbrake distance: " + System.String.Format("{0:0.##}", mob.BrakeDistance);
 		}
 		if (uiProperties && refreshProps) {

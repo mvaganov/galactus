@@ -15,7 +15,7 @@ public class Seeker : MonoBehaviour {
 	void FixedUpdate () {
 		if (seek != null) {
 			if (mob && mob.enabled) {
-				mob.Seek (seek.transform.position, MovingEntityBase.DirectionMovementIsPossible.forwardOnly);
+				mob.Seek (seek.transform.position, MOB.DirectionMovementIsPossible.forwardOnly);
 			}
 			if (pc && pc.enabled) {
 				pc.Seek (seek.transform.position);

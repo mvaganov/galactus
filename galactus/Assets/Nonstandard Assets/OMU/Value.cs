@@ -216,7 +216,19 @@ namespace OMU {
 			}
 			return false;
 		}
-        public static Value FromScript(string omScript, string sourceName = "unnamed script") {
+
+		/// <summary>generates an object from the given script, internally 'unnamed script'. no errors reported</summary>
+		/// <returns>The object based on the script</returns>
+		/// <param name="omScript">JSON-like script.</param>
+		public static Value FromScript(string omScript) {
+			return FromScript(omScript, "unnamed script");
+		}
+
+		/// <summary>generates an object from the given script</summary>
+		/// <returns>The object based on the script</returns>
+		/// <param name="omScript">JSON-like script.</param>
+		/// <param name="sourceName">what to call the script in errors and/or warnings</param>
+		public static Value FromScript(string omScript, string sourceName) {
 			FileParseResults results = null;
 			return new Value(Parser.Parse (Parser.ParseType.JSON, sourceName, omScript, ref results));
 		}

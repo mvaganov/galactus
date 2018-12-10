@@ -37,7 +37,7 @@ public class Agent_Prediction : MonoBehaviour {
             tMod = (float)(rb.mass / 2f);
             predictedLocation += v * Time.deltaTime;
 			//accelForce = pf.accelDirection * pf.maxAcceleration;
-			Vector3 dir = pf.MoveDirection;//pf.GetAccelerationDirection();
+			Vector3 dir = pf.InputMoveDirection;//pf.GetAccelerationDirection();
             if (dir == Vector3.zero) dir = rb.transform.forward;
 			accelForce = Steering.SeekDirection(dir * pf.MoveSpeed//pf.maxSpeed
 				, rb.velocity, pf.Acceleration, tMod);
@@ -59,7 +59,7 @@ public class Agent_Prediction : MonoBehaviour {
 				v = v.normalized * (pf.MoveSpeed / rb.mass);
             }
             predictedLocation += v * tMod;
-			Vector3 dir = pf.MoveDirection;// pf.GetAccelerationDirection();
+			Vector3 dir = pf.InputMoveDirection;// pf.GetAccelerationDirection();
             if(dir == Vector3.zero) dir = rb.transform.forward;
 			accelForce = Steering.SeekDirection(dir * pf.MoveSpeed, rb.velocity, pf.Acceleration, tMod);
         }

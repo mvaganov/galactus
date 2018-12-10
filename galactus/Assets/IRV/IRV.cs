@@ -203,7 +203,7 @@ public class IRV : MonoBehaviour {
 		return order;
 	}
 
-	// TODO if allBallots is very large, use a different algorithm. this is O(n^2).
+	// TODO if allBallots is very large, use a different algorithm. this is O(n^2). sort the ballots by voterID, then do binary-search?
 	private int _indexOfVoter(List<Ballot> list, string voterID, int start, int end) {
 		if(list != null) {
 			for(int i=start;i<end;++i) {

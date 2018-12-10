@@ -4,10 +4,10 @@ using System.Collections;
 
 [RequireComponent(typeof(Rigidbody))]
 public class Agent_MOB : MovingEntity {
-    public new float DistanceTo(Vector3 loc) {
+    public float DistanceTo(Vector3 loc) {
 		return Vector3.Distance(transform.position, loc) - ExpectedHorizontalRadius;
 	}
-	public new float DistanceTo(Transform mob) {
+	public float DistanceTo(Transform mob) {
 		float otherRad = mob.transform.localScale.z;
 		Collider c = mob.GetComponent<Collider>();
 		if(c != null) { otherRad *= c.bounds.extents.z; }

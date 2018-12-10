@@ -416,8 +416,8 @@ namespace OMU {
 		
 		string ParseString () {
 			StringBuilder s = new StringBuilder();
-			char c;
-			if (PeekChar () == '\"') {
+			char c, openingChar = PeekChar();
+			if (openingChar == '\"' || openingChar == '\'') {
 				// ditch opening quote
 				NextChar ();
 			} else {
@@ -430,10 +430,9 @@ namespace OMU {
 					break;
 				}
 				c = NextChar ();
-				switch (c) {
-				case '"':
+				if (c == openingChar) {
 					parsing = false;
-					break;
+				} else switch (c) {
 				case '\\':
 					if (Peek () == -1) {
 						parsing = false;
@@ -673,7 +672,7 @@ namespace OMU {
 				case '(':   return TOKEN.PAREN_OPEN;
 				case ')':   return TOKEN.PAREN_CLOSE;
 				case ',':   return TOKEN.COMMA;
-				case '"':   return TOKEN.STRING;
+                case '"':   case '\'':  return TOKEN.STRING;
 				case ':':   return TOKEN.COLON;
 				case '0':   case '1':   case '2':   case '3':   case '4':
 				case '5':   case '6':   case '7':   case '8':   case '9':

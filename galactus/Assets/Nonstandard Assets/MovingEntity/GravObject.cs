@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
-/// <summary>Pull a MovingEntity (https://pastebin.com/xFUD4tk2) GameObject toward a Collider. 
+/// <summary>Pull a MovingEntity GameObject toward a Collider. 
 /// Will work with a MeshCollider, but a SphereCollider or BoxCollider is optimal
-/// Latest version at: https://pastebin.com/...</summary>
-/// <description>MIT License - TL;DR - This code is free, don't bother me about it!</description>
-/// <author email="mvaganov@hotmail.com">Michael Vaganov</author>
 public class GravObject : GravSource {
 	#region public API
 	[Tooltip("If true, will base gravity on this object's collider normals. Can be set to false for spheres with (0,0,0) center offset, since gravity is always at transform-center.")]
@@ -443,13 +443,22 @@ public class GravObject : GravSource {
 	#endregion // MonoBehaviour
 }
 
+#region Simple gravity field
+public class GravField : GravSource {
+    public Vector3 gravityDirection;
+    public override Vector3 CalculateGravityDirectionFrom(Vector3 point) {
+        return gravityDirection;
+    }
+}
+#endregion
+
 #region Base GravitySource
 public class GravSource : MonoBehaviour {
 	[Tooltip("apply gravity if player hits this collider")]
 	public bool entangleOnCollision = true;
 	[Tooltip("apply gravity if player enters this collider trigger")]
 	public bool entangleOnTrigger = true;
-	[Tooltip("apply gravity power on player")]
+	[Tooltip("apply gravity power on player, not just gravity direction")]
 	public bool forceGravitypower = false;
 	[Tooltip("How much acceleration to apply to the PlayerControl, if gravity power is forced")]
 	public float power = 9.81f;
@@ -517,3 +526,8 @@ public class GravPuller : MonoBehaviour {
 	}
 }
 #endregion // Gravity Puller (additional script for MovingEntity)
+
+#if UNITY_EDITOR
+[CustomEditor(typeof(GravSource), true)]
+public class CustomEditor_GravSource : CustomEditor_TYPE_ADJUSTABLE<GravSource> { }
+#endif

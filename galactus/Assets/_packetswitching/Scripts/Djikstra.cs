@@ -69,7 +69,7 @@ public class Djikstra {
 					NetEdge edge = u.edges [i];
 					NetNode v = edge.Other(u);
 					if (v == null) {
-						Debug.LogError ("really? edge to knowhere? "+u.name+"'s edge "+i+" is bad.");
+						Debug.LogError ("really? edge to nowhere? "+u.name+"'s edge "+i+" is bad.");
 					}
 					if (!edge.Has (u, v)) {
 						Debug.LogError ("BAD EDGE : "+u.name+" and "+v.name+" not both in edge "+edge);

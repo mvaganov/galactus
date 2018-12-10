@@ -1235,7 +1235,7 @@ namespace OMU {
 			System.Reflection.FieldInfo[] fields = t.GetFields ();
 			string[] fieldNames = null;
 			OBJ_TYPE dict = new OBJ_TYPE ();
-			for(int i = 0; i < fields.Length; ++i) {
+			for(int i = 0; i < fields.Length; ++i) { // TODO make a method called "serialize field"
 				string fname = fields[i].Name;
 				bool ignoreThisField = false;
 				if(ignoreFieldsPrefixedWith != null) {

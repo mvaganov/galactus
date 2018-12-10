@@ -9,14 +9,14 @@ namespace Spatial {
         public Planar() { }
         public Planar(Vector3 point, Vector3 normal) { this.point = point;  this.normal = normal; }
 
-		public override void FixGeometryProblems() { if (normal == Vector3.zero) { normal = Vector3.up; } normal.Normalize (); }
-
 		public override void Translate (Vector3 delta) { point += delta; }
-		public override void Rotate (Quaternion q) { normal = q * normal; }
+        public override void Rotate (Quaternion q) { point = q * point; normal = q * normal; }
 		public override void Scale (Vector3 coefficient) { point.Scale(coefficient); }
 
-		public override bool Contains(Vector3 point) {
-			return (Vector3.Dot(this.normal, point - this.point) == 0);
+        public override void FixGeometryProblems() { if (normal == Vector3.zero) { normal = Vector3.up; } normal.Normalize(); }
+
+        public override bool Contains(Vector3 point) {
+            return Contains(point, this.point, this.normal);
         }
 
 		public static bool Contains(Vector3 point, Vector3 planePoint, Vector3 planeNormal) {
@@ -58,13 +58,11 @@ namespace Spatial {
 			return result != 0;
 		}
 
-		// intersect3D_2Planes(): find the 3D intersection of two planes
-		//    Input:  two planes Pn1 and Pn2
-		//    Output: *L = the intersection line (when it exists)
-		//    Return: 0 = disjoint (no intersection)
-		//            1 = the two  planes coincide
-		//            2 =  intersection in the unique line *L
-		public static int CollidesWith(Spatial.Planar Pn1, Spatial.Planar Pn2, out Ray r) {
+        /// <param name="Pn1">Pn1.</param>
+        /// <param name="Pn2">Pn2.</param>
+        /// <param name="r">The 3D intersection of two planes colliding (a ray)</param>
+        /// <returns>{0: disjoint (no intersection), 1: planes coincide (same plane), 2: r is good output}</returns>
+		public static int CollidesWith(Planar Pn1, Planar Pn2, out Ray r) {
 			r = new Ray ();
 			Vector3   u = Vector3.Cross(Pn1.normal, Pn2.normal);          // cross product
 			float    ax = (u.x >= 0 ? u.x : -u.x);
@@ -76,8 +74,7 @@ namespace Spatial {
 				Vector3   v = Pn2.point - Pn1.point;
 				if (Vector3.Dot(Pn1.normal, v) == 0) // Pn2.V0 lies in Pn1
 					return 1;                       // Pn1 and Pn2 coincide
-				else
-					return 0;                     // Pn1 and Pn2 are disjoint
+				return 0;                     // Pn1 and Pn2 are disjoint
 			}
 			// Pn1 and Pn2 intersect in a line
 			// first determine max abs coordinate of cross product
@@ -114,8 +111,7 @@ namespace Spatial {
 		}
 
 		public override bool CollidesWith(Area area) {
-			if(area.GetType() == typeof(Line)) { return CollidesWith(area as Line);
-			}
+			if(area.GetType() == typeof(Line)) { return CollidesWith(area as Line); }
 			return base.CollidesWith (area);
         }
 
