@@ -27,7 +27,7 @@ namespace NS.Contingency.Response {
 			}
 			if(activateWhenDone.Data != null) {
 				op.completed += (AsyncOperation a)=> {
-					NS.F.DoActivate(activateWhenDone, whatTriggeredThis, this, activating);
+					NS.ActivateAnything.DoActivate(activateWhenDone, whatTriggeredThis, this, activating);
 				};
 			}
 		}

@@ -116,14 +116,16 @@ namespace OMU {
 				Append ("0x"+c32.a.ToString("X2")+c32.b.ToString("X2")+c32.g.ToString("X2")+c32.r.ToString("X2"));
 			} else {
 				object om = Data.SerializeToOm(value, hideZeroOrNull, compressNames, ignoreFieldPrefixes);
-				if(!Data.IsNativeType(value.GetType())) {
-					SerializeString(value.GetType().ToString(), expressionDepth>0);
+				Type t = value.GetType();
+				if(!Data.IsNativeType(t) && t != arrayTypeToIgnore) {
+					SerializeString(t.ToString(), false);
 					if(indentation != null) Append(' ');
 				}
 				SerializeValue (om);
 				//SerializeString (value.ToString ());
 			}
 		}
+		private Type arrayTypeToIgnore = null;
 		
 		void SerializeObject (IDictionary obj) {
 			bool needsWhitespace = indentation != null;
@@ -169,6 +171,10 @@ namespace OMU {
 		}
 		
 		void SerializeList (IList anArray) {
+			Type typeExpectedByList = anArray.GetType().GetElementType();
+			if(typeExpectedByList == null){
+				typeExpectedByList = anArray.GetType().GetGenericArguments()[0];
+			}
 			bool needsWhitespace = indentation != null;
 			if (anArray.Count == 0) {
 				needsWhitespace = false;
@@ -218,7 +224,9 @@ namespace OMU {
 						Indent ();
 					} else if (indentation != null) Append (' ');
 				}
+				arrayTypeToIgnore = typeExpectedByList; // strict arrays don't need their types written
 				SerializeValue (obj);
+				arrayTypeToIgnore = null;
 				first = false;
 			}
 			if (needsWhitespace) {

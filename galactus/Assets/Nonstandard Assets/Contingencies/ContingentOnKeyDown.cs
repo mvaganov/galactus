@@ -22,7 +22,7 @@ namespace NS.Contingency {
 			}
 			public void Act() {
 				if (IsActive ()) {
-					NS.F.DoActivate (bound, this, this, true);
+					NS.ActivateAnything.DoActivate (bound, this, this, true);
 				}
 			}
 			public KeyBind(KeyCode key, OnInputType act, UnityEngine.Object obj) {

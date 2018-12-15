@@ -15,7 +15,7 @@ namespace NS.Contingency.Response {
 
 		public float Seconds { set { this.secondsDelay = value; } get { return this.secondsDelay; } }
 		public void DoActivate (object whatTriggeredThis, object whatIsBeingTriggerd, bool activate) {
-			 NS.F.DoActivate(next, whatTriggeredThis, whatIsBeingTriggerd, activate, secondsDelay);
+			 NS.ActivateAnything.DoActivate(next, whatTriggeredThis, whatIsBeingTriggerd, activate, secondsDelay);
 		}
 		public void DoActivateTrigger (object whatTriggeredThis, object whatIsBeingTriggerd) { DoActivate(whatTriggeredThis, whatIsBeingTriggerd, activate); }
 		public void DoDeactivateTrigger (object whatTriggeredThis, object whatIsBeingTriggerd) { DoActivate(whatTriggeredThis, whatIsBeingTriggerd, !activate); }
@@ -47,9 +47,9 @@ namespace NS.Contingency.Response {
 			next.Data = asset.objectReferenceValue;
 			PropertyDrawer_ObjectPtr.showLabel = true;
 
+			obj = p.ShowChoicesPopup(r, obj, self, true);
 			r.x += r.width;
 			r.width = w;
-			PropertyDrawer_ObjectPtr.StandardOptionPopup(r, ref obj);
 			return obj;
 		}
 

@@ -7,7 +7,7 @@ using UnityEngine;
 namespace NS {
 	/* // example code:
 	NS.Timer.setTimeout (() => {
-		Debug.Log("This printed 3 seconds after setTimeout was called!");
+		Debug.Log("This will print 3 seconds after setTimeout was called!");
 	}, 3000);
 	*/
 	public class Timer : Chrono {
@@ -29,11 +29,30 @@ namespace NS {
 			base.Init ();
 			if(whatToActivate.Data != null) { DoTimer(); }
 		}
+
+		/// <summary>Allows implicit conversion of lambda expressions and delegates. Same as Chrono.setTimeout, this method is here to prevent warnings.</summary>
+		/// <param name="action">Action. what to do</param>
+		/// <param name="delayMilliseconds">Delay milliseconds. in how-many-milliseconds to do it</param>
+		new public static void setTimeout(System.Action action, long delayMilliseconds) {
+			Chrono.setTimeout(action, delayMilliseconds);
+		}
 	}
 
 	public class Chrono : MonoBehaviour {
-		[Tooltip("keeps track of how long each update takes. It longer than this, stop executing events and do them later. less than 0 for no limit.")]
+		/// <summary>The singleton</summary>
+		private static NS.Chrono s_instance = null;
+		[Tooltip("keeps track of how long each update takes. If a timer-update takes longer than this, stop executing events and do them later. less than 0 for no limit.")]
 		public int maxMillisecondsPerUpdate = 100;
+		/// <summary>using a List, which is contiguous memory, because it's faster than a liked list MOST of time, because of cache misses, and reasonable data loads</summary>
+		public List<ToDo> queue = new List<ToDo>();
+		public List<ToDo> queueRealtime = new List<ToDo>();
+		/// <summary>While this is zero, use system time. As soon as time becomes perturbed, by pause or time scale, keep track of game-time. To reset time back to realtime, use SynchToRealtime()</summary>
+		private long alternativeTime = 0;
+		/// <summary>The timer counts in milliseconds, Unity measures in fractions of a second. This value reconciles fractional milliseconds.</summary>
+		private float leftOverTime = 0;
+		/// <summary>if actions are interrupted, probably by a deadline, this keeps track of what was being done</summary>
+		private List<ToDo> _currentlyDoing = new List<ToDo>();
+		private int currentlyDoneThingIndex = 0;
 
 		[System.Serializable]
 		public class ToDo {
@@ -56,10 +75,6 @@ namespace NS {
 				this.description = description; this.when = when; this.what = what;
 			}
 		}
-		/// <summary>using a List, which is contiguous memory, because it's faster than a liked list MOST of time, because of cache misses, and reasonable data loads</summary>
-		public List<ToDo> queue = new List<ToDo>();
-		/// <summary>The singleton</summary>
-		private static NS.Chrono s_instance = null;
 		public static Chrono Instance() {
 			if (s_instance == null) {
 				Object[] objs = FindObjectsOfType(typeof(NS.Chrono));  // find the instance
@@ -75,23 +90,23 @@ namespace NS {
 			}
 			return s_instance;
 		}
-		/// <summary>While this is zero, use system time. As soon as time becomes perturbed, by pause or time scale, keep track of game-time. To reset time back to realtime, use SynchToRealtime()</summary>
-		private long alternativeTime = 0;
-		/// <summary>The timer counts in milliseconds, Unity measures in fractions of a second. This value reconciles fractional milliseconds.</summary>
-		private float leftOverTime = 0;
 
+		/// <returns>The realtime, as milliseconds since Jan 1 1970.</returns>
 		public static long NowRealtime() { return System.DateTime.Now.Ticks / System.TimeSpan.TicksPerMillisecond; }
 
-		public long Now() { return alternativeTime == 0 ? NowRealtime() : alternativeTime; }
+		/// <returns>game time right now (modified by pausing or Time.timeScale</returns>
+		public long Now() { return (alternativeTime == 0) ? NowRealtime() : alternativeTime; }
 
+		/// <returns>game time right now (modified by pausing or Time.timeScale</returns>
 		public static long now() { return Instance ().Now (); }
 
+		/// <summary>clears the difference between game time and real time</summary>
 		public void SyncToRealtime() { alternativeTime = 0; }
 
-		private int BestIndexFor(long soon) {
+		private int BestIndexFor(long soon, List<ToDo> a_queue) {
 			int index = 0;
-			for (index = 0; index < queue.Count; ++index) {
-				if (queue [index].when > soon) break;
+			for (index = 0; index < a_queue.Count; ++index) {
+				if (a_queue[index].when > soon) break;
 			}
 			return index;
 		}
@@ -107,14 +122,29 @@ namespace NS {
 		/// <param name="delayMilliseconds">Delay milliseconds.</param>
 		public void SetTimeout(object action, long delayMilliseconds) {
 			long soon = Now () + delayMilliseconds;
-			queue.Insert(BestIndexFor (soon), new ToDo(soon, action));
+			queue.Insert(BestIndexFor (soon, queue), new ToDo(soon, action));
+		}
+
+		/// <summary>as the JavaScript function</summary>
+		/// <param name="action">Action. an object to trigger, expected to be a delegate or System.Action</param>
+		/// <param name="delayMilliseconds">Delay milliseconds.</param>
+		public void SetTimeoutRealtime(object action, long delayMilliseconds) {
+			long soon = NowRealtime() + delayMilliseconds;
+			queueRealtime.Insert(BestIndexFor(soon, queueRealtime), new ToDo(soon, action));
 		}
 
 		/// <param name="action">Action. what to do</param>
 		/// <param name="delayMilliseconds">Delay milliseconds. in how-many-milliseconds to do it</param>
 		public static void setTimeout(object action, long delayMilliseconds) {
-			setTimeout ((object)action, delayMilliseconds);
+			Instance ().SetTimeout (action, delayMilliseconds);
 		}
+
+		/// <param name="action">Action. what to do</param>
+		/// <param name="delayMilliseconds">Delay milliseconds. in how-many-milliseconds to do it</param>
+		public static void setTimeoutRealtime(object action, long delayMilliseconds) {
+			Instance().SetTimeoutRealtime(action, delayMilliseconds);
+		}
+
 		/// <summary>Allows implicit conversion of lambda expressions and delegates</summary>
 		/// <param name="action">Action. what to do</param>
 		/// <param name="delayMilliseconds">Delay milliseconds. in how-many-milliseconds to do it</param>
@@ -122,12 +152,19 @@ namespace NS {
 			Instance ().SetTimeout (action, delayMilliseconds);
 		}
 
+		/// <summary>Allows implicit conversion of lambda expressions and delegates</summary>
+		/// <param name="action">Action. what to do</param>
+		/// <param name="delayMilliseconds">Delay milliseconds. in how-many-milliseconds to do it</param>
+		public static void setTimeoutRealtime(System.Action action, long delayMilliseconds) {
+			Instance().SetTimeoutRealtime(action, delayMilliseconds);
+		}
+
 		void OnApplicationPause(bool paused) { if (alternativeTime == 0) { alternativeTime = Now (); } }
 		void OnDisable() { OnApplicationPause (true); }
 		void OnEnable() { OnApplicationPause (false); }
 
 		protected void Init() {
-			NS.F.EquateUnityEditorPauseWithApplicationPause (OnApplicationPause);
+			NS.ActivateAnything.EquateUnityEditorPauseWithApplicationPause (OnApplicationPause);
 		}
 
 		void Start () {
@@ -137,41 +174,59 @@ namespace NS {
 		}
 
 		void Update () {
-			long now;
-			if (alternativeTime == 0) {
-				now = Now ();
-				if (UnityEngine.Time.timeScale != 1) { alternativeTime = now; }
-			} else {
-				float deltaTimeMs = (UnityEngine.Time.deltaTime * 1000);
-				long deltaTimeMsLong = (long)(deltaTimeMs + leftOverTime);
-				alternativeTime += deltaTimeMsLong;
-				leftOverTime = deltaTimeMs - deltaTimeMsLong;
-				now = alternativeTime;
+			long now_t, nowForReals = NowRealtime();
+			long deadline = nowForReals + maxMillisecondsPerUpdate;
+			if(queueRealtime.Count > 0) {
+				DoWhatIsNeededNow(queueRealtime, nowForReals, deadline);
 			}
-			if (queue.Count > 0 && queue [0].when <= now) {
-				// the things to do in the toDoRightNow might add to the queue, so to prevent infinite looping...
-				// separate out the elements to do right now
-				List<ToDo> toDoRightNow = new List<ToDo> ();
-				for (int i = 0; i < queue.Count; ++i) {
-					if (queue [i].when > now) { break; }
-					toDoRightNow.Add (queue [i]);
+			if(queue.Count > 0) {
+				if(alternativeTime == 0) {
+					now_t = nowForReals;
+					if(UnityEngine.Time.timeScale != 1) { alternativeTime = now_t; }
+				} else {
+					float deltaTimeMs = (UnityEngine.Time.deltaTime * 1000);
+					long deltaTimeMsLong = (long)(deltaTimeMs + leftOverTime);
+					alternativeTime += deltaTimeMsLong;
+					leftOverTime = deltaTimeMs - deltaTimeMsLong;
+					now_t = alternativeTime;
 				}
-				queue.RemoveRange (0, toDoRightNow.Count);
-				long nowReally = NowRealtime ();
-				// do what is scheduled to do right now
-				for (int i = 0; i < toDoRightNow.Count; ++i) {
-					ToDo todo = toDoRightNow [i];
-					// if todo.what adds to the queue, it won't get executed this cycle
-					NS.F.DoActivate(todo.what, gameObject, gameObject, todo.activate);
-					// if it took too long to do that thing, stop and hold the rest of the things to do till later.
-					if (maxMillisecondsPerUpdate >= 0 && ((NowRealtime() - nowReally) > maxMillisecondsPerUpdate)) {
-						toDoRightNow.RemoveRange (0, i+1);
-						queue.InsertRange (0, toDoRightNow);
-						// toDoRightNow.Clear (); // not strictly necessary, but could be useful if more code is added to this method.
-						break;
+				DoWhatIsNeededNow(queue, now_t, deadline);
+			}
+		}
+		void DoWhatIsNeededNow(List<ToDo> a_queue, long now_t, long deadline) {
+			bool tryToDoMore;
+			do {
+				tryToDoMore = false;
+				if(a_queue.Count > 0 && a_queue[0].when <= now_t) {
+					if(_currentlyDoing.Count == 0) {
+						// the things to do in the toDoRightNow might add to the queue, so to prevent infinite looping...
+						// separate out the elements to do right now
+						for(int i = 0; i < a_queue.Count; ++i) {
+							if(a_queue[i].when > now_t) { break; }
+							_currentlyDoing.Add(a_queue[i]);
+						}
+						// if there's nothing to do, get out of this potential loop
+						if(_currentlyDoing.Count == 0) { break; }
+						a_queue.RemoveRange(0, _currentlyDoing.Count);
+						tryToDoMore = false;
+					}
+					// do what is scheduled to do right now
+					while(currentlyDoneThingIndex < _currentlyDoing.Count) {
+						ToDo todo = _currentlyDoing[currentlyDoneThingIndex++];
+						// if todo.what adds to the queue, it won't get executed this cycle
+						NS.ActivateAnything.DoActivate(todo.what, gameObject, gameObject, todo.activate);
+						// if it took too long to do that thing, stop and hold the rest of the things to do till later.
+						if(maxMillisecondsPerUpdate >= 0 && NowRealtime() > deadline) {
+							break;
+						}
+					}
+					if(currentlyDoneThingIndex >= _currentlyDoing.Count) {
+						_currentlyDoing.Clear();
+						currentlyDoneThingIndex = 0;
+						tryToDoMore = NowRealtime() < deadline && a_queue.Count > 0;
 					}
 				}
-			}
+			} while(tryToDoMore);
 		}
 	}
 }

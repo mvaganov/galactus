@@ -12,19 +12,20 @@ namespace OMU {
 			return Parser.Parse(Parser.ParseType.JSON, sourceName, omScript, ref results);
 		}
 
-		public static string ToScript(object obj) {
-			return Serializer.Stringify(obj, "\t", false, false, null);
+		public static string ToScript(object obj, bool hideZeroOrNull = false) {
+			return Serializer.Stringify(obj, "\t", hideZeroOrNull, false, null);
 		}
 
 		public static string ToScriptTiny(object obj) {
 			return Serializer.StringifyTiny(obj);
 		}
 
-		public static TYPE FromScriptOverwrite<TYPE>(string omScript, ref TYPE objectToOverwrite) where TYPE : class {
+		public static object FromScriptOverwrite<TYPE>(string omScript, ref TYPE objectToOverwrite) where TYPE : class {
 			return FromScriptOverwrite(omScript, ref objectToOverwrite, null, "unnamed script");
 		}
-		public static TYPE FromScriptOverwrite<TYPE>(string omScript, ref TYPE objectToOverwrite, FileParseResults results, string sourceName) where TYPE : class {
+		public static object FromScriptOverwrite<TYPE>(string omScript, ref TYPE objectToOverwrite, FileParseResults results, string sourceName) where TYPE : class {
 			FileParseResults resultsEvenIfUserDidntAskForThem = (results != null) ? results : new FileParseResults(sourceName, omScript);
+			object output = objectToOverwrite;
 			do {
 				// parse the JSON tree
 				object dom = Parser.Parse(Parser.ParseType.JSON, sourceName, omScript, ref resultsEvenIfUserDidntAskForThem);
@@ -34,7 +35,7 @@ namespace OMU {
 				if(objectToOverwrite == null) {
 					objectToOverwrite = Data.CreateNew(t) as TYPE; // otherwise, construct and populate data as requested
 				}
-				object output = objectToOverwrite;
+				output = objectToOverwrite;
 				string errorText = Data.SetObjectFromOm(ref output, dom as object, Data.JSONFieldSearchBehavior.startswith, null);
 				if(errorText != null) {
 					resultsEvenIfUserDidntAskForThem.ERROR(errorText, Coord.INVALID);
@@ -43,7 +44,7 @@ namespace OMU {
 			if(resultsEvenIfUserDidntAskForThem.Count > 0 && results == null) {
 				Debug.LogError(resultsEvenIfUserDidntAskForThem);
 			}
-			return objectToOverwrite;
+			return output;
 		}
 	}
 }

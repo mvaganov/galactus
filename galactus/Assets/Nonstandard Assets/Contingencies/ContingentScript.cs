@@ -6,9 +6,13 @@ using NS.Contingency.Response;
 #if UNITY_EDITOR
 using UnityEditor;
 using _NS.Contingency;
+using System.Linq;
 #endif
 
 namespace _NS.Contingency {
+	/// <summary>
+	///A Contingentable can reference other Contingables, like a list, or like a Contingency modifier
+	/// </summary>
 	public abstract class Contingentable : MonoBehaviour {
 		public abstract int GetChildContingencyCount();
 		public abstract Object GetChildContingency(int index);
@@ -44,8 +48,6 @@ namespace _NS.Contingency {
 			return null;
 		}
 
-		
-
 		#if UNITY_EDITOR
 		public virtual Object DoGUI(Rect _position, Object obj, Component self, PropertyDrawer_ObjectPtr p) {
 			return p.StandardEditorGUIObjectReference (_position, obj, self);
@@ -56,8 +58,10 @@ namespace _NS.Contingency {
 		#endif
 	}
 }
-// TODO rename namespace to Z.
 namespace NS.Contingency {
+	/// <summary>
+	/// A Contingency that must be triggered from a C# script, or by another Contingnecy
+	/// </summary>
 	public class ContingentScript : Contingentable {
 		[Tooltip("* Transform: teleport activating object to the Transform\n"+
 			"* SceneAsset: load the scene\n"+
@@ -75,33 +79,30 @@ namespace NS.Contingency {
 		public override int GetChildContingencyCount() {return 1;}
 		public override Object GetChildContingency(int index) { return whatToActivate.Data; }
 
-
-		// [System.Serializable]
-		// public struct ActivateOptions {
-		// 	public float delayInSeconds;
-		// 	[Tooltip("If true, *deactivate* whatToActivate instead. May not be valid for all activatable Objects")]
-		// 	public bool deactivate;
-		// }
 		// public ActivateOptions activateOptions = new ActivateOptions();
 		public virtual void DoActivateTrigger () { DoActivateTrigger(null); }
 		public virtual void DoActivateTrigger (object causedActivate) {
-			NS.F.DoActivate (whatToActivate.Data, causedActivate, this, true);
+			NS.ActivateAnything.DoActivate (whatToActivate.Data, causedActivate, this, true);
 		}
+
 		public virtual void DoTriggerMouse() {
-			NS.F.DoActivate (whatToActivate.Data, Input.mousePosition, this, true);
+			NS.ActivateAnything.DoActivate (whatToActivate.Data, Input.mousePosition, this, true);
 		}
 	}
 }
 namespace _NS.Contingency {
+	/// <summary>
+	/// Activate a contingency when a collision happens with the Collider this is attached to
+	/// </summary>
 	public class ContingencyCollide : NS.Contingency.ContingentScript {
 		public string onlyForObjectsTagged;
 		public bool IsTriggeringObject(GameObject o) {
 			return onlyForObjectsTagged == "" || o.tag == onlyForObjectsTagged || o.tag == "";
 		}
 		public override void DoActivateTrigger (object causedActivate) {
-			GameObject go = NS.F.ConvertToGameObject(causedActivate);
+			GameObject go = NS.ActivateAnything.ConvertToGameObject(causedActivate);
 			if (go != null && IsTriggeringObject(go)) {
-				NS.F.DoActivate (whatToActivate, causedActivate, this, true);
+				NS.ActivateAnything.DoActivate (whatToActivate, causedActivate, this, true);
 			}
 		}
 	}
@@ -109,32 +110,36 @@ namespace _NS.Contingency {
 
 namespace NS {
 	/// Used to more easily reference Components within the Unity editor
-	[System.Serializable] public struct ObjectPtr {
+	[System.Serializable]
+	public struct ObjectPtr : IReference {
 		[SerializeField]
 		public Object data;
-		public Object Data { get {return data as Object; } set { data = value; } }
+		public Object Data { get { return data as Object; } set { data = value; } }
 		//public ObjectPtr(){data = null;}
-		public ObjectPtr(Object obj){ data = obj; }
-		public override string ToString() { return "ObjectPtr -> "+data; }
+		public ObjectPtr(Object obj) { data = obj; }
+		public override string ToString() { return "ObjectPtr -> " + data; }
+		public object Dereference() { return Data; }
 	}
 }
+
 
 #if UNITY_EDITOR
 [CustomPropertyDrawer(typeof(NS.ObjectPtr))]
 public class PropertyDrawer_ObjectPtr : PropertyDrawer {
+	delegate Object SelectNextObjectFunction();
 	public static bool showLabel = true;
 	public int choice = 0;
-	string[] choices = new string[] {};
+	string[] choices_name = new string[] {};
+	SelectNextObjectFunction[] choices_selectFunc = new SelectNextObjectFunction[] {};
 	Object choicesAreFor = null;
 	System.Type[] possibleResponses = null;
-	string[] defaultChoicesIfNullObject = null;
-	public static string setToNull = "set to null", delete = "delete";
-	public static string[] editChoiceOrNullify = new string[] { "<-- edit", setToNull, delete };
+	string[] cached_typeCreationList_names = null;
+	SelectNextObjectFunction[] cached_TypeCreationList_function = null;
 
-	private void CleanTypename(ref string typename) {
-		int lastDot = typename.LastIndexOf('.');
-		if(lastDot >= 0) { typename = typename.Substring(lastDot+1); }
-	}
+	public static string setToNull = "set to null", delete = "delete";
+	public static float defaultOptionWidth = 16, defaultLabelWidth = 48, unitHeight = 16;
+	/// <summary>The namespaces to get default selectable classes from</summary>
+	protected string[] namespacesToGetDefaultSelectableClassesFrom = { "NS.Contingency.Response" };
 
 	public override float GetPropertyHeight (SerializedProperty _property, GUIContent label) {
 		SerializedProperty asset = _property.FindPropertyRelative("data");
@@ -149,7 +154,109 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 		return unitHeight;//base.GetPropertyHeight (asset, label);
 	}
 
-	public static float defaultOptionWidth = 16, defaultLabelWidth = 100, unitHeight = 16;
+	/// <summary>
+	/// When the ObjectPtr points to nothing, this method generates the objects that can be created by default
+	/// </summary>
+	/// <param name="self">Self.</param>
+	/// <param name="names">Names.</param>
+	/// <param name="functions">Functions.</param>
+	private void GenerateTypeCreationList(Component self, out string[] names, out SelectNextObjectFunction[] functions) {
+		List<string> list = new List<string>();
+		List<SelectNextObjectFunction> list_of_data = new List<SelectNextObjectFunction>();
+		if(namespacesToGetDefaultSelectableClassesFrom != null) {
+			for(int i = 0; i < namespacesToGetDefaultSelectableClassesFrom.Length; ++i) {
+				string namespaceName = namespacesToGetDefaultSelectableClassesFrom[i];
+				possibleResponses = NS.Reflection.GetTypesInNamespace(namespaceName);
+				list.AddRange(NS.Reflection.TypeNamesCleaned(possibleResponses, namespaceName));
+				for(int t = 0; t < possibleResponses.Length; t++){
+					System.Type nextT = possibleResponses[t];
+					list_of_data.Add(() => {
+						return CreateSelectedClass(nextT, self);
+					});
+				}
+			}
+		}
+		list.Insert(0, "<-- select Object or create...");
+		list_of_data.Insert(0, null);
+		names = list.ToArray();
+		functions = list_of_data.ToArray();
+	}
+
+	private void CleanTypename(ref string typename) {
+		int lastDot = typename.LastIndexOf('.');
+		if(lastDot >= 0) { typename = typename.Substring(lastDot + 1); }
+	}
+
+	private void GenerateChoicesForSelectedObject(Component self, out string[] names, out SelectNextObjectFunction[] functions) {
+		List<string> components = new List<string>();
+		List<SelectNextObjectFunction> nextSelectionFunc = new List<SelectNextObjectFunction>();
+		string typename = choicesAreFor.GetType().ToString();
+		CleanTypename(ref typename);
+		components.Add(typename);
+		nextSelectionFunc.Add(null);
+		GameObject go = choicesAreFor as GameObject;
+		bool addSetToNull = false;
+		Object addDelete = null;
+		if(go != null) {
+			Component[] c = go.GetComponents<Component>();
+			for(int i = 0; i < c.Length; i++) {
+				Component comp = c[i];
+				if(comp != self) {
+					typename = comp.GetType().ToString();
+					CleanTypename(ref typename);
+					components.Add(typename);
+					nextSelectionFunc.Add(() => { return comp; });
+				}
+			}
+			addSetToNull = true;
+		} else if(choicesAreFor is Component) {
+			components.Add(".gameObject");
+			GameObject gob = (choicesAreFor as Component).gameObject;
+			nextSelectionFunc.Add(() => { return gob; });
+			addSetToNull = true;
+			addDelete = choicesAreFor;
+		}
+		if(addSetToNull) {
+			components.Add(setToNull);
+			nextSelectionFunc.Add(() => {
+				choice = 0; return null;
+			});
+		}
+		if(addDelete != null) {
+			components.Add(delete);
+			nextSelectionFunc.Add(() => {
+				Object.DestroyImmediate(addDelete); choice = 0; return null;
+			});
+		}
+		names = components.ToArray();
+		functions = nextSelectionFunc.ToArray();
+	}
+
+	private Object CreateSelectedClass(System.Type nextT, Component self) {
+		Object obj = null;
+		if(self != null && self.gameObject != null) {
+			GameObject go = self.gameObject;
+			if(nextT.IsSubclassOf(typeof(ScriptableObject))) {
+				obj = ScriptableObjectUtility.CreateAsset(nextT);
+			} else {
+				Component c = go.AddComponent(nextT);
+				_NS.Contingency.Response.DoActivateBasedOnContingency doEvent =
+					c as _NS.Contingency.Response.DoActivateBasedOnContingency;
+				if(c != null && doEvent != null) {
+					Contingentable contingencyMaster = self as Contingentable;
+					if(self is ContingentScript) {
+						ContingentScript cs = self as ContingentScript;
+						if(cs.whatToActivate.Data is ContingentList) {
+							contingencyMaster = cs.whatToActivate.Data as ContingentList;
+						}
+					}
+					doEvent.RegisterContingency(contingencyMaster);
+					obj = doEvent;
+				}
+			}
+		}
+		return obj;
+	}
 
 	public override void OnGUI(Rect _position, SerializedProperty _property, GUIContent _label) {
 		EditorGUI.BeginProperty(_position, GUIContent.none, _property);
@@ -174,17 +281,6 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 		EditorGUI.EndProperty( );
 	}
 
-	public static T EditorGUI_EnumPopup<T>(Rect _position, T value) {
-		System.Type t = typeof(T);
-		if(t.IsEnum) {
-			string[] names = System.Enum.GetNames(t);
-			string thisone = value.ToString();
-			int index = System.Array.IndexOf(names, thisone);
-			index = EditorGUI.Popup(_position, index, names);
-			value = (T)System.Enum.Parse(t, names[index]);
-		}
-		return value;
-	}
 	public Object EditorGUIObjectReference(Rect _position, Object obj, Component self) {
 		int oldIndent = EditorGUI.indentLevel;
 		EditorGUI.indentLevel = 0;
@@ -198,13 +294,43 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 		return obj;
 	}
 
+	public Object ShowChoicesPopup(Rect _position, Object obj, Component self, bool recalculateChoices) {
+		// if the object needs to have it's alternate forms calculated
+		if(recalculateChoices || choicesAreFor != obj || choices_name.Length == 0) {
+			choicesAreFor = obj;
+			// if these choices are for an actual object
+			if(choicesAreFor != null) {
+				GenerateChoicesForSelectedObject(self, out choices_name, out choices_selectFunc);
+				choice = 0;
+			} else {
+				if(cached_typeCreationList_names == null) {
+					GenerateTypeCreationList(self,
+						out cached_typeCreationList_names, out cached_TypeCreationList_function);
+				}
+				choices_name = cached_typeCreationList_names;
+				choices_selectFunc = cached_TypeCreationList_function;
+			}
+		}
+		// give the alternate options for the object
+		int lastChoice = choice;
+		_position.x += _position.width;
+		_position.width = defaultOptionWidth;
+		choice = EditorGUI.Popup(_position, choice, choices_name);
+		if(lastChoice != choice) {
+			if(choices_selectFunc[choice] != null) {
+				obj = choices_selectFunc[choice]();
+			}
+		}
+		return obj;
+	}
+
 	public Object StandardEditorGUIObjectReference(Rect _position, Object obj, Component self) {
 		float originalWidth = _position.width;
 		_position.width = originalWidth - defaultOptionWidth;
 		Object prevSelection = obj;
 		obj = EditorGUI.ObjectField (_position, obj, typeof(Object), true);
 
-		// if a scene asset is given... do a quick conversion
+		// if a scene asset is given... do a quick conversion TODO make a filter function...
 		if (obj != null && obj.GetType () == typeof(SceneAsset)) {
 			GameObject go = self.gameObject;
 			if (go) {
@@ -215,163 +341,25 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 				sceneLoad.sceneName = sa.name;
 			}
 		}
-
-		// if the object needs to have it's alternate forms calculated
-		if (obj != prevSelection || choicesAreFor != obj || choices.Length == 0) {
-			// check if recursion is happening... if so, bail!
-			// if(obj == self || obj  == self) {
-			// 	Debug.LogWarning("preventing recursion...");
-			// 	return prevSelection;
-			// }
-
-			choicesAreFor = obj;
-			// if these choices are for an actual object
-			if (choicesAreFor != null) {
-				List<string> components = new List<string> ();
-				string typename = choicesAreFor.GetType ().ToString ();
-				CleanTypename (ref typename);
-				components.Add (typename);
-				GameObject go = choicesAreFor as GameObject;
-				if (go != null) {
-					Component[] c = go.GetComponents<Component> ();
-					for (int i = 0; i < c.Length; i++) {
-						typename = c [i].GetType ().ToString ();
-						CleanTypename (ref typename);
-						if(c[i] == self) {
-							typename = "<--";
-						}
-						components.Add (typename);
-					}
-					components.Add (setToNull);
-				} else if (choicesAreFor is Component) {
-					components.Add (".gameObject");
-					components.Add (setToNull);
-				}
-				choices = components.ToArray ();
-				choice = 0;
-			} else {
-				if (defaultChoicesIfNullObject == null) {
-					string namespaceName = "NS.Contingency.Response";
-					possibleResponses = PropertyDrawer_ContingencyChoice.GetTypesInNamespace (namespaceName);
-					List<string> list = PropertyDrawer_ContingencyChoice.TypeNamesCleaned (possibleResponses, namespaceName);
-					list.Insert (0, "<-- select Object or create...");
-					defaultChoicesIfNullObject = list.ToArray ();
-				}
-				choices = defaultChoicesIfNullObject;
-			}
-		}
-		// give the alternate options for the object
-		int lastChoice = choice;
-		_position.x += _position.width;
-		_position.width = defaultOptionWidth;
-		choice = EditorGUI.Popup(_position, choice, choices);
-		if (lastChoice != choice) {
-			if(obj == null && choice > 0 && self != null && self.gameObject != null) {
-				GameObject go = self.gameObject;
-				System.Type nextT = possibleResponses [choice - 1];
-				if (nextT.IsSubclassOf (typeof(ScriptableObject))) {
-					obj = ScriptableObjectUtility.CreateAsset(nextT);
-				} else {
-					Component c = go.AddComponent (nextT);
-					_NS.Contingency.Response.DoActivateBasedOnContingency doEvent = 
-						c as _NS.Contingency.Response.DoActivateBasedOnContingency;
-					if (c != null && doEvent != null) {
-						Contingentable contingencyMaster = self as Contingentable;
-						if(self is ContingentScript) {
-							ContingentScript cs = self as ContingentScript;
-							if(cs.whatToActivate.Data is ContingentList) {
-								contingencyMaster = cs.whatToActivate.Data as ContingentList;
-							}
-						}
-						doEvent.RegisterContingency (contingencyMaster);
-						obj = doEvent;
-					}
-				}
-			} else {
-				if (choices[choice] == setToNull) {
-					obj = null;
-					choice = 0;
-					choices = defaultChoicesIfNullObject;
-				} else {
-					int index = choice-1;
-					GameObject go = choicesAreFor as GameObject;
-					Component[] components = null;
-					if(go != null) {
-						components = go.GetComponents<Component> ();
-					}
-					if(components == null && obj is Component && choice == 1) {
-						// TODO prevent recursion too...
-						if(prevSelection != self) {
-							Debug.LogWarning("prevent recursion");
-							obj = prevSelection;
-						}
-					}
-					if(components != null) {
-						if(index < 0) {
-							Debug.Log("selected game object");
-						} else if(index < components.Length) {
-							obj = components[index];
-						} else if(index >= components.Length) {
-							Debug.Log("selected out of bounds");
-						}
-					} else {
-						if(obj != null) {
-							obj = ((Component)obj).gameObject;
-						}
-					}
-				}
-			}
-		}
-		return obj;
+		return ShowChoicesPopup(_position, obj, self, obj != prevSelection);
 	}
 
 	public static Object DoGUIEnumLabeledString<T>(Rect _position, Object obj, Component self, PropertyDrawer_ObjectPtr p,
-		ref T enumValue, ref string textValue, string[] options = null) {
-		if(options == null) {
-			options = editChoiceOrNullify;
-		}
+		ref T enumValue, ref string textValue) {
 		int oldindent = EditorGUI.indentLevel;
 		EditorGUI.indentLevel = 0;
 		Rect r = _position;
-		float w = PropertyDrawer_ObjectPtr.defaultOptionWidth, 
-		wl = PropertyDrawer_ObjectPtr.defaultLabelWidth;
+		float w = defaultOptionWidth, wl = defaultLabelWidth;
 		r.width = wl;
-		enumValue = EditorGUI_EnumPopup<T>(r, enumValue);
+		enumValue = NS.Reflection.EditorGUI_EnumPopup<T>(r, enumValue);
 		r.x += r.width;
 		r.width = _position.width - w - wl;
 		textValue = EditorGUI.TextField (r, textValue);
+		obj = p.ShowChoicesPopup(r, obj, self, true);
 		r.x += r.width;
 		r.width = w;
-		StandardOptionPopup(r, ref obj);
 		EditorGUI.indentLevel = oldindent;
-		//p.choice = EditorGUI.Popup(r, 0, options);
-		// if (0 != p.choice) {
-		// 	if(options[p.choice] == setToNull) {
-		// 		obj = null;
-		// 		p.choice = 0;
-		// 	} else if(options[p.choice] == delete) {
-		// 		// Debug.Log("delete "+obj);
-		// 		GameObject.DestroyImmediate(obj);
-		// 		obj = null;
-		// 		p.choice = 0;
-		// 	}
-		// }
 		return obj;
-	}
-
-	public static int StandardOptionPopup(Rect r, ref Object obj) {
-		int choice = EditorGUI.Popup(r, 0, PropertyDrawer_ObjectPtr.editChoiceOrNullify);
-		if (0 != choice){
-			if(PropertyDrawer_ObjectPtr.editChoiceOrNullify[choice] == PropertyDrawer_ObjectPtr.setToNull) {
-				obj = null;
-				choice = 0;
-			} else if(PropertyDrawer_ObjectPtr.editChoiceOrNullify[choice] == PropertyDrawer_ObjectPtr.delete) {
-				GameObject.DestroyImmediate(obj);
-				obj = null;
-				choice = 0;
-			}
-		}
-		return choice;
 	}
 }
 #endif

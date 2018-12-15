@@ -14,7 +14,7 @@ namespace NS.Contingency.Response {
 		public virtual void DoActivateTrigger () { DoActivate(null, this, true); }
 		public void DoActivate (object whatTriggeredThis, object whatIsBeingTriggerd, bool active) {
 			elements.ForEach(
-				o => NS.F.DoActivate(o, whatTriggeredThis, whatIsBeingTriggerd, active)
+				o => NS.ActivateAnything.DoActivate(o, whatTriggeredThis, whatIsBeingTriggerd, active)
 			);
 		}
 		public void DoActivateTrigger (object whatTriggeredThis, object whatIsBeingTriggerd) {
@@ -59,7 +59,7 @@ namespace NS.Contingency.Response {
 				// label the type-of-list, and the number of elements
 				Rect labelr = r;
 				labelr.width = wl;
-				kindOfList = PropertyDrawer_ObjectPtr.EditorGUI_EnumPopup<KindOfList>(labelr, kindOfList);
+				kindOfList = Reflection.EditorGUI_EnumPopup<KindOfList>(labelr, kindOfList);
 				labelr.width = r.width - wl;
 				labelr.x += wl;
 				int count = EditorGUI.IntField(labelr, sl.elements.Count);
@@ -93,8 +93,7 @@ namespace NS.Contingency.Response {
 					r.y += expectedHeight + vpadding;
 				}
 			}
-			PropertyDrawer_ObjectPtr.StandardOptionPopup(new Rect(_position.x+_position.width-w, _position.y, w, h), ref obj);
-			return obj;
+			return p.ShowChoicesPopup(new Rect(_position.x + _position.width - w*2, _position.y, w, h), obj, self, true);
 		}
 
 		// really kludgy function... should be using GetPropertyHeight of the Contingentable, but only once I figure out what the seralization madness is all about

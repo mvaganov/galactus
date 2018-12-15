@@ -832,9 +832,11 @@ namespace OMU {
 					errorMessage = SetObjectFromOmResourceReference(ref parsedValue, typeToParseInto, 
 						NormalizeString(value), JSONFieldSearchBehavior.failfast, contextForReferences);
 				} else {
-					bool thisTypeIsFine = value.GetType() == typeToParseInto;
+					Type valueType = value.GetType();
+					bool thisTypeIsFine = valueType == typeToParseInto;
+					// if the type isn't good, try parsing it into a valid interface or base type
 					if(!thisTypeIsFine) {
-						Type t = value.GetType ();
+						Type t = valueType;
 						while(t != null) {
 							Type[] interfaces = t.GetInterfaces();
 							if(interfaces != null) {
@@ -854,8 +856,45 @@ namespace OMU {
 							}
 						}
 					}
+					// if the base-type or interface isn't good, check if it's a generic list that can be recast
 					if(!thisTypeIsFine) {
-						errorMessage = "(" + value + ")<" + value.GetType() + "> can't be parsed into <" + typeToParseInto + ">! "+contextForReferences+"\n"+Serializer.Stringify(value);
+						if(valueType.IsGenericType && typeToParseInto.IsGenericType
+						  && valueType == typeof(List<object>)
+						  && typeToParseInto.GetGenericTypeDefinition() == typeof(List<>)) {
+							// check if all of the elements in value are able to be assigned as typeToParseInto
+							List<object> list = value as List<object>;
+							Type targetType = typeToParseInto.GetGenericArguments()[0];
+							for(int i = 0; i < list.Count; i++){
+								if(!targetType.IsAssignableFrom(list[i].GetType())){
+									Type elementT = list[i].GetType();
+									bool convertedCorrectly = false;
+									// if elementT is a dictionary
+									if(elementT == typeof(OBJ_TYPE)) {
+										// try to populate a new object of the expected type with this dictionary data
+										object o = CreateNew(targetType);
+										string error = SetObjectFromOm(ref o, list[i], JSONFieldSearchBehavior.failfast, null);
+										if(error != null){
+											Debug.LogError(error);
+										} else {
+											convertedCorrectly = true;
+										}
+										list[i] = o;
+									}
+									if(!convertedCorrectly) {
+										throw new System.Exception(elementT + " at index " + i + " can't be assigned as " + targetType);
+									}
+								}
+							}
+							System.Collections.IList targetList = CreateNew(typeToParseInto) as System.Collections.IList;
+							for(int i = 0; i < list.Count; i++) {
+								targetList.Add(list[i]);
+							}
+							value = targetList;
+							thisTypeIsFine = true;
+						}
+					}
+					if(!thisTypeIsFine) {
+						errorMessage = "(" + value + ")<" + valueType + "> can't be parsed into <" + typeToParseInto + ">! "+contextForReferences+"\n"+Serializer.Stringify(value);
 						throw new System.Exception(errorMessage);
 					}
 					parsedValue = value;
@@ -1309,15 +1348,17 @@ namespace OMU {
 				}
 				objToCompile = vstring;
 			} else if (objToCompile is IList) {
-				IList inList = objToCompile as IList; 
-				LIST_TYPE outArr = Data.CreateListWithSize(inList.Count);
-				Type elementType = typeof(object);
-				if (ft.IsArray) { elementType = ft.GetElementType(); }
-				if (ft.IsGenericType) { elementType = ft.GetGenericArguments () [0]; }
-				for(int a = 0; a < inList.Count; ++a) {
-					outArr[a] = (SerializedToOm(inList[a], elementType, hideZeroNull, compressNames, ignoreFieldsPrefixedWith, objectHierarchy));
-				}
-				objToCompile = outArr;
+				// leave lists as is, the rest of the serialization code knows how to deal with ILists just fine.
+				//IList inList = objToCompile as IList; 
+				//LIST_TYPE outArr = Data.CreateListWithSize(inList.Count);
+				//Type elementType = typeof(object);
+				//if (ft.IsArray) { elementType = ft.GetElementType(); }
+				//if (ft.IsGenericType) { elementType = ft.GetGenericArguments () [0]; }
+				//for(int a = 0; a < inList.Count; ++a) {
+				//	//outArr[a] = (SerializedToOm(inList[a], elementType, hideZeroNull, compressNames, ignoreFieldsPrefixedWith, objectHierarchy));
+				//	outArr[a] = inList[a];
+				//}
+				//objToCompile = outArr;
 			} else {
 				if(objToCompile != null) {
 					if(objectHierarchy != null && objectHierarchy.IndexOf(objToCompile) >= 0) {

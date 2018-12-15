@@ -5,9 +5,6 @@ using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 #if UNITY_EDITOR
 using UnityEditor;
-using System.Linq;
-using NS.Contingency;
-using _NS.Contingency;
 #endif
 
 // author: mvaganov@hotmail.com
@@ -34,9 +31,9 @@ public class PropertyDrawer_ContingencyChoice : PropertyDrawer {
 		if(choices == null) {
 			const string namespaceName = "NS.Contingency";
 			if(validTypes == null) {
-				validTypes = GetTypesInNamespace(namespaceName);
+				validTypes = NS.Reflection.GetTypesInNamespace(namespaceName);
 			}
-			List<string> list = TypeNamesCleaned(validTypes, namespaceName);
+			List<string> list = NS.Reflection.TypeNamesCleaned(validTypes, namespaceName);
 			list.Insert(0, "<select new contingency>");
 			choices = list.ToArray();
 		}
@@ -51,28 +48,6 @@ public class PropertyDrawer_ContingencyChoice : PropertyDrawer {
 			}
 		}
 		EditorGUI.EndProperty( );
-	}
-	public static List<string> TypeNamesCleaned(System.Type[] validTypes, string namespaceToClean) {
-		List<string> list = new List<string>();
-		for(int i = 0; i < validTypes.Length; ++i) {
-			string typename = validTypes[i].ToString();
-			typename = CleanFront(typename, namespaceToClean+".");
-			list.Add(typename);
-		}
-		return list;
-	}
-	public static System.Type[] GetTypesInNamespace(string nameSpace, bool includeComponentTypes = false, System.Reflection.Assembly assembly = null) {
-		if(assembly == null) {
-			assembly = System.Reflection.Assembly.GetExecutingAssembly();
-		}
-		System.Type[] types = assembly.GetTypes().Where(t => 
-			System.String.Equals(t.Namespace, nameSpace, System.StringComparison.Ordinal)
-			&& (includeComponentTypes || !t.ToString().Contains('+'))).ToArray();
-		return types;
-	}
-	public static string CleanFront(string str, string trimMe) {
-		if(str.StartsWith(trimMe)) { return str.Substring(trimMe.Length); }
-		return str;
 	}
 }
 #endif

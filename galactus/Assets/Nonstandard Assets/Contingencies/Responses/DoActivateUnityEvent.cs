@@ -10,10 +10,10 @@ namespace NS.Contingency.Response {
 		public UnityEngine.Events.UnityEvent howToActivate;
 		public void DoActivateTrigger () { DoActivateTrigger(null, null); }
 		public void DoActivateTrigger (object whatTriggeredThis, object whatIsDoingTheWork) {
-			NS.F.DoActivate (howToActivate, whatTriggeredThis, whatIsDoingTheWork, true);
+			NS.ActivateAnything.DoActivate (howToActivate, whatTriggeredThis, whatIsDoingTheWork, true);
 		}
 		public void DoDeactivateTrigger (object whatTriggeredThis, object whatIsDoingTheWork) {
-			NS.F.DoActivate (howToActivate, whatTriggeredThis, whatIsDoingTheWork, false);
+			NS.ActivateAnything.DoActivate (howToActivate, whatTriggeredThis, whatIsDoingTheWork, false);
 		}
 
 		#if UNITY_EDITOR
@@ -44,10 +44,8 @@ namespace NS.Contingency.Response {
 			// 		obj = null;
 			// 		p.choice = 0;
 			// 	}
-
 			// }
-			PropertyDrawer_ObjectPtr.StandardOptionPopup(new Rect(_position.x+_position.width, _position.y, w, h), ref obj);
-			return obj;
+			return p.ShowChoicesPopup(new Rect(_position.x + _position.width - w, _position.y, w, h), obj, self, true);
 		}
 
 		public override float CalcPropertyHeight (PropertyDrawer_ObjectPtr p) {
