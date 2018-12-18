@@ -414,7 +414,7 @@ namespace Z {
 			textPanel.gameObject.SetActive(false);
 			optionPanel.gameObject.SetActive(false);
 			object ob = OMU.Util.FromScript(input);
-			Debug.Log(OMU.Util.ToScript(ob, true));
+			//Debug.Log(OMU.Util.ToScript(ob, true));
 			Debug.Log(OMU.Util.ToScriptTiny(ob));
 			AddDialogs(ob as IList);
 			if(startDialog != null) {
