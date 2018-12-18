@@ -3,17 +3,14 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine.UI;
-// make sure you have "TextMesh Pro" downloaded and imported from the Unity Asset Store. "Examples" unnecessary
 using TMPro;
 using UnityEngine.Serialization;
 
-/// <summary>A Command Line emulation for Unity3D v5.6+. Just use 'CmdLine.Log()'
-/// Latest version at: https://pastebin.com/nphdEi1z added colored log text when intercepting Debug</summary>
-/// <description>MIT License - TL;DR - This code is free, don't bother me about it!</description>
+/// <summary>A Command Line emulation for Unity3D
+/// <description>Public Domain - This code is free, don't bother me about it!</description>
 /// <author email="mvaganov@hotmail.com">Michael Vaganov</author>
 public class CmdLine : MonoBehaviour {
 	#region commands
@@ -88,10 +85,11 @@ public class CmdLine : MonoBehaviour {
 		}
 		ExecuteSystemCommand(s);
 	}
-	public void ExecuteSystemCommand(string s){
+	public void ExecuteSystemCommand(string s, DoAfterStringIsRead cb = null) {
 		if(systhread == null) {
 			//needToShowUserPrompt = false;
 			sysproc_currentCommand = s;
+			sysproc_callbackForCurrentCommand = cb;
 			sysproc_log = new List<string>();
 			sysproc_err = new List<string>();
 			systhread = new System.Threading.Thread(delegate () {
@@ -111,11 +109,15 @@ public class CmdLine : MonoBehaviour {
 						WorkingDirectory = sysprocdir
 					}
 				};
-				sysproc_fail = false;
 				sysproc.Start();
 				sysproc.OutputDataReceived += delegate (object sender, System.Diagnostics.DataReceivedEventArgs e) {
-					sysproc_log.Add(e.Data);
-					sysproc_didFinishCommand = true;
+					if(sysproc_callbackForCurrentCommand == null) {
+						sysproc_log.Add(e.Data);
+						sysproc_didFinishCommand = true;
+					} else {
+						sysproc_callbackForCurrentCommand(e.Data);
+						sysproc_callbackForCurrentCommand = null;
+					}
 				};
 				sysproc.BeginOutputReadLine();
 				bool ignoreNextError = true;
@@ -132,7 +134,6 @@ public class CmdLine : MonoBehaviour {
 				while(true) {
 					if(!string.IsNullOrEmpty(sysproc_currentCommand)) {
 						if(sysproc_currentCommand == "exit") {
-							Debug.Log("EXIT!!!");
 							break;
 						}
 						sysproc.StandardInput.WriteLine(sysproc_currentCommand);
@@ -155,7 +156,6 @@ public class CmdLine : MonoBehaviour {
 				}
 				sysproc.StandardInput.WriteLine("exit");
 				sysproc.StandardInput.Flush();
-				Debug.Log("Done with CMD");
 				sysproc.WaitForExit();
 				sysproc.Close();
 				sysproc = null;
@@ -168,22 +168,48 @@ public class CmdLine : MonoBehaviour {
 		} else {
 			if(!string.IsNullOrEmpty(s)) {
 				sysproc_currentCommand = s;
+				sysproc_callbackForCurrentCommand = cb;
 			}
 		}
 	}
-
-	public string PWD() {
-		System.Diagnostics.Process pwdproc =new System.Diagnostics.Process {
+	public void GetFullPrompt(DoAfterStringIsRead cb) {
+		ExecuteSystemCommand("hostname", (s) => {
+			string promptPrefix = s;
+			Debug.Log("forhostname: "+s);
+			int i = promptPrefix.IndexOf(".");
+			if(i >= 0) { promptPrefix = promptPrefix.Substring(0, i); }
+			promptPrefix += ":";
+			ExecuteSystemCommand("pwd", (pwd) => {
+				Debug.Log("forPWD: " + pwd);
+				i = pwd.LastIndexOf("/");
+				if(i >= 0) {
+					pwd = pwd.Substring(i + 1);
+				}
+				promptPrefix += pwd + " ";
+				ExecuteSystemCommand("whoami", (str) => {
+					Debug.Log("forWHOAMI: " + str);
+					promptPrefix += str;
+					cb(promptPrefix);
+				});
+			});
+		});
+	}
+	public string COMMAND_LINE_GETTER(string call) {
+		System.Diagnostics.Process proc = new System.Diagnostics.Process {
 			StartInfo = new System.Diagnostics.ProcessStartInfo {
-				FileName = "pwd",
+				FileName = call,
 				UseShellExecute = false,
 				RedirectStandardOutput = true,
 				RedirectStandardError = true,
 				CreateNoWindow = true,
 			}
 		};
-		pwdproc.Start();
-		string pwd = pwdproc.StandardOutput.ReadLine();
+		proc.Start();
+		string r = proc.StandardOutput.ReadLine();
+		return r;
+	}
+	public string PWD() {
+		string pwd = COMMAND_LINE_GETTER("pwd");
 		return pwd;
 	}
 	System.Diagnostics.Process sysproc;
@@ -192,8 +218,8 @@ public class CmdLine : MonoBehaviour {
 	private string sysproc_cmd = "";
 	private string sysproc_args = "";
 	private string sysproc_currentCommand = "";
+	private DoAfterStringIsRead sysproc_callbackForCurrentCommand;
 	private List<string> sysproc_log, sysproc_err;
-	private bool sysproc_fail = false;
 	private bool sysproc_promptNeedsRedraw = false;
 	private bool sysproc_didFinishCommand = true;
 
@@ -212,7 +238,6 @@ public class CmdLine : MonoBehaviour {
 				sysproc_err.RemoveAt(0);
 				somethingPrinted = true;
 			}
-			sysproc_fail = true;
 		}
 		ExecuteSystemCommand(s);
 		if(string.IsNullOrEmpty(s) && 
@@ -332,7 +357,7 @@ public class CmdLine : MonoBehaviour {
 	public bool activeOnStart = true;
 	[Tooltip ("If true, will hide the 3D canvas representation, only show when the commandline button is pressed")]
 	public bool hideInWorldSpace = false;
-	public int indexWherePromptWasPrintedRecently = -1;
+	private int indexWherePromptWasPrintedRecently = -1; // used to smartly over-write the prompt when printing out-of-sync
 	private bool needToShowUserPrompt = true;
 	[Tooltip ("The TextMeshPro font used. If null, built-in-font should be used.")]
 	public TMP_FontAsset textMeshProFont;
@@ -380,11 +405,12 @@ public class CmdLine : MonoBehaviour {
 			r.localScale = new Vector3 (textScale, textScale, textScale);
 		}
 	}
+	private string _fullprompt = "cmd";
 	public void ShowPrompt(){
 		int indexBeforePrompt = GetRawText().Length;
-		// TODO if using the command-line bridge, print the 
-		// hostname(first part):pwd(last part) whoami
-		AddText(PromptArtifact);
+		string promptText = systhread != null 
+			? _fullprompt + PromptArtifact : PromptArtifact;
+		AddText(promptText);
 		indexWherePromptWasPrintedRecently = indexBeforePrompt;
 	}
 	public bool IsInOverlayMode() {
