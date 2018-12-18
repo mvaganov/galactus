@@ -6906,7 +6906,8 @@ MonoBehaviour:
     Scrollbar: {r: 1, g: 1, b: 1, a: 0.5}
     UserInput: {r: 0.5, g: 1, b: 0.75, a: 1}
     UserSelection: {r: 0.42352942, g: 0.39607844, b: 1, a: 1}
-  activeOnStart: 1
+  ActiveOnStart: 1
+  AllowSystemAccess: 1
   textMeshProFont: {fileID: 11400000, guid: bd574a2f49d2f4a78be0a2e2a6231b84, type: 2}
   maxLines: 99
   maxColumnsPerLine: 120

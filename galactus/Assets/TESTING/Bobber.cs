@@ -39,7 +39,7 @@ public class Bobber : MonoBehaviour {
 
 	void Start () {
 		CmdLine.Instance.EnableDebugLogIntercept();
-		CmdLine.Instance.activeOnStart = false;
+		CmdLine.Instance.ActiveOnStart = false;
 		//CmdLine.Instance.hideInWorldSpace = true;
 		//Debug.LogWarning ("hi");
 		//Debug.LogError ("hi");

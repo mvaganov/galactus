@@ -15,7 +15,7 @@ using UnityEngine.Serialization;
 public class CmdLine : MonoBehaviour {
 	#region commands
 	/// <summary>watching for commands *about to execute*.</summary>
-	public event CommandHandler onCommand;
+	public event CommandHandler OnCommand;
 	/// <summary>known commands</summary>
 	private Dictionary<string, Command> commands = new Dictionary<string, Command>();
 	/// <summary>queue of instructions that this command line needs to execute.</summary>
@@ -71,16 +71,30 @@ public class CmdLine : MonoBehaviour {
 		#region os_commandline_terminal
 #if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
 		addCommand ("cmd", (args) => {
-			if(allowSystemAccess) {
-				bash.CMD(string.Join(" ", args, 1, args.Length - 1), null, this);
+			if(AllowSystemAccess) {
+				bash.DoCommand(string.Join(" ", args, 1, args.Length - 1), null, this);
 			} else {
 				HandleLog("Access Denied", "", LogType.Warning);
 			}
 		}, "access the true system's command-line terminal");
 #endif
 	}
-#if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
-	public class BASH {
+	public static void DoCommand(string command) {
+		bool isNewInstance = _instance == null;
+		Instance.doCommand(command);
+		if(isNewInstance) {
+			Instance.Interactivity = InteractivityEnum.Disabled;
+		}
+	}
+#if !CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
+	public void doCommand(string command) {
+		Debug.LogWarning("can't do '"+command+
+			"', #define CONNECT_TO_REAL_COMMAND_LINE_TERMINAL");
+	}
+#else
+	public void doCommand(string command) { bash.DoCommand(command, null, this); }
+
+	private class BASH {
 		System.Diagnostics.Process system_process;
 		System.Threading.Thread thread;
 		private string activeDir = null;
@@ -94,7 +108,7 @@ public class CmdLine : MonoBehaviour {
 		/// used to communicate to the CmdLine that the bash thread finished something
 		private bool probablyFinishedCommand = true;
 
-		public void CMD(string s, DoAfterStringIsRead cb = null, CmdLine cmd = null) {
+		public void DoCommand(string s, DoAfterStringIsRead cb = null, CmdLine cmd = null) {
 			if(activeDir == null) { activeDir = PWD(); }
 			if(thread == null) {
 				currentCommand = s.Trim();
@@ -193,7 +207,7 @@ public class CmdLine : MonoBehaviour {
 			}
 		}
 
-		public string COMMAND_LINE_GETTER(string call) {
+		private string COMMAND_LINE_GETTER(string call) {
 			System.Diagnostics.Process proc = new System.Diagnostics.Process {
 				StartInfo = new System.Diagnostics.ProcessStartInfo {
 					FileName = call,
@@ -237,7 +251,7 @@ public class CmdLine : MonoBehaviour {
 					somethingPrinted = true;
 				}
 			}
-			CMD(s);
+			DoCommand(s);
 			if(string.IsNullOrEmpty(s) &&
 				string.IsNullOrEmpty(currentCommand) &&
 			   (somethingPrinted || promptNeedsRedraw)) {
@@ -304,10 +318,10 @@ public class CmdLine : MonoBehaviour {
 			onInput(commandWithArguments);
 		} else {
 			if(string.IsNullOrEmpty(commandWithArguments)) { return; }
-			string s = commandWithArguments.Trim(WHITESPACE); // cut leading & trailing whitespace
-			string[] args = ParseArguments(s).ToArray();
+			string s = commandWithArguments.Trim(Util.WHITESPACE); // cut leading & trailing whitespace
+			string[] args = Util.ParseArguments(s).ToArray();
 			if(args.Length < 1) { return; }
-			if(onCommand != null) { onCommand(args); }
+			if(OnCommand != null) { OnCommand(args); }
 			Run(args[0].ToLower(), args);
 		}
 	}
@@ -338,15 +352,18 @@ public class CmdLine : MonoBehaviour {
 	}
 	#endregion // commands
 	#region user interface
-	[FormerlySerializedAs("promptArtifact")] public string PromptArtifact = "$ ";
+	public string PromptArtifact = "$ ";
 	[Tooltip("the main viewable UI component")]
 	private Canvas _mainView;
 	public enum InteractivityEnum { Disabled, ScreenOverlayOnly, WorldSpaceOnly, ActiveScreenAndInactiveWorld };
-	[FormerlySerializedAs("interactivity")] public InteractivityEnum Interactivity = InteractivityEnum.ActiveScreenAndInactiveWorld;
-	[FormerlySerializedAs("keyToActivate")]
+	[SerializeField]
+	private InteractivityEnum interactivity = InteractivityEnum.ActiveScreenAndInactiveWorld;
+	public InteractivityEnum Interactivity { 
+		get { return interactivity; }
+		set { interactivity = value; SetInteractive(IsInteractive()); }
+	}
 	[Tooltip("Which key shows the terminal")]
 	public KeyCode KeyToActivate = KeyCode.BackQuote;
-	[FormerlySerializedAs("keyToDeactivate")]
 	[Tooltip("Which key hides the terminal")]
 	public KeyCode KeyToDeactivate = KeyCode.Escape;
 	[Tooltip("used to size the console Rect Transform on creation as a UI overlay")]
@@ -359,9 +376,9 @@ public class CmdLine : MonoBehaviour {
 	/// <summary>used to prevent multiple simultaneous toggles of visibility</summary>
 	private bool _togglingVisiblityWithMultitouch = false;
 	[Tooltip("If true, will show up and take user input immediately")]
-	public bool activeOnStart = true;
+	public bool ActiveOnStart = true;
 #if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
-	public bool allowSystemAccess = true;
+	public bool AllowSystemAccess = true;
 #endif
 	public bool NeedToRefreshUserPrompt { get; set; }
 	/// used to smartly (perhaps overly-smartly) over-write the prompt when printing things out-of-sync
@@ -382,9 +399,9 @@ public class CmdLine : MonoBehaviour {
 		public Color Scrollbar = new Color(1, 1, 1, 0.5f);
 		public Color UserInput = new Color(.5f, 1, .75f);
 		public Color UserSelection = new Color(1, .75f, .75f, .75f);
-		public string UserInputHex { get { return CmdLine.ColorToHexCode(UserInput); } }
-		public string ErrorTextHex { get { return CmdLine.ColorToHexCode(ErrorText); } }
-		public string SpecialTextHex { get { return CmdLine.ColorToHexCode(SpecialText); } }
+		public string UserInputHex { get { return CmdLine.Util.ColorToHexCode(UserInput); } }
+		public string ErrorTextHex { get { return CmdLine.Util.ColorToHexCode(ErrorText); } }
+		public string SpecialTextHex { get { return CmdLine.Util.ColorToHexCode(SpecialText); } }
 	}
 	[System.Serializable]
 	public class RectTransformSettings {
@@ -412,7 +429,7 @@ public class CmdLine : MonoBehaviour {
 			r.localScale = new Vector3(textScale, textScale, textScale);
 		}
 	}
-	public void ShowPrompt() {
+	private void PrintPrompt() {
 		int indexBeforePrompt = GetRawText().Length;
 		if(indexWherePromptWasPrintedRecently != -1) {
 			indexBeforePrompt = indexWherePromptWasPrintedRecently;
@@ -429,6 +446,7 @@ public class CmdLine : MonoBehaviour {
 	public bool IsInOverlayMode() {
 		return _mainView.renderMode == RenderMode.ScreenSpaceOverlay;
 	}
+	// TODO optional view-direction & up-direction
 	public void PositionInWorld(Vector3 center, Vector2 size = default(Vector2), float scale = 0.005f) {
 		if (size == Vector2.zero) size = new Vector2 (Screen.width, Screen.height);
 		PutItInWorldSpace ws = new PutItInWorldSpace(scale, size);
@@ -438,7 +456,7 @@ public class CmdLine : MonoBehaviour {
 			ws.ApplySettingsTo (_mainView);
 		}
 	}
-	public void SetOverlayModeInsteadOfWorld(bool useOverlay) {
+	private void SetOverlayModeInsteadOfWorld(bool useOverlay) {
 		if (useOverlay && _mainView.renderMode != RenderMode.ScreenSpaceOverlay) {
 			_mainView.renderMode = RenderMode.ScreenSpaceOverlay;
 		} else if(!useOverlay) {
@@ -447,7 +465,7 @@ public class CmdLine : MonoBehaviour {
 		}
 	}
 	private Canvas CreateUI () {
-		_mainView = FindComponentUpHierarchy<Canvas> (transform);
+		_mainView = transform.GetComponentInParent<Canvas>();//FindComponentUpHierarchy<Canvas> (transform);
 		if (!_mainView) {
 			_mainView = (new GameObject ("canvas")).AddComponent<Canvas> (); // so that the UI can be drawn at all
 			_mainView.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -542,7 +560,7 @@ public class CmdLine : MonoBehaviour {
 			input = (new GameObject ("<EventSystem>")).AddComponent<StandaloneInputModule> ();
 		}
 		// put all UI in the UI layer
-		SetLayerRecursive (_mainView.gameObject, LayerMask.NameToLayer ("UI"));
+		Util.SetLayerRecursive (_mainView.gameObject, LayerMask.NameToLayer ("UI"));
 		// turn it off and then back on again... that fixes some things.
 		tmpGo.SetActive (false); tmpGo.SetActive (true);
 		// put it in the world (if needed)
@@ -566,7 +584,7 @@ public class CmdLine : MonoBehaviour {
 	/// <summary>shows (true) or hides (false).</summary>
 	public void SetVisibility (bool visible) {
 		if (_mainView == null) {
-			activeOnStart = visible;
+			ActiveOnStart = visible;
 		} else {
 			_mainView.gameObject.SetActive (visible);
 		}
@@ -581,12 +599,16 @@ public class CmdLine : MonoBehaviour {
 	}
 	/// <param name="enableInteractive"><c>true</c> to turn this on (and turn the previous CmdLine off)</param>
 	public void SetInteractive(bool enableInteractive) {
+		if(_tmpInputField == null) { return; }
 		bool activityWhenStarted = _tmpInputField.interactable;
 		if (enableInteractive && currentlyActiveCmdLine != null) {
 			currentlyActiveCmdLine.SetInteractive (false);
 		}
 		_tmpInputField.interactable = enableInteractive; // makes focus possible
 		switch (Interactivity) {
+		case InteractivityEnum.Disabled:
+			SetVisibility(false);
+			break;
 		case InteractivityEnum.ScreenOverlayOnly:
 			if (!IsInOverlayMode ()) {
 				SetOverlayModeInsteadOfWorld (true);
@@ -646,7 +668,7 @@ public class CmdLine : MonoBehaviour {
 	[Tooltip ("Maximum number of lines to retain.")]
 	public int maxLines = 99;
 	[Tooltip ("lines with more characters than this will count as more than one line.")]
-	public int maxColumnsPerLine = 120;
+	public int maxColumnsPerLine = 120; // TODO make this dynamic, based on size of the command line
 
 	private CmdLineValidator GetInputValidator() {
 		if (inputvalidator == null) {
@@ -694,7 +716,7 @@ public class CmdLine : MonoBehaviour {
 			return returned;
 		}
 		public bool HasProperInputTags(string text) {
-			List<string> tags = CmdLine.CalculateTextMeshProTags(text, false);
+			List<string> tags = Util.CalculateTextMeshProTags(text, false);
 			if (tags.Count == 0 || !tags.Contains ("noparse"))
 				return false;
 			string colorTag = "#" + cmd.ColorSet.UserInputHex;
@@ -743,7 +765,7 @@ public class CmdLine : MonoBehaviour {
 				if (startOfTag >= 0 && startOfTag > endOfTag) {
 					string possibleTag = text.Substring (startOfTag).ToLower ();
 					// unescape, incase the user is being trixie with unescape sequences...
-					possibleTag = CmdLine.Unescape (possibleTag);
+					possibleTag = Util.Unescape (possibleTag);
 					// and if they are, just don't let them.
 					if (possibleTag.Contains ("noparse")) {
 						text = text.Substring (0, startOfTag) + NOPARSE_REPLACEMENT;
@@ -807,12 +829,15 @@ public class CmdLine : MonoBehaviour {
 		}
 		return index;
 	}
-	public int GetUserInputLength(int offset = 0) {
+	public int GetUserInputLength() {
 		string s = GetRawText ();
-		return s.Length - (nonUserInput.Length+offset);
+		return s.Length - (nonUserInput.Length);
+	}
+	public string GetUserInput() {
+		return GetUserInput(0);
 	}
 	/// <returns>The user input, which is text that the user has entered (at the bottom)</returns>
-	private string GetUserInput (int offset = 0) {
+	private string GetUserInput (int offset) {
 		string s = GetRawText ();
 		int len = s.Length - (nonUserInput.Length+offset);
 		return (len > 0)?s.Substring (nonUserInput.Length+offset, len):"";
@@ -822,7 +847,7 @@ public class CmdLine : MonoBehaviour {
 		int cutIndex = CutoffIndexToEnsureLineCount (text, maxLines);
 		List<string> tags = null;
 		if (cutIndex != 0) {
-			tags = CalculateTextMeshProTags (text.Substring (0, cutIndex), false);
+			tags = Util.CalculateTextMeshProTags (text.Substring (0, cutIndex), false);
 			text = text.Substring (cutIndex);
 			if (tags != null && tags.Count > 0) {
 				string openingTags = "";
@@ -854,159 +879,151 @@ public class CmdLine : MonoBehaviour {
 			return _instance;
 		}
 	}
-#endregion // singleton
-#region static utility functions
-	/// <summary>Convenience method. Finds the component here, or in a parent object.</summary>
-	public static T FindComponentUpHierarchy<T> (Transform t) where T : Component {
-		T found = null;
-		while (t != null && found == null) {
-			found = t.GetComponent<T> ();
-			t = t.parent;
-		}
-		return found;
-	}
-	/// <param name="layer">what Unity layer to set the given object, and all child objects, recursive</param>
-	public static void SetLayerRecursive (GameObject go, int layer) {
-		go.layer = layer;
-		for (int i = 0; i < go.transform.childCount; ++i) {
-			Transform t = go.transform.GetChild (i);
-			if (t != null) {
-				SetLayerRecursive (t.gameObject, layer);
+	#endregion // singleton
+	#region static utility functions
+	public static class Util {
+		/// <param name="layer">what Unity layer to set the given object, and all child objects, recursive</param>
+		public static void SetLayerRecursive(GameObject go, int layer) {
+			go.layer = layer;
+			for(int i = 0; i < go.transform.childCount; ++i) {
+				Transform t = go.transform.GetChild(i);
+				if(t != null) {
+					SetLayerRecursive(t.gameObject, layer);
+				}
 			}
 		}
-	}
-	/// <returns>A list of the open/close tags in the given strings</returns>
-	/// <param name="str">where to look for tags</param>
-	/// <param name="keepClosedTags">If <c>false</c>, remove correctly closed tags</param>
-	public static List<string> CalculateTextMeshProTags(string str, bool keepClosedTags = true) {
-		List<string> tags = new List<string> ();
-		bool noparse = false;
-		for (int i = 0; i < str.Length; ++i) {
-			char c = str [i];
-			if (c == '<') {
-				int end = str.IndexOf ('>', i);
-				string token = null;
-				if (end > 0) {
-					// just get the starting token, ignore properties after the first space
-					int space = str.IndexOf (' ', i);
-					if (space >= 0 && space < end) { end = space; }
-					token = str.Substring (i+1, end-(i+1));
-				}
-				// if noparse is one of the tags, ignore all other tags till noparse is closed.
-				if (noparse) {
-					if (token != null && token.Trim () == "/noparse") {
-						noparse = false;
-					} else {
-						token = null;
+		/// <returns>A list of the open/close tags in the given strings</returns>
+		/// <param name="str">where to look for tags</param>
+		/// <param name="keepClosedTags">If <c>false</c>, remove correctly closed tags</param>
+		public static List<string> CalculateTextMeshProTags(string str, bool keepClosedTags = true) {
+			List<string> tags = new List<string>();
+			bool noparse = false;
+			for(int i = 0; i < str.Length; ++i) {
+				char c = str[i];
+				if(c == '<') {
+					int end = str.IndexOf('>', i);
+					string token = null;
+					if(end > 0) {
+						// just get the starting token, ignore properties after the first space
+						int space = str.IndexOf(' ', i);
+						if(space >= 0 && space < end) { end = space; }
+						token = str.Substring(i + 1, end - (i + 1));
 					}
-				}
-				if (!noparse && token.Trim () == "noparse") {
-					noparse = true;
-				}
-				if (!keepClosedTags && token != null) {
-					if (token.StartsWith ("/") && tags.Count > 0) {
-						int whichTag = tags.IndexOf (token.Substring (1));
-						if (token == "/color") {
-							for(int e = tags.Count-1; e >= 0; --e) {
-								if (tags [e].StartsWith ("#")) {
-									whichTag = e; break;
-								}
-							}
-						}
-						if (whichTag >= 0) {
-							tags.RemoveAt (whichTag);
+					// if noparse is one of the tags, ignore all other tags till noparse is closed.
+					if(noparse) {
+						if(token != null && token.Trim() == "/noparse") {
+							noparse = false;
+						} else {
 							token = null;
 						}
-					} else if (token.EndsWith ("/")) { token = null; }
+					}
+					if(!noparse && token.Trim() == "noparse") {
+						noparse = true;
+					}
+					if(!keepClosedTags && token != null) {
+						if(token.StartsWith("/") && tags.Count > 0) {
+							int whichTag = tags.IndexOf(token.Substring(1));
+							if(token == "/color") {
+								for(int e = tags.Count - 1; e >= 0; --e) {
+									if(tags[e].StartsWith("#")) {
+										whichTag = e; break;
+									}
+								}
+							}
+							if(whichTag >= 0) {
+								tags.RemoveAt(whichTag);
+								token = null;
+							}
+						} else if(token.EndsWith("/")) { token = null; }
+					}
+					if(token != null) { tags.Add(token); }
 				}
-				if (token != null) { tags.Add (token); }
 			}
+			return tags;
 		}
-		return tags;
-	}
-	public static string ColorToHexCode(Color c) {
-		int r = (int)(255 * c.r),  g = (int)(255 * c.g), b = (int)(255 * c.b), a = (int)(255 * c.a);
-		return r.ToString("X2")+g.ToString("X2")+b.ToString("X2")+((c.a!=1)?a.ToString("X2"):"");
-	}
-	private static readonly char[] QUOTES = new char[] { '\'', '\"' },
-	WHITESPACE = new char[] { ' ', '\t', '\n', '\b', '\r' };
-	/// <returns>index of the end of the token that starts at the given index 'i'</returns>
-	public static int FindEndArgumentToken (string str, int i) {
-		bool isWhitespace;
-		do {
-			isWhitespace = System.Array.IndexOf (WHITESPACE, str [i]) >= 0;
-			if (isWhitespace) { ++i; }
-		} while (isWhitespace && i < str.Length);
-		int index = System.Array.IndexOf (QUOTES, str [i]);
-		char startQuote = (index >= 0) ? QUOTES [index] : '\0';
-		if (startQuote != '\0') { ++i; }
-		while (i < str.Length) {
-			if (startQuote != '\0') {
-				if (str [i] == '\\') {
-					i++; // skip the next character for an escape sequence. just leave it there.
+		public static string ColorToHexCode(Color c) {
+			int r = (int)(255 * c.r), g = (int)(255 * c.g), b = (int)(255 * c.b), a = (int)(255 * c.a);
+			return r.ToString("X2") + g.ToString("X2") + b.ToString("X2") + ((c.a != 1) ? a.ToString("X2") : "");
+		}
+		public static readonly char[] QUOTES = new char[] { '\'', '\"' },
+		WHITESPACE = new char[] { ' ', '\t', '\n', '\b', '\r' };
+		/// <returns>index of the end of the token that starts at the given index 'i'</returns>
+		public static int FindEndArgumentToken(string str, int i) {
+			bool isWhitespace;
+			do {
+				isWhitespace = System.Array.IndexOf(WHITESPACE, str[i]) >= 0;
+				if(isWhitespace) { ++i; }
+			} while(isWhitespace && i < str.Length);
+			int index = System.Array.IndexOf(QUOTES, str[i]);
+			char startQuote = (index >= 0) ? QUOTES[index] : '\0';
+			if(startQuote != '\0') { ++i; }
+			while(i < str.Length) {
+				if(startQuote != '\0') {
+					if(str[i] == '\\') {
+						i++; // skip the next character for an escape sequence. just leave it there.
+					} else {
+						index = System.Array.IndexOf(QUOTES, str[i]);
+						bool endsQuote = index >= 0 && QUOTES[index] == startQuote;
+						if(endsQuote) { i++; break; }
+					}
 				} else {
-					index = System.Array.IndexOf (QUOTES, str [i]);
-					bool endsQuote = index >= 0 && QUOTES [index] == startQuote;
-					if (endsQuote) { i++; break; }
+					isWhitespace = System.Array.IndexOf(WHITESPACE, str[i]) >= 0;
+					if(isWhitespace) { break; }
 				}
-			} else {
-				isWhitespace = System.Array.IndexOf (WHITESPACE, str [i]) >= 0;
-				if (isWhitespace) { break; }
+				i++;
 			}
-			i++;
+			if(i >= str.Length) { i = str.Length; }
+			return i;
 		}
-		if (i >= str.Length) { i = str.Length; }
-		return i;
-	}
-	/// <returns>split command-line arguments</returns>
-	public static List<string> ParseArguments (string commandLineInput) {
-		int index = 0;
-		List<string> tokens = new List<string> ();
-		while (index < commandLineInput.Length) {
-			int end = FindEndArgumentToken (commandLineInput, index);
-			if (index != end) {
-				string token = commandLineInput.Substring (index, end - index).TrimStart (WHITESPACE);
-				token = Unescape (token);
-				int qi = System.Array.IndexOf (QUOTES, token [0]);
-				if (qi >= 0 && token [token.Length - 1] == QUOTES [qi]) {
-					token = token.Substring (1, token.Length - 2);
+		/// <returns>split command-line arguments</returns>
+		public static List<string> ParseArguments(string commandLineInput) {
+			int index = 0;
+			List<string> tokens = new List<string>();
+			while(index < commandLineInput.Length) {
+				int end = FindEndArgumentToken(commandLineInput, index);
+				if(index != end) {
+					string token = commandLineInput.Substring(index, end - index).TrimStart(WHITESPACE);
+					token = Unescape(token);
+					int qi = System.Array.IndexOf(QUOTES, token[0]);
+					if(qi >= 0 && token[token.Length - 1] == QUOTES[qi]) {
+						token = token.Substring(1, token.Length - 2);
+					}
+					tokens.Add(token);
 				}
-				tokens.Add (token);
+				index = end;
 			}
-			index = end;
+			return tokens;
 		}
-		return tokens;
-	}
-	/* https://msdn.microsoft.com/en-us/library/aa691087(v=vs.71).aspx */
-	private static readonly SortedDictionary<char, char> EscapeMap = new SortedDictionary<char, char> {
-		{ '0','\0' }, { 'a','\a' }, { 'b','\b' }, { 'f','\f' }, 
+		/* https://msdn.microsoft.com/en-us/library/aa691087(v=vs.71).aspx */
+		private static readonly SortedDictionary<char, char> EscapeMap = new SortedDictionary<char, char> {
+		{ '0','\0' }, { 'a','\a' }, { 'b','\b' }, { 'f','\f' },
 		{ 'n','\n' }, { 'r','\r' }, { 't','\t' }, { 'v','\v' },
 	};
-	/// <summary>convenience method to un-escape standard escape sequence strings</summary>
-	/// <param name="escaped">Escaped.</param>
-	public static string Unescape (string escaped) {
-		if (escaped == null) { return escaped; }
-		StringBuilder sb = new StringBuilder ();
-		bool inEscape = false;
-		int startIndex = 0;
-		for (int i = 0; i < escaped.Length; i++) {
-			if (!inEscape) {
-				inEscape = escaped [i] == '\\';
-			} else {
-				char c;
-				if (!EscapeMap.TryGetValue (escaped [i], out c)) {
-					c = escaped [i]; // unknown escape sequences are literals
+		/// <summary>convenience method to un-escape standard escape sequence strings</summary>
+		/// <param name="escaped">Escaped.</param>
+		public static string Unescape(string escaped) {
+			if(escaped == null) { return escaped; }
+			StringBuilder sb = new StringBuilder();
+			bool inEscape = false;
+			int startIndex = 0;
+			for(int i = 0; i < escaped.Length; i++) {
+				if(!inEscape) {
+					inEscape = escaped[i] == '\\';
+				} else {
+					char c;
+					if(!EscapeMap.TryGetValue(escaped[i], out c)) {
+						c = escaped[i]; // unknown escape sequences are literals
+					}
+					sb.Append(escaped.Substring(startIndex, i - startIndex - 1));
+					sb.Append(c);
+					startIndex = i + 1;
+					inEscape = false;
 				}
-				sb.Append (escaped.Substring (startIndex, i - startIndex - 1));
-				sb.Append (c);
-				startIndex = i + 1;
-				inEscape = false;
 			}
+			sb.Append(escaped.Substring(startIndex));
+			return sb.ToString();
 		}
-		sb.Append (escaped.Substring (startIndex));
-		return sb.ToString ();
 	}
-
 #endregion // static utility functions
 #region public API
 	/// <summary>if delegates are here, calls this code instead of executing a known a command</summary>
@@ -1047,7 +1064,6 @@ public class CmdLine : MonoBehaviour {
 	}
 	/// <param name="text">line to add as output, also turning current user input into text output</param>
 	public void println (string line) {
-		// TODO if printing a line and the only thing on this line is the prompt, write-over the prompt.
 		AddText (line + "\n");
 	}
 	public void readLineAsync (DoAfterStringIsRead stringCallback) {
@@ -1086,23 +1102,24 @@ public class CmdLine : MonoBehaviour {
 	private void HandleLog(string logString, string stackTrace = "", LogType type = LogType.Log) {
 		switch (type) {
 		case LogType.Error:
-			AddText ("<#"+ColorToHexCode(Color.Lerp(ColorSet.Text, Color.red, 0.5f))+">"+logString+"</color>\n");
+			AddText ("<#"+ Util.ColorToHexCode(Color.Lerp(ColorSet.Text, Color.red, 0.5f))+">"+logString+"</color>\n");
 			break;
 		case LogType.Exception:
-			string c = "<#"+ColorToHexCode(Color.Lerp(ColorSet.Text, Color.magenta, 0.5f))+">";
+			string c = "<#"+ Util.ColorToHexCode(Color.Lerp(ColorSet.Text, Color.magenta, 0.5f))+">";
 			AddText (c+logString+"</color>\n");
 			AddText (c+stackTrace+"</color>\n");
 			break;
 		case LogType.Warning:
-			AddText ("<#"+ColorToHexCode(Color.Lerp(ColorSet.Text, Color.yellow, 0.5f))+">"+logString+"</color>\n");
+			AddText ("<#"+ Util.ColorToHexCode(Color.Lerp(ColorSet.Text, Color.yellow, 0.5f))+">"+logString+"</color>\n");
 			break;
 		default:
 			log (logString);
 			break;
 		}
 	}
-#endregion // Debug.Log intercept
-#region Unity Editor interaction
+	#endregion // Debug.Log intercept
+	#region Unity Editor interaction
+#if UNITY_EDITOR
 	private static Mesh _editorMesh = null; // one variable to enable better UI in the editor
 
 	void OnDrawGizmos() {
@@ -1131,8 +1148,9 @@ public class CmdLine : MonoBehaviour {
 			Gizmos.DrawLine (points [i], points [(i + 1) % points.Length]);
 		}
 	}
+#endif
 #endregion // Unity Editor interaction
-#region Enable/Disable
+	#region Enable/Disable
 	[System.Serializable]
 	public struct Callbacks {
 		[Tooltip("When the command line goes into active editing. This may be useful to refresh info for the command line, or disable a 3D FPS controller.")]
@@ -1156,58 +1174,59 @@ public class CmdLine : MonoBehaviour {
 		} else {
 			setText (nonUserInput);
 		}
-		SetInteractive (activeOnStart);
+		SetInteractive (ActiveOnStart);
 	}
 	void Update () {
-		// toggle visibility based on key presses
-		bool toggle = Input.GetKeyDown(IsInteractive () ? KeyToDeactivate : KeyToActivate );
-		// or toggle visibility when 5 fingers touch
-		if (Input.touches.Length == 5) {
-			if (!_togglingVisiblityWithMultitouch) {
-				toggle = true;
-				_togglingVisiblityWithMultitouch = true;
-			}
-		} else {
-			_togglingVisiblityWithMultitouch = false;
-		}
-		if (toggle) {
-			if (!IsInteractive ()) {
-				// check to see how clearly the user is looking at this CmdLine
-				if (_mainView.renderMode == RenderMode.ScreenSpaceOverlay) {
-					this.viewscore = 1;
-				} else {
-					Transform cameraTransform = Camera.main.transform;
-					Vector3 lookPosition = cameraTransform.position;
-					Vector3 gaze = cameraTransform.forward;
-					Vector3 delta = transform.position - lookPosition;
-					float distFromCam = delta.magnitude;
-					float viewAlignment = Vector3.Dot (gaze, delta / distFromCam);
-					if (viewAlignment < 0) {
-						this.viewscore = -1;
-					} else {
-						this.viewscore = (1 - viewAlignment) * distFromCam;
-					}
-				}
-				if (currentlyActiveCmdLine == null
-					|| (currentlyActiveCmdLine != null && (currentlyActiveCmdLine.viewscore < 0
-						|| (this.viewscore >= 0 && this.viewscore <= currentlyActiveCmdLine.viewscore)))) {
-					SetInteractive (true);
+		if(Interactivity != InteractivityEnum.Disabled) {
+			// toggle visibility based on key presses
+			bool toggle = Input.GetKeyDown(IsInteractive() ? KeyToDeactivate : KeyToActivate);
+			// or toggle visibility when 5 fingers touch
+			if(Input.touches.Length == 5) {
+				if(!_togglingVisiblityWithMultitouch) {
+					toggle = true;
+					_togglingVisiblityWithMultitouch = true;
 				}
 			} else {
-				SetInteractive (false);
-				this.viewscore = -1;
+				_togglingVisiblityWithMultitouch = false;
+			}
+			if(toggle) {
+				if(!IsInteractive()) {
+					// check to see how clearly the user is looking at this CmdLine
+					if(_mainView.renderMode == RenderMode.ScreenSpaceOverlay) {
+						this.viewscore = 1;
+					} else {
+						Transform cameraTransform = Camera.main.transform;
+						Vector3 lookPosition = cameraTransform.position;
+						Vector3 gaze = cameraTransform.forward;
+						Vector3 delta = transform.position - lookPosition;
+						float distFromCam = delta.magnitude;
+						float viewAlignment = Vector3.Dot(gaze, delta / distFromCam);
+						if(viewAlignment < 0) {
+							this.viewscore = -1;
+						} else {
+							this.viewscore = (1 - viewAlignment) * distFromCam;
+						}
+					}
+					if(currentlyActiveCmdLine == null
+						|| (currentlyActiveCmdLine != null && (currentlyActiveCmdLine.viewscore < 0
+							|| (this.viewscore >= 0 && this.viewscore <= currentlyActiveCmdLine.viewscore)))) {
+						SetInteractive(true);
+					}
+				} else {
+					SetInteractive(false);
+					this.viewscore = -1;
+				}
+			}
+			// stop trying to show the bottom if the user wants to scroll
+			if(Input.GetAxis("Mouse ScrollWheel") != 0) {
+				showBottomWhenTextIsAdded = _tmpInputField.verticalScrollbar.value == 1;
+			}
+			if(showBottomWhenTextIsAdded) {
+				_tmpInputField.verticalScrollbar.value = 1;
 			}
 		}
-		// stop trying to show the bottom if the user wants to scroll
-		if (Input.GetAxis ("Mouse ScrollWheel") != 0) {
-			showBottomWhenTextIsAdded = _tmpInputField.verticalScrollbar.value == 1;
-		}
-		if (showBottomWhenTextIsAdded) {
-			_tmpInputField.verticalScrollbar.value = 1;
-		}
-
 #if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
-		if(bash.IsInitialized() && allowSystemAccess) {
+		if(bash.IsInitialized() && AllowSystemAccess) {
 			string input = "";
 			if(instructionList.Count > 0) {
 				input = instructionList[0];
@@ -1235,9 +1254,9 @@ public class CmdLine : MonoBehaviour {
 			if (GetUserInputLength () > 0) {
 				string userInput = GetUserInput ();
 				SetText (nonUserInput);  GetInputValidator().EndUserInput (true);
-				ShowPrompt(); GetInputValidator ().AddUserInput (userInput);
+				PrintPrompt(); GetInputValidator ().AddUserInput (userInput);
 				nonUserInput = _tmpInputField.text.Substring (0, _tmpInputField.text.Length - userInput.Length);
-			} else { ShowPrompt(); }
+			} else { PrintPrompt(); }
 			NeedToRefreshUserPrompt = false;
 		}
 
