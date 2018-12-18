@@ -1025,7 +1025,7 @@ namespace OMU {
 			}
 			if(memberType.IsEnum) {
 				string vstring = NormalizeString(value);
-				Debug.Log ("assigning "+member+" = "+value);
+				//Debug.Log ("assigning "+member+" = "+value);
 				bool enumStartsWith = vstring.EndsWith("*");
 				if(thisbehavior == JSONFieldSearchBehavior.startswith || enumStartsWith) {
 					if(enumStartsWith) {

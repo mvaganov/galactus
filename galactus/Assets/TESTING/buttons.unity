@@ -188,6 +188,76 @@ CanvasRenderer:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 92283707}
   m_CullTransparentMesh: 0
+--- !u!1 &178150778
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 178150779}
+  - component: {fileID: 178150781}
+  - component: {fileID: 178150780}
+  m_Layer: 5
+  m_Name: text panel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &178150779
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 178150778}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 545755419}
+  m_Father: {fileID: 433071257}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 1}
+--- !u!114 &178150780
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 178150778}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -765806418, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.9490196, g: 1, b: 0.9372549, a: 0.5921569}
+  m_RaycastTarget: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
+      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
+  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+--- !u!222 &178150781
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 178150778}
+  m_CullTransparentMesh: 0
 --- !u!1 &198425401
 GameObject:
   m_ObjectHideFlags: 0
@@ -480,7 +550,6 @@ GameObject:
   m_Component:
   - component: {fileID: 433071257}
   - component: {fileID: 433071258}
-  - component: {fileID: 433071259}
   m_Layer: 5
   m_Name: dialog ui
   m_TagString: Untagged
@@ -498,7 +567,7 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
-  - {fileID: 545755419}
+  - {fileID: 178150779}
   - {fileID: 789081039}
   m_Father: {fileID: 469725154}
   m_RootOrder: 5
@@ -516,41 +585,27 @@ MonoBehaviour:
   m_GameObject: {fileID: 433071256}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7ad20f23c67d548b4ae5b33f82955c63, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  input: "[\n\tZ.Dialog{\n\t\tname:\"intro\"\n\t\tcommands:[\n\t\t\tZ.DialogPart{desc:\"the
-    first dialog\"}\n\t\t\tZ.Say{text:\"Hello World!\"},\n\t\t\tZ.Say{text:\"What
-    an amazing start to my dialog!\"}\n\t\t\tZ.Option{text:\"I know, right?\",next:\"ikr\"}\n\t\t\tZ.Option{text:\"Kinda
-    lame...\",next:\"lame\"}\n\t\t\tZ.Option{text:\"Quit\",cmd:\"quit\"}\n\t\t\tZ.Option{text:\"what?\",next:\"intro\"}\n\t\t]\n\t}\n\tZ.Dialog{\n\t\tname:\"ikr\"\n\t\tcommands:[\n\t\t\tZ.Say{text:\"Right!\"},\n\t\t]\n\t}\n\tZ.Dialog{\n\t\tname:\"lame\"\n\t\tcommands:[\n\t\t\tZ.DialogPart{desc:\"testing
-    the quit functionality\"}\n\t\t\tZ.Say{text:\"super lame\"},\n\t\t\tZ.Cmd{cmd:\"quit\"}\t\t\t\n\t\t]\n\t}\n]\n"
-  text: {fileID: 545755420}
-  thing:
-    data: {fileID: 545755418}
---- !u!114 &433071259
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 433071256}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 35ddc47658897442ea98fd38705ab3d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  textPanel: {fileID: 178150779}
   textOuput: {fileID: 545755420}
-  optionArea: {fileID: 789081039}
+  optionPanel: {fileID: 789081039}
   optionPrefab: {fileID: 224194048806034602, guid: 2e779a8beabad42c5b26349d0e3f20cb,
     type: 2}
-  input: "[\n  Z.Dialog{\n    name:'intro'\n    commands:[\n      Z.DialogPart{desc:'the
-    first dialog'}\n      Z.Say{text:'Hello World!'},\n      Z.Say{text:'What an amazing
-    start to my dialog!'}\n      Z.Option{text:'I know, right?',next:'ikr'}\n      Z.Option{text:'Kinda
-    lame...',next:'lame'}\n      Z.Option{text:'Quit',cmd:'quit'}\n      Z.Option{text:'what?',next:'intro'}\n
-    \   ]\n  }\n  Z.Dialog{\n    name:'ikr'\n    commands:[\n      Z.Say{text:'Right!'},\n
-    \   ]\n  }\n  Z.Dialog{\n    name:'lame'\n    commands:[\n      Z.DialogPart{desc:'testing
-    the quit functionality'}\n      Z.Say{text:'super lame'},\n      Z.Cmd{cmd:'quit'}\n
-    \   ]\n  }\n]"
+  commandIndex: 0
+  letterIndex: 0
+  msPerCharacter: 50
+  input: "[\n  Z.Dialog{\n    name:'intro'\n    commands:[\n      {desc:'the first
+    dialog'}\n      Z.Say{text:'Hello World!'},\n      Z.Say{text:'What an amazing
+    start to my dialog!',keepOnScreen:true}\n      Z.Option{text:'I know, right?',next:'ikr'}\n
+    \     Z.Option{text:'Kinda lame...',next:'lame'}\n      Z.Option{text:'Quit',cmd:'quit'}\n
+    \     Z.Option{text:'what?',next:'intro'}\n    ]\n  }\n  Z.Dialog{\n    name:'ikr'\n
+    \   commands:[\n      Z.Say{text:'Right!'},\n    ]\n  }\n  Z.Dialog{\n    name:'lame'\n
+    \   commands:[\n      {desc:'testing the quit functionality'}\n      Z.Say{text:'super
+    lame'},\n      Z.Cmd{cmd:'quit'}\n    ]\n  }\n]"
   startDialog: intro
+  knownResources: []
 --- !u!1 &469725150
 GameObject:
   m_ObjectHideFlags: 0
@@ -752,13 +807,13 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 433071257}
+  m_Father: {fileID: 178150779}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 1}
-  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: -10}
-  m_SizeDelta: {x: 400, y: 200}
+  m_SizeDelta: {x: -20, y: -20}
   m_Pivot: {x: 0.49999997, y: 1}
 --- !u!114 &545755420
 MonoBehaviour:
@@ -779,7 +834,12 @@ MonoBehaviour:
       m_Calls: []
     m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
-  m_text: New Text
+  m_text: 'Come on baby, lets do the twist. Come on baaeebaaah lets do the twist.
+    Take me by my little hand, and go like this.
+
+
+    Eee-yah, Twist! baby, baby twist. OoooOOOoooh yeeeaaaah, just liiike this. Come
+    on little miss, and do the twist.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -847,12 +907,12 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_textInfo:
     textComponent: {fileID: 545755420}
-    characterCount: 8
+    characterCount: 230
     spriteCount: 0
-    spaceCount: 1
-    wordCount: 2
+    spaceCount: 42
+    wordCount: 42
     linkCount: 0
-    lineCount: 1
+    lineCount: 5
     pageCount: 1
     materialCount: 1
   m_havePropertiesChanged: 0
@@ -5921,7 +5981,7 @@ GameObject:
   - component: {fileID: 789081041}
   - component: {fileID: 789081040}
   m_Layer: 5
-  m_Name: Choice Panel
+  m_Name: option panel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5940,11 +6000,11 @@ RectTransform:
   m_Father: {fileID: 433071257}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0}
-  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 400, y: 200}
-  m_Pivot: {x: 0.50000006, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &789081040
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5957,12 +6017,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: 0
-    m_Right: 0
-    m_Top: 0
-    m_Bottom: 0
+    m_Left: 10
+    m_Right: 10
+    m_Top: 10
+    m_Bottom: 10
   m_ChildAlignment: 1
-  m_Spacing: 0
+  m_Spacing: 10
   m_ChildForceExpandWidth: 0
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 0
@@ -6798,6 +6858,84 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1555752114
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1555752116}
+  - component: {fileID: 1555752115}
+  m_Layer: 0
+  m_Name: cmd
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1555752115
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1555752114}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e908dff6325d34e238be2dc67d121483, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PromptArtifact: '$ '
+  Interactivity: 3
+  KeyToActivate: 96
+  KeyToDeactivate: 27
+  ScreenOverlaySettings:
+    AnchorMin: {x: 0, y: 0}
+    AnchorMax: {x: 1, y: 1}
+    OffsetMin: {x: 0, y: 0}
+    OffsetMax: {x: 0, y: 0}
+  WorldSpaceSettings:
+    screenSize: {x: 0, y: 0}
+    textScale: 0.005
+  ColorSet:
+    Background: {r: 0, g: 0, b: 0, a: 0.5}
+    Text: {r: 1, g: 1, b: 1, a: 1}
+    ErrorText: {r: 1, g: 0, b: 0, a: 1}
+    SpecialText: {r: 1, g: 0.75, b: 0, a: 1}
+    Scrollbar: {r: 1, g: 1, b: 1, a: 0.5}
+    UserInput: {r: 0.5, g: 1, b: 0.75, a: 1}
+    UserSelection: {r: 1, g: 0.75, b: 0.75, a: 0.75}
+  activeOnStart: 1
+  hideInWorldSpace: 0
+  textMeshProFont: {fileID: 0}
+  maxLines: 99
+  maxColumnsPerLine: 120
+  interceptDebugLog: 0
+  callbacks:
+    whenThisActivates:
+      m_PersistentCalls:
+        m_Calls: []
+      m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine.CoreModule, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+    whenThisDeactivates:
+      m_PersistentCalls:
+        m_Calls: []
+      m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine.CoreModule, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+    ignoreCallbacks: 0
+--- !u!4 &1555752116
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1555752114}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1638277407
 GameObject:

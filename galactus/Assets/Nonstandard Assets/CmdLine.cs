@@ -1,4 +1,4 @@
-﻿//#define CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
+﻿#define CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
@@ -69,35 +69,109 @@ public class CmdLine : MonoBehaviour {
 		}, "quits this application");
 		#region os_commandline_terminal
 		#if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
-		addCommand ("cmd", (args) => {
-			if(sysprocdir == null){
-				sysprocdir = PWD();
-			}
-			sysproc_cmd = args[1];
-			sysproc_args = "";
-			for(int i = 2; i <args.Length; ++i) {
-				if(i > 2) sysproc_args += " ";
-				sysproc_args += args[i];
-			}
-			// UnityEngine.Debug.Log(cmdargs);
-			sysproc = new System.Diagnostics.Process {
-				StartInfo = new System.Diagnostics.ProcessStartInfo {
-					FileName = sysproc_cmd,
-					Arguments = sysproc_args,
-					UseShellExecute = false,
-					RedirectStandardOutput = true,
-					RedirectStandardError = true,
-					CreateNoWindow = true,
-					WorkingDirectory = sysprocdir
-				}
-			};
-			sysproc_fail = false;
-			needToShowUserPrompt = false;
-			sysproc.Start();
-		}, "passes commands to the OS command line terminal");
+		addCommand ("cmd", ExecuteSystemCommand, 
+			"passes commands to the OS command line terminal");
 		#endif
 	}
 	#if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
+	public void ExecuteSystemCommand(string[] args){
+		if(sysprocdir == null) { sysprocdir = PWD(); }
+		sysproc_cmd = (args.Length > 1)?args[1]:"";
+		sysproc_args = "";
+		for(int i = 2; i < args.Length; ++i) {
+			if(i > 2) sysproc_args += " ";
+			sysproc_args += args[i];
+		}
+		string s = sysproc_cmd;
+		if(sysproc_args.Length > 0){
+			s += " " + sysproc_args;
+		}
+		ExecuteSystemCommand(s);
+	}
+	public void ExecuteSystemCommand(string s){
+		if(systhread == null) {
+			//needToShowUserPrompt = false;
+			sysproc_currentCommand = s;
+			sysproc_log = new List<string>();
+			sysproc_err = new List<string>();
+			systhread = new System.Threading.Thread(delegate () {
+				sysproc = new System.Diagnostics.Process {
+					StartInfo = new System.Diagnostics.ProcessStartInfo {
+						#if UNITY_EDITOR_WIN32 || UNITY_STANDALONE_WIN32 || PLATFORM_STANDALONE_WIN32
+						FileName = "cmd.exe",
+						#else
+						FileName = "/bin/bash",
+						#endif
+						Arguments = "",
+						UseShellExecute = false,
+						RedirectStandardOutput = true,
+						RedirectStandardInput = true,
+						RedirectStandardError = true,
+						CreateNoWindow = false,
+						WorkingDirectory = sysprocdir
+					}
+				};
+				sysproc_fail = false;
+				sysproc.Start();
+				sysproc.OutputDataReceived += delegate (object sender, System.Diagnostics.DataReceivedEventArgs e) {
+					sysproc_log.Add(e.Data);
+					sysproc_didFinishCommand = true;
+				};
+				sysproc.BeginOutputReadLine();
+				bool ignoreNextError = true;
+				sysproc.ErrorDataReceived += delegate (object sender, System.Diagnostics.DataReceivedEventArgs e) {
+					if(ignoreNextError) { ignoreNextError = false; return; }
+					sysproc_err.Add(e.Data);
+					sysproc_didFinishCommand = true;
+				};
+				sysproc.BeginErrorReadLine();
+				sysproc.StandardInput.WriteLine(' '); // force an error, because the StandardInput has a weird character in it to start with
+				sysproc.StandardInput.Flush();
+				long waitForSysproc = 0;
+				const long howLongToWaitForSysproc = 100;
+				while(true) {
+					if(!string.IsNullOrEmpty(sysproc_currentCommand)) {
+						if(sysproc_currentCommand == "exit") {
+							Debug.Log("EXIT!!!");
+							break;
+						}
+						sysproc.StandardInput.WriteLine(sysproc_currentCommand);
+						sysproc.StandardInput.Flush();
+						sysproc_didFinishCommand = false;
+						sysproc_promptNeedsRedraw = true;
+						sysproc_currentCommand = "";
+						waitForSysproc = 0;
+					}
+					System.Threading.Thread.Sleep(10);
+					if(waitForSysproc < howLongToWaitForSysproc) {
+						waitForSysproc += 10;
+						if(waitForSysproc >= howLongToWaitForSysproc) {
+							if(!sysproc_didFinishCommand) {
+								needToShowUserPrompt = true;
+							}
+							sysproc_didFinishCommand = true;
+						}
+					}
+				}
+				sysproc.StandardInput.WriteLine("exit");
+				sysproc.StandardInput.Flush();
+				Debug.Log("Done with CMD");
+				sysproc.WaitForExit();
+				sysproc.Close();
+				sysproc = null;
+				System.Threading.Thread t = systhread;
+				systhread = null;
+				needToShowUserPrompt = true;
+				t.Join(); // should be the last statement
+			});
+			systhread.Start();
+		} else {
+			if(!string.IsNullOrEmpty(s)) {
+				sysproc_currentCommand = s;
+			}
+		}
+	}
+
 	public string PWD() {
 		System.Diagnostics.Process pwdproc =new System.Diagnostics.Process {
 			StartInfo = new System.Diagnostics.ProcessStartInfo {
@@ -113,48 +187,44 @@ public class CmdLine : MonoBehaviour {
 		return pwd;
 	}
 	System.Diagnostics.Process sysproc;
+	System.Threading.Thread systhread;
 	private string sysprocdir = null;
 	private string sysproc_cmd = "";
 	private string sysproc_args = "";
+	private string sysproc_currentCommand = "";
+	private List<string> sysproc_log, sysproc_err;
 	private bool sysproc_fail = false;
+	private bool sysproc_promptNeedsRedraw = false;
+	private bool sysproc_didFinishCommand = true;
 
-	private void sysproc_Update() {
-		do {
-			if (!sysproc.StandardOutput.EndOfStream) {
-				string line = sysproc.StandardOutput.ReadLine();
-				HandleLog(line, "", LogType.Log);
-			} else if(!sysproc.StandardError.EndOfStream) {
-				string line = sysproc.StandardError.ReadLine();
-				HandleLog(line, "", LogType.Error);
-				sysproc_fail = true;
-			}else {break;}
-		} while(true);
-		if(sysproc_cmd.ToLower() == "cd") {
-			if(sysproc_args == "." || sysproc_args.StartsWith(". ")) {
-				// do nothing, no change to the directory
-			} else if (sysproc_args == ".." || sysproc_args.StartsWith(".. ")) {
-				// back dir
-				int i = sysprocdir.LastIndexOf("/");
-				if(i == 0) { sysprocdir = "/"; }
-				else if(sysprocdir.Length > 0) {
-					sysprocdir = sysprocdir.Substring(0, i);
-				}
-			} else {
-				// change the directory
-				if(!sysproc_fail) {
-					if(!sysprocdir.EndsWith("/")) {
-						sysprocdir += "/";
-					}
-					// TODO what about extra args that should be ignored?
-					// TODO what about directories with spaces in the name?
-					sysprocdir += sysproc_args;
-				}
+	private void sysproc_Update(string s) {
+		bool somethingPrinted = false;
+		if(sysproc_log != null) {
+			while(sysproc_log.Count > 0) {
+				HandleLog(sysproc_log[0], "", LogType.Log);
+				sysproc_log.RemoveAt(0);
+				somethingPrinted = true;
 			}
 		}
-		sysproc = null;
-		needToShowUserPrompt = true;
+		if(sysproc_err != null) {
+			while(sysproc_err.Count > 0) {
+				HandleLog(sysproc_err[0], "", LogType.Error);
+				sysproc_err.RemoveAt(0);
+				somethingPrinted = true;
+			}
+			sysproc_fail = true;
+		}
+		ExecuteSystemCommand(s);
+		if(string.IsNullOrEmpty(s) && 
+			string.IsNullOrEmpty(sysproc_currentCommand) &&
+		   (somethingPrinted || sysproc_promptNeedsRedraw)){
+			needToShowUserPrompt = true;
+		}
+		if(needToShowUserPrompt) {
+			sysproc_promptNeedsRedraw = false;
+		}
 	}
-	#endif
+#endif
 	#endregion // os_commandline_terminal
 
 	/// <param name="command">name of the command to add (case insensitive)</param>
@@ -262,6 +332,7 @@ public class CmdLine : MonoBehaviour {
 	public bool activeOnStart = true;
 	[Tooltip ("If true, will hide the 3D canvas representation, only show when the commandline button is pressed")]
 	public bool hideInWorldSpace = false;
+	public int indexWherePromptWasPrintedRecently = -1;
 	private bool needToShowUserPrompt = true;
 	[Tooltip ("The TextMeshPro font used. If null, built-in-font should be used.")]
 	public TMP_FontAsset textMeshProFont;
@@ -308,6 +379,13 @@ public class CmdLine : MonoBehaviour {
 			r.anchoredPosition = Vector2.zero;
 			r.localScale = new Vector3 (textScale, textScale, textScale);
 		}
+	}
+	public void ShowPrompt(){
+		int indexBeforePrompt = GetRawText().Length;
+		// TODO if using the command-line bridge, print the 
+		// hostname(first part):pwd(last part) whoami
+		AddText(PromptArtifact);
+		indexWherePromptWasPrintedRecently = indexBeforePrompt;
 	}
 	public bool IsInOverlayMode() {
 		return _mainView.renderMode == RenderMode.ScreenSpaceOverlay;
@@ -723,6 +801,7 @@ public class CmdLine : MonoBehaviour {
 				}
 				text = openingTags + text;
 			}
+			indexWherePromptWasPrintedRecently -= cutIndex;
 		}
 		nonUserInput = text;
 		SetRawText (nonUserInput);
@@ -913,11 +992,21 @@ public class CmdLine : MonoBehaviour {
 	public string GetAllText () { return (_tmpInputField) ? GetRawText () : nonUserInput; }
 	/// <param name="text">Text to add as output, also turning current user input into text output</param>
 	public void AddText (string text) {
-		EndUserInputIfNeeded ();
+		if(indexWherePromptWasPrintedRecently >= 0) {
+			//Debug.Log("Removing [" + GetRawText().Substring(indexWherePromptWasPrintedRecently)+ "]" + sysproc_currentCommand);
+			SetRawText(GetRawText().Substring(0, indexWherePromptWasPrintedRecently));
+			indexWherePromptWasPrintedRecently = -1;
+		} else {
+			EndUserInputIfNeeded();
+		}
 		setText (GetAllText () + text);
+		indexWherePromptWasPrintedRecently = -1;
 	}
 	/// <param name="text">line to add as output, also turning current user input into text output</param>
-	public void println (string line) { AddText (line + "\n"); }
+	public void println (string line) {
+		// TODO if printing a line and the only thing on this line is the prompt, write-over the prompt.
+		AddText (line + "\n");
+	}
 	public void readLineAsync (DoAfterStringIsRead stringCallback) {
 		if (!IsInteractive () && _tmpInputField != null) { SetInteractive (true); }
 		waitingToReadLine += stringCallback;
@@ -935,8 +1024,8 @@ public class CmdLine : MonoBehaviour {
 	public void SetCaretPosition (int pos) { _tmpInputField.stringPosition = pos; }
 	#endregion // pubilc API
 	#region Debug.Log intercept
-	[SerializeField, Tooltip ("If true, all Debug.Log messages will be intercepted and duplicated here.")]
-	private bool interceptDebugLog = true;
+	[SerializeField, Tooltip("If true, all Debug.Log messages will be intercepted and duplicated here.")]
+	public bool interceptDebugLog = false;//true;
 	/// <summary>if this object was intercepting Debug.Logs, this will ensure that it un-intercepts as needed</summary>
 	private bool dbgIntercepted = false;
 
@@ -951,7 +1040,7 @@ public class CmdLine : MonoBehaviour {
 			dbgIntercepted = false;
 		}
 	}
-	private void HandleLog (string logString, string stackTrace, LogType type) {
+	private void HandleLog(string logString, string stackTrace = "", LogType type = LogType.Log) {
 		switch (type) {
 		case LogType.Error:
 			AddText ("<#"+ColorToHexCode(Color.Lerp(ColorSet.Text, Color.red, 0.5f))+">"+logString+"</color>\n");
@@ -1072,29 +1161,42 @@ public class CmdLine : MonoBehaviour {
 		if (showBottomWhenTextIsAdded) {
 			_tmpInputField.verticalScrollbar.value = 1;
 		}
-		if (needToShowUserPrompt && onInput == null && (waitingToReadLine == null || waitingToReadLine.GetInvocationList ().Length == 0)) {
-			// in case of keyboard mashing...
-			if (GetUserInputLength () > 0) {
-				string userInput = GetUserInput ();
-				SetText (nonUserInput);  GetInputValidator().EndUserInput (true);
-				AddText (PromptArtifact); GetInputValidator ().AddUserInput (userInput);
-				nonUserInput = _tmpInputField.text.Substring (0, _tmpInputField.text.Length - userInput.Length);
-			} else { AddText (PromptArtifact); }
-			needToShowUserPrompt = false;
-		}
+
 		#if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
-		if(sysproc != null) {
-			sysproc_Update();
+		if(systhread != null) {
+			string input = "";
+			if(instructionList.Count > 0) {
+				input = instructionList[0];
+				instructionList.RemoveAt(0);
+			}
+			sysproc_Update(input);
 		} else {
 		#endif
 			// run any queued-up commands
 			if (instructionList.Count > 0) {
 				Run (instructionList[0]);
 				instructionList.RemoveAt (0);
+				needToShowUserPrompt = true;
 			}
 		#if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
 		}
 		#endif
+
+		if (needToShowUserPrompt && onInput == null
+		#if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
+		&& (systhread==null || (string.IsNullOrEmpty(sysproc_currentCommand) && sysproc_didFinishCommand))
+		#endif
+		&& (waitingToReadLine == null || waitingToReadLine.GetInvocationList ().Length == 0)) {
+			// in case of keyboard mashing...
+			if (GetUserInputLength () > 0) {
+				string userInput = GetUserInput ();
+				SetText (nonUserInput);  GetInputValidator().EndUserInput (true);
+				ShowPrompt(); GetInputValidator ().AddUserInput (userInput);
+				nonUserInput = _tmpInputField.text.Substring (0, _tmpInputField.text.Length - userInput.Length);
+			} else { ShowPrompt(); }
+			needToShowUserPrompt = false;
+		}
+
 		// if this is the active command line and it has not yet disabled user controls. done in update to stop many onStart and onStop calls from being invoked in series
 		if (currentlyActiveCmdLine == this && disabledUserControls != this) {
 			// if another command line disabled user controls
