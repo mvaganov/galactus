@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine.UI;
 using TMPro;
-using UnityEngine.Serialization;
 
 /// <summary>A Command Line emulation for Unity3D
 /// <description>Public Domain - This code is free, don't bother me about it!</description>
@@ -383,8 +382,23 @@ public class CmdLine : MonoBehaviour {
 	public bool NeedToRefreshUserPrompt { get; set; }
 	/// used to smartly (perhaps overly-smartly) over-write the prompt when printing things out-of-sync
 	private int indexWherePromptWasPrintedRecently = -1;
+	private const string mainTextObjectName = "MainText";
 	[Tooltip("The TextMeshPro font used. If null, built-in-font should be used.")]
 	public TMP_FontAsset textMeshProFont;
+	public TMP_FontAsset TextMeshProFont {
+		get { return textMeshProFont; } 
+		set {
+			textMeshProFont = value;
+			if(textMeshProFont != null && _mainView != null) {
+				TMP_Text[] texts = _mainView.GetComponentsInChildren<TMP_Text>();
+				for(int i = 0; i < texts.Length; ++i) {
+					if(texts[i].gameObject.name == mainTextObjectName){
+						texts[i].font = textMeshProFont; break;
+					}
+				}
+			}
+		}
+	}
 	/// <summary>which command line is currently active, and disabling user controls</summary>
 	private static CmdLine currentlyActiveCmdLine, disabledUserControls;
 	/// <summary>used to check which command line is the best one for the user controlling the main camera</summary>
@@ -394,14 +408,16 @@ public class CmdLine : MonoBehaviour {
 	public class InitialColorSettings {
 		public Color Background = new Color(0, 0, 0, 0.5f);
 		public Color Text = new Color(1, 1, 1);
-		public Color ErrorText = new Color(1, 0, 0);
+		public Color ErrorText = new Color(1, .5f, .5f);
 		public Color SpecialText = new Color(1, .75f, 0);
+		public Color ExceptionText = new Color(1, .5f, 1);
 		public Color Scrollbar = new Color(1, 1, 1, 0.5f);
 		public Color UserInput = new Color(.5f, 1, .75f);
-		public Color UserSelection = new Color(1, .75f, .75f, .75f);
+		public Color UserSelection = new Color(.5f, .5f, 1, .75f);
 		public string UserInputHex { get { return CmdLine.Util.ColorToHexCode(UserInput); } }
 		public string ErrorTextHex { get { return CmdLine.Util.ColorToHexCode(ErrorText); } }
 		public string SpecialTextHex { get { return CmdLine.Util.ColorToHexCode(SpecialText); } }
+		public string ExceptionTextHex { get { return CmdLine.Util.ColorToHexCode(ExceptionText); } }
 	}
 	[System.Serializable]
 	public class RectTransformSettings {
@@ -446,7 +462,6 @@ public class CmdLine : MonoBehaviour {
 	public bool IsInOverlayMode() {
 		return _mainView.renderMode == RenderMode.ScreenSpaceOverlay;
 	}
-	// TODO optional view-direction & up-direction
 	public void PositionInWorld(Vector3 center, Vector2 size = default(Vector2), float scale = 0.005f) {
 		if (size == Vector2.zero) size = new Vector2 (Screen.width, Screen.height);
 		PutItInWorldSpace ws = new PutItInWorldSpace(scale, size);
@@ -465,7 +480,7 @@ public class CmdLine : MonoBehaviour {
 		}
 	}
 	private Canvas CreateUI () {
-		_mainView = transform.GetComponentInParent<Canvas>();//FindComponentUpHierarchy<Canvas> (transform);
+		_mainView = transform.GetComponentInParent<Canvas>();
 		if (!_mainView) {
 			_mainView = (new GameObject ("canvas")).AddComponent<Canvas> (); // so that the UI can be drawn at all
 			_mainView.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -497,7 +512,7 @@ public class CmdLine : MonoBehaviour {
 #if UNITY_EDITOR
 		try {
 #endif
-			tmpText = (new GameObject ("Text")).AddComponent<TextMeshProUGUI> ();
+			tmpText = (new GameObject (mainTextObjectName)).AddComponent<TextMeshProUGUI> ();
 #if UNITY_EDITOR
 		} catch(System.Exception) {
 			throw new System.Exception("Could not create a TextMeshProUGUI object. Did you get default fonts into TextMeshPro? Window -> TextMeshPro -> Import TMP Essential Resources");
@@ -639,7 +654,6 @@ public class CmdLine : MonoBehaviour {
 			// if this command line has disabled the user
 			if (disabledUserControls == currentlyActiveCmdLine) {
 				// tell it to re-enable controls
-				//if(disabledUserControls.onDeactivateInteraction != null) disabledUserControls.onDeactivateInteraction.Invoke ();
 				if(!callbacks.ignoreCallbacks && callbacks.whenThisDeactivates != null) callbacks.whenThisDeactivates.Invoke();
 				disabledUserControls = null;
 			}
@@ -818,13 +832,13 @@ public class CmdLine : MonoBehaviour {
 		if (text.IndexOf ('<') < 0) return text;
 		return "<noparse>" + text + "</noparse>";
 	}
-	private int CutoffIndexToEnsureLineCount (String s, int maxLines) {
+	private int CutoffIndexToEnsureLineCount (String s, int a_maxLines) {
 		int lineCount = 0, columnCount = 0, index;
 		for (index = s.Length; index > 0; --index) {
 			if (s [index - 1] == '\n' || columnCount++ >= maxColumnsPerLine) {
 				lineCount++;
 				columnCount = 0;
-				if (lineCount >= maxLines) { break; }
+				if (lineCount >= a_maxLines) { break; }
 			}
 		}
 		return index;
@@ -1039,6 +1053,7 @@ public class CmdLine : MonoBehaviour {
 	public string GetAllText () { return (_tmpInputField) ? GetRawText () : nonUserInput; }
 	/// <param name="text">Text to add as output, also turning current user input into text output</param>
 	public void AddText (string text) {
+		// TODO clean up this function
 		if(indexWherePromptWasPrintedRecently >= 0) {
 			if(GetRawText().Length >= 0) {
 				//Debug.Log(indexWherePromptWasPrintedRecently+" vs "+GetRawText().Length);
@@ -1084,13 +1099,17 @@ public class CmdLine : MonoBehaviour {
 #endregion // pubilc API
 #region Debug.Log intercept
 	[SerializeField, Tooltip("If true, all Debug.Log messages will be intercepted and duplicated here.")]
-	public bool interceptDebugLog = false;//true;
+	private bool interceptDebugLog = false;
+	public bool InterceptDebugLog { get { return interceptDebugLog; } set { interceptDebugLog = value; SetDebugLogIntercept(interceptDebugLog); } }
 	/// <summary>if this object was intercepting Debug.Logs, this will ensure that it un-intercepts as needed</summary>
 	private bool dbgIntercepted = false;
 
-	public void EnableDebugLogIntercept () { SetDebugLogIntercept (interceptDebugLog); }
+	public void EnableDebugLogIntercept () { SetDebugLogIntercept (InterceptDebugLog); }
 	public void DisableDebugLogIntercept () { SetDebugLogIntercept (false); }
 	public void SetDebugLogIntercept (bool intercept) {
+#if UNITY_EDITOR
+		if(!Application.isPlaying) return;
+#endif
 		if (intercept && !dbgIntercepted) {
 			Application.logMessageReceived += HandleLog;
 			dbgIntercepted = true;
@@ -1100,17 +1119,18 @@ public class CmdLine : MonoBehaviour {
 		}
 	}
 	private void HandleLog(string logString, string stackTrace = "", LogType type = LogType.Log) {
+		const string cEnd = "</color>\n";
 		switch (type) {
 		case LogType.Error:
-			AddText ("<#"+ Util.ColorToHexCode(Color.Lerp(ColorSet.Text, Color.red, 0.5f))+">"+logString+"</color>\n");
+			AddText ("<#" + ColorSet.ErrorTextHex +">"+logString + cEnd);
 			break;
 		case LogType.Exception:
-			string c = "<#"+ Util.ColorToHexCode(Color.Lerp(ColorSet.Text, Color.magenta, 0.5f))+">";
-			AddText (c+logString+"</color>\n");
-			AddText (c+stackTrace+"</color>\n");
+			string c = "<#"+ ColorSet.ExceptionTextHex +">";
+			AddText (c + logString + cEnd);
+			AddText (c + stackTrace + cEnd);
 			break;
 		case LogType.Warning:
-			AddText ("<#"+ Util.ColorToHexCode(Color.Lerp(ColorSet.Text, Color.yellow, 0.5f))+">"+logString+"</color>\n");
+			AddText ("<#" + ColorSet.SpecialTextHex +">"+logString + cEnd);
 			break;
 		default:
 			log (logString);
@@ -1121,6 +1141,15 @@ public class CmdLine : MonoBehaviour {
 	#region Unity Editor interaction
 #if UNITY_EDITOR
 	private static Mesh _editorMesh = null; // one variable to enable better UI in the editor
+
+	public List<System.Action> thingsToDoWhileEditorIsRunning = new List<Action>();
+	void OnValidate() {
+		thingsToDoWhileEditorIsRunning.Add(() => {
+			Interactivity = interactivity;
+			InterceptDebugLog = interceptDebugLog;
+			TextMeshProFont = textMeshProFont;
+		});
+	}
 
 	void OnDrawGizmos() {
 		if (_editorMesh == null) {
@@ -1177,6 +1206,12 @@ public class CmdLine : MonoBehaviour {
 		SetInteractive (ActiveOnStart);
 	}
 	void Update () {
+#if UNITY_EDITOR
+		if(thingsToDoWhileEditorIsRunning.Count > 0) {
+			thingsToDoWhileEditorIsRunning.ForEach(a => a());
+			thingsToDoWhileEditorIsRunning.Clear();
+		}
+#endif
 		if(Interactivity != InteractivityEnum.Disabled) {
 			// toggle visibility based on key presses
 			bool toggle = Input.GetKeyDown(IsInteractive() ? KeyToDeactivate : KeyToActivate);
