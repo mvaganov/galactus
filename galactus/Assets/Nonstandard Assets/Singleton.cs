@@ -9,7 +9,7 @@ public class Singleton {
 	public static T Get<T>() where T : MonoBehaviour {
 		MonoBehaviour instance;
 		if(!instances.TryGetValue(typeof(T), out instance)) {
-			if((instance = GameObject.FindObjectOfType<T>() as T) == null) {
+			if((instance = Object.FindObjectOfType<T>() as T) == null) {
 				GameObject g = new GameObject();
 				instance = g.AddComponent<T>();
 				g.name = "<" + instance.GetType().Name + ">";

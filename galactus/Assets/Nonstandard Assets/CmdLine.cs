@@ -19,6 +19,17 @@ public class CmdLine : MonoBehaviour {
 	private Dictionary<string, Command> commands = new Dictionary<string, Command>();
 	/// <summary>queue of instructions that this command line needs to execute.</summary>
 	private List<string> instructionList = new List<string>();
+	private string PopInstruction() {
+		if(instructionList.Count > 0) {
+			RecentInstruction = instructionList[0];
+			instructionList.RemoveAt(0);
+			return RecentInstruction;
+		}
+		return null;
+	}
+	[Tooltip("Easily accessible way of finding out what instruction was executed last")]
+	/// <summary>useful for callbacks, for finding out what is going on right now</summary>
+	[ReadOnly] public string RecentInstruction;
 
 	/// <summary>example of how to populate the command-line with commands</summary>
 	public void PopulateWithBasicCommands() {
@@ -32,7 +43,7 @@ public class CmdLine : MonoBehaviour {
 				SceneManager.LoadScene(args[1]);
 			} else {
 				log("to reload current scene, type <#" + ColorSet.SpecialTextHex + ">load " +
-		   SceneManager.GetActiveScene().name + "</color>");
+					SceneManager.GetActiveScene().name + "</color>");
 			}
 		}, "loads given scene. use: load <scene name>");
 		addCommand("pref", (args) => {
@@ -50,7 +61,7 @@ public class CmdLine : MonoBehaviour {
 			} else {
 				log("missing arguments");
 			}
-		}, "save player prefs value. use: pref variableName variableValue]");
+		}, "save player prefs value. use: pref variableName [variableValue]");
 		addCommand("prefreset", (args) => {
 			PlayerPrefs.DeleteAll();
 			PlayerPrefs.Save();
@@ -193,7 +204,6 @@ public class CmdLine : MonoBehaviour {
 					thread = null;
 					if(cmd != null) {
 						cmd.NeedToRefreshUserPrompt = true;
-						cmd.EnqueueRun("echo exiting");
 					}
 					t.Join(); // should be the last statement
 				});
@@ -250,7 +260,9 @@ public class CmdLine : MonoBehaviour {
 					somethingPrinted = true;
 				}
 			}
-			DoCommand(s);
+			if(s != null){
+				DoCommand(s);
+			}
 			if(string.IsNullOrEmpty(s) &&
 				string.IsNullOrEmpty(currentCommand) &&
 			   (somethingPrinted || promptNeedsRedraw)) {
@@ -1186,6 +1198,8 @@ public class CmdLine : MonoBehaviour {
 		public UnityEngine.Events.UnityEvent whenThisActivates;
 		[Tooltip("When the command line leaves active editing. This may be useful to re-enable a 3D FPS controller.")]
 		public UnityEngine.Events.UnityEvent whenThisDeactivates;
+		[Tooltip("When a command is executed. Check <code>RecentInstruction</code>")]
+		public UnityEngine.Events.UnityEvent whenCommandRuns;
 		public bool ignoreCallbacks;
 	}
 	[Tooltip("Recommended scripts to pair with the CmdLine: pastebin.com/FaT6i5yF\nwhenThisActivates:    StopPhysics.enablePhysics()\nwhenThisDeactivates: StopPhysics.disablePhysics()")]
@@ -1262,19 +1276,14 @@ public class CmdLine : MonoBehaviour {
 		}
 #if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
 		if(bash.IsInitialized() && AllowSystemAccess) {
-			string input = "";
-			if(instructionList.Count > 0) {
-				input = instructionList[0];
-				instructionList.RemoveAt(0);
-			}
-			bash.Update(input, this);
+			bash.Update(PopInstruction(), this);
 		} else {
 #endif
 			// run any queued-up commands
 			if (instructionList.Count > 0) {
-				Run (instructionList[0]);
-				instructionList.RemoveAt (0);
+				Run (PopInstruction());
 				NeedToRefreshUserPrompt = true;
+				if(!callbacks.ignoreCallbacks && callbacks.whenCommandRuns != null) callbacks.whenCommandRuns.Invoke();
 			}
 #if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
 		}
