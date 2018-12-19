@@ -79,6 +79,8 @@ namespace OMU {
 			if(t == typeof(LIST_TYPE)) { return (obj as LIST_TYPE).Count == 0; }
 			else if(t == typeof(OBJ_TYPE)) { return (obj as OBJ_TYPE).Count == 0; }
 			else if(t == typeof(Vector2)){ return ((Vector2)obj) == Vector2.zero; }
+			else if(t == typeof(Color)){ return ((Color)obj) == Color.clear; }
+			else if(t == typeof(Vector2)){ return ((Vector2)obj) == Vector2.zero; }
 			else if(t == typeof(Vector3)){ return ((Vector3)obj) == Vector3.zero; }
 			else if(t == typeof(Quaternion)){ return ((Quaternion)obj) == Quaternion.identity; }
 			else if(t == typeof(Dictionary<string,OBJ_TYPE>)) { return (obj as Dictionary<string,OBJ_TYPE>).Count == 0; }

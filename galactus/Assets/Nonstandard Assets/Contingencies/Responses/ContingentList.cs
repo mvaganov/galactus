@@ -10,7 +10,7 @@ namespace NS.Contingency.Response {
 		public enum KindOfList {Normal_List, Sequence_List, Priority_List};
 		public KindOfList kindOfList;
 		public string description;
-		public List<ObjectPtr> elements = new List<ObjectPtr>();
+		public List<_NS.Contingency.ObjectPtr> elements = new List<_NS.Contingency.ObjectPtr>();
 		public virtual void DoActivateTrigger () { DoActivate(null, this, true); }
 		public void DoActivate (object whatTriggeredThis, object whatIsBeingTriggerd, bool active) {
 			elements.ForEach(
@@ -68,7 +68,9 @@ namespace NS.Contingency.Response {
 					if (count < sl.elements.Count) {
 						for (int i = sl.elements.Count - 1; i >= count; --i) { sl.elements.RemoveAt (i); }
 					} else {
-						for (int i = sl.elements.Count; i < count; ++i) { sl.elements.Add (new NS.ObjectPtr (null)); }
+						for (int i = sl.elements.Count; i < count; ++i) {
+							sl.elements.Add (new _NS.Contingency.ObjectPtr (null));
+						}
 					}
 				}
 				r.y += h;
@@ -76,17 +78,17 @@ namespace NS.Contingency.Response {
 				for (int i = 0; i < sl.elements.Count; ++i) {
 					Object prevObj = sl.elements [i].Data;
 					Object eobj = p.EditorGUIObjectReference (r, sl.elements [i].Data, self);
-					sl.elements [i] = new NS.ObjectPtr (eobj);
+					sl.elements [i] = new _NS.Contingency.ObjectPtr (eobj);
 
 					if(eobj != prevObj && ContingencyRecursionCheck() != null) {
 						Debug.LogWarning("Disallowing recursion of "+eobj);
-						sl.elements [i] = new NS.ObjectPtr (prevObj);
+						sl.elements [i] = new _NS.Contingency.ObjectPtr (prevObj);
 					}
 
 					_NS.Contingency.Contingentable c = sl.elements [i].Data as _NS.Contingency.Contingentable;
 					if(c != null) {
 						if(c.gameObject == null) {
-							sl.elements [i] = new NS.ObjectPtr (null);
+							sl.elements [i] = new _NS.Contingency.ObjectPtr (null);
 						}
 					}
 					float expectedHeight = CalculateElementHeight(p, sl.elements [i].Data, h);

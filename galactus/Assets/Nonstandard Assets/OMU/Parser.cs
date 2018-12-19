@@ -96,15 +96,15 @@ namespace OMU {
 		
 		const string WORD_BREAK = "{}[],\":()\\"; // TODO sort and use binary search
 		const string EXPRESSION_BREAK = "+-=*/<>&|%^!#@";
-        string lastParsedToken;
+		string lastParsedToken;
 		FileParseResults output;
 		Coord coord = new Coord(1,1); // because most text editors count the first line as line 1, and the first column as column 1
 		int index = 0;
 		string filename;
 		StringReader text;
-		public enum ParseType {
-			JSON,
-			CSV };
+		const string typeReplaceToken = "type"; // similar to 'typedef' from C
+		Dictionary<string, string> typeReplace = new Dictionary<string, string>();
+		public enum ParseType { JSON, CSV };
 		Result.Type errorLevelOfMissingColon = Result.Type.none;
 
 		private int usingExpressionWordBreak = 0;		
@@ -161,20 +161,20 @@ namespace OMU {
 			text = null;
 		}
 		
-		private void Log (Result.Type t, string text) {
+		private void Log (Result.Type t, string a_text) {
 			if (t != Result.Type.none && output != null) {
-				output.Add (new Result(t, text, filename, coord));
+				output.Add (new Result(t, a_text, filename, coord));
 			}
 		}
 		
-        /// <summary>
-        /// reads the next {object script}, and returns a an object of the type that immidiately precedded the object definition
-        /// </summary>
-        /// <returns></returns>
+		/// <summary>
+		/// reads the next {object script}, and returns a an object of the type that immidiately precedded the object definition
+		/// </summary>
+		/// <returns></returns>
 		object ParseSerializedObject () {
-            string typename = lastParsedToken.Trim();
-            EatWhitespace();
-            Type subtype = Type.GetType(typename.ToString());
+			string typename = lastParsedToken.Trim();
+			EatWhitespace();
+			Type subtype = Type.GetType(typename.ToString());
 			object newObject = Data.CreateNew(subtype);
 			//Debug.Log ("created a new <<"+typename+">> "+newObject);
 			string err = null;
@@ -660,9 +660,7 @@ namespace OMU {
 				getAnotherToken = false;
 				EatWhitespace ();
 				int p = Peek ();
-				if (p == -1) {
-					return TOKEN.EOF;
-				}
+				if (p == -1) { return TOKEN.EOF; }
 				c = Convert.ToChar (p);
 				switch (c) {
 				case '{':   return TOKEN.CURLY_OPEN;
@@ -672,7 +670,7 @@ namespace OMU {
 				case '(':   return TOKEN.PAREN_OPEN;
 				case ')':   return TOKEN.PAREN_CLOSE;
 				case ',':   return TOKEN.COMMA;
-                case '"':   case '\'':  return TOKEN.STRING;
+				case '"':   case '\'':  return TOKEN.STRING;
 				case ':':   return TOKEN.COLON;
 				case '0':   case '1':   case '2':   case '3':   case '4':
 				case '5':   case '6':   case '7':   case '8':   case '9':
@@ -680,26 +678,37 @@ namespace OMU {
 				}
 				if (!getAnotherToken) {
 					lastParsedToken = NextWord();
-					switch (lastParsedToken.ToString()) {
+					switch (lastParsedToken) {
 					case "false":   return TOKEN.FALSE;
 					case "true":    return TOKEN.TRUE;
 					case "null":    return TOKEN.NULL;
 					case "//":  EatLineComment ();  getAnotherToken = true; break;
 					case "/*":  EatBlockComment (); getAnotherToken = true; break;
+					case typeReplaceToken:
+						EatWhitespace(); string shortHand = NextWord();
+						EatWhitespace(); string longTypeName = NextWord();
+						typeReplace[shortHand] = longTypeName;
+						getAnotherToken = true; break;
+					default:
+						string typeToken = lastParsedToken;
+						if(typeToken.StartsWith("<") && typeToken.EndsWith(">")) {
+							typeToken = typeToken.Substring(1, typeToken.Length - 2);
+						}
+						string trueTypeName;
+						if(typeReplace.TryGetValue(typeToken, out trueTypeName)) {
+							typeToken = trueTypeName.Trim();
+						}
+						Type specificType = Type.GetType(typeToken.ToString());
+						if(specificType != null) {
+							lastParsedToken = typeToken;
+							return TOKEN.SPECIFIC_OBJECT_TYPE;
+						}
+						break;
 					}
-                    string typeToken = lastParsedToken;
-                    if (typeToken.StartsWith("<") && typeToken.EndsWith(">")) {
-                        typeToken = typeToken.Substring(1, typeToken.Length - 2);
-					}
-                    Type specificType = Type.GetType(typeToken.ToString());
-                    if(specificType != null) {
-                        lastParsedToken = typeToken;
-                        return TOKEN.SPECIFIC_OBJECT_TYPE;
-                    }
-                }
+				}
 			} while(getAnotherToken);
 			DateTime dt;
-			if(DateTime.TryParse(lastParsedToken.ToString(), out dt)) {
+			if(DateTime.TryParse(lastParsedToken, out dt)) {
 				return TOKEN.DATETIME;
 			}
 			return TOKEN.UNDEFINED;

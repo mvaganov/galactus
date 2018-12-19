@@ -1,17 +1,18 @@
 ﻿[
   Z.Dialog{name:intro,commands:[
       {desc:'the first dialog'}
-      Z.Say {text: 'Welcome to Nonstandard Assets!\nWhat would you like information about?',
+      Z.Say {text: 'Welcome to NonStandard Assets! This is a collection of assets that Michael Vaganov thought should be standard in Unity, but arent. So, he made them, and is sharing them with you!\nWhat would you like information about?',
         keepOnScreen: true}
       Z.Option{next:timer,text:'Timer: time-keeping and setTimeout functionality'}
       Z.Option{next:omu,  text:'OMU: Object Modeling for Unity'}
       Z.Option{next:noisy,text:'Noisy: interactive sound scripting'}
-      Z.Option{next:ztory,text:'Z: Ztory scripting'}
+      Z.Option{next:ztory,text:'Ztory: a branching dialog scripting system'}
       Z.Option{next:platf,text:'Platformer: the 3D, first-through-third, gravity-adjustable character controller'}
       Z.Option{next:cmd,  text:'CmdLine: the Command Line emulator'}
       Z.Option{next:lines,text:'Lines: the 3d line drawing library'}
       Z.Option{next:spati,text:'Spatial: the 3d gemoetry library'}
       Z.Option{next:conti,text:'Contingency: rich object-interaction behaviors that reduce the need for C# scripting'}
+      Z.Option{next:spati,text:'NSBT: the NonStandard Behavior Tree'}
       Z.Option{commands:[exit], text:'exit'}
     ]
   }

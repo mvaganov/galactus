@@ -585,7 +585,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 433071256}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 81e40f0ce740b4787828063099005831, type: 3}
+  m_Script: {fileID: 11500000, guid: 891a3f55c60e248c58986bc6dec36a3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   textPanel: {fileID: 178150779}
@@ -596,16 +596,16 @@ MonoBehaviour:
   commandIndex: 0
   letterIndex: 0
   msPerCharacter: 50
-  input: "[\n  Z.Dialog{\n    name:'intro'\n    commands:[\n      Z.Say{text:'Hello
-    World!'},\n      Z.Say{text:'What an amazing start to my dialog!',keepOnScreen:true}\n
-    \     Z.Option{text:'I know, right?',next:'ikr'}\n      Z.Option{text:'Kinda lame...',next:'lame'}\n
-    \     Z.Option{text:'Quit',commands:[exit]}\n      Z.Option{text:'what?',next:'intro'}\n
-    \   ]\n  }\n  Z.Dialog{\n    name:ikr\n    commands:[\n      {desc:'testing the
-    text functionality'}\n      Z.Say{text:'Right!'},\n      Z.Say{text:'totally.'},\n
-    \   ]\n  }\n  Z.Dialog{\n    name:lame\n    commands:[\n      {desc:'testing the
-    quit functionality'}\n      Z.Say{text:'super lame'},\n      Z.Cmd{cmd:exit}\n
-    \   ]\n  }\n]"
-  startDialog: intro
+  input: "type B M.Branch type S M.Say type O M.Option\n[\n  B{\n    name:'intro'\n
+    \   list:[\n      S{text:'Hello World!'},\n      S{text:'What an amazing start
+    to my dialog!',keepOnScreen:true}\n      O{text:'I know, right?',next:'ikr'}\n
+    \     O{text:'Kinda lame...',next:'lame'}\n      O{text:'what?',next:'intro'}\n
+    \     O{text:error,next:ErrorWindow}\n      O{text:'Quit',commands:[exit]}\n    ]\n
+    \ }\n  B{\n    name:ikr\n    list:[\n      {desc:'testing the text functionality'}\n
+    \     S{text:'Right!'},\n      S{text:'totally.'},\n    ]\n  }\n  B{\n    name:lame\n
+    \   list:[\n      {desc:'testing the quit functionality'}\n      S{text:'super
+    lame'},\n      M.Cmd{cmd:exit}\n    ]\n  }\n]"
+  startBranch: intro
   knownResources: []
 --- !u!1 &469725150
 GameObject:
