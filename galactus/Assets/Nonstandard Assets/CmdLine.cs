@@ -89,20 +89,20 @@ public class CmdLine : MonoBehaviour {
 		}, "access the true system's command-line terminal");
 #endif
 	}
-	public static void DoCommand(string command) {
+	public static void DoSystemCommand(string command) {
 		bool isNewInstance = _instance == null;
-		Instance.doCommand(command);
+		Instance.doSystemCommand(command);
 		if(isNewInstance) {
 			Instance.Interactivity = InteractivityEnum.Disabled;
 		}
 	}
 #if !CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
-	public void doCommand(string command) {
+	public void doSystemCommand(string command) {
 		Debug.LogWarning("can't do '"+command+
 			"', #define CONNECT_TO_REAL_COMMAND_LINE_TERMINAL");
 	}
 #else
-	public void doCommand(string command) { bash.DoCommand(command, null, this); }
+	public void doSystemCommand(string command) { bash.DoCommand(command, null, this); }
 
 	private class BASH {
 		System.Diagnostics.Process system_process;
@@ -314,6 +314,10 @@ public class CmdLine : MonoBehaviour {
 		return sb.ToString();
 	}
 	/// <summary>Enqueues a command to run, which will be run during the next Update</summary>
+	public static void DoCommand(string commandWithArguments){
+		Instance.EnqueueRun(commandWithArguments);
+	}
+	/// <summary>Enqueues a command to run, which will be run during the next Update</summary>
 	/// <param name="commandWithArguments">Command string, with arguments.</param>
 	public void EnqueueRun(string commandWithArguments, bool userInitiated = false) {
 		instructionList.Add(commandWithArguments);
@@ -321,7 +325,7 @@ public class CmdLine : MonoBehaviour {
 			indexWherePromptWasPrintedRecently = -1; // make sure this command stays visible
 		}
 	}
-	public void Run(string commandWithArguments) {
+	private void Run(string commandWithArguments) {
 		if(waitingToReadLine != null) {
 			waitingToReadLine(commandWithArguments);
 			waitingToReadLine = null;
@@ -338,7 +342,7 @@ public class CmdLine : MonoBehaviour {
 	}
 	/// <param name="command">Command.</param>
 	/// <param name="args">Arguments. [0] is the name of the command, with [1] and beyond being the arguments</param>
-	public void Run(string command, string[] args) {
+	private void Run(string command, string[] args) {
 		Command cmd = null;
 		// try to find the given command. or the default command. if we can't find either...
 		if(!commands.TryGetValue(command, out cmd) && !commands.TryGetValue("", out cmd)) {

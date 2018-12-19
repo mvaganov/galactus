@@ -7,6 +7,6 @@ public class CmdTest : MonoBehaviour {
 	public string doThis;
 	// Use this for initialization
 	void Start () {
-		CmdLine.DoCommand(doThis);
+		CmdLine.DoSystemCommand(doThis);
 	}
 }
