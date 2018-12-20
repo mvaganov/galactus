@@ -7,7 +7,11 @@ namespace NS.Contingency.Response {
 		public string sceneName;
 		public enum SceneLoadType {LoadScene, AddScene, RemoveScene};
 		public SceneLoadType loadType = SceneLoadType.LoadScene;
-		public ObjectPtr activateWhenDone;
+		public _NS.Contingency.ObjectPtr activateWhenDone;
+
+		public override int GetChildContingencyCount() { return 1; }
+		public override Object GetChildContingency(int index) { return activateWhenDone.Data; }
+
 		public void DoActivateTrigger () { DoActivateTrigger(null); }
 		public void DoActivateTrigger (object whatTriggeredThis) {
 			DoLoad(whatTriggeredThis, loadType, true);

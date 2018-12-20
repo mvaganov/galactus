@@ -27,6 +27,7 @@ namespace _NS.Contingency.Response {
 	public _NS.Contingency.Contingentable data;
 }
 
+// this property drawer exists so that Contingency Scripts have an extra piece of UI showing whether or not they are connected properly.
 [CustomPropertyDrawer(typeof(EditorGUI_BasedOnContingency))]
 public class PropertyDrawer_EditorGUI_BasedOnContingency : PropertyDrawer {
 

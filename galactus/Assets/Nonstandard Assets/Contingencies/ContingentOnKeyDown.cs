@@ -11,7 +11,7 @@ namespace NS.Contingency {
 		public struct KeyBind {
 			public KeyCode key;
 			public OnInputType act;
-			public ObjectPtr bound; //= new ObjectPtr(null);
+			public _NS.Contingency.ObjectPtr bound; //= new ObjectPtr(null);
 			public bool IsActive() {
 				switch (act) {
 				case OnInputType.keyDown: return (Input.GetKeyDown (key));
@@ -26,7 +26,7 @@ namespace NS.Contingency {
 				}
 			}
 			public KeyBind(KeyCode key, OnInputType act, UnityEngine.Object obj) {
-				this.key=key;this.act=act;this.bound=new ObjectPtr(obj);
+				this.key=key;this.act=act;this.bound = new _NS.Contingency.ObjectPtr { Data = obj };
 			}
 		}
 

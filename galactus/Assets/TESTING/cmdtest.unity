@@ -190,6 +190,12 @@ GameObject:
   - component: {fileID: 1317529807}
   - component: {fileID: 1317529806}
   - component: {fileID: 1317529809}
+  - component: {fileID: 1317529815}
+  - component: {fileID: 1317529814}
+  - component: {fileID: 1317529813}
+  - component: {fileID: 1317529812}
+  - component: {fileID: 1317529811}
+  - component: {fileID: 1317529810}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -281,3 +287,89 @@ MonoBehaviour:
     cd ..
 
     say done.'
+--- !u!114 &1317529810
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1317529805}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8eef50d683c9f8f48b1707972e4977d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pleaseConnectContingency:
+    data: {fileID: 1317529812}
+  kindOfList: 0
+  description: 
+  elements:
+  - data: {fileID: 0}
+--- !u!114 &1317529811
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1317529805}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc8c09bb19caad24ebd489ab1b21bb01, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pleaseConnectContingency:
+    data: {fileID: 1317529813}
+  secondsDelay: 0
+  activate: 1
+  next:
+    data: {fileID: 0}
+--- !u!114 &1317529812
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1317529805}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ba66bcf55c8547d5a3993e760d15300, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  whatToActivate:
+    data: {fileID: 1317529811}
+--- !u!114 &1317529813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1317529805}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63b36996b3be84d7b9248c15b20ce3d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  whatToActivate:
+    data: {fileID: 0}
+--- !u!114 &1317529814
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1317529805}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d418d85407a63ce4ea48ef308143e0a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1317529815
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1317529805}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ad20f23c67d548b4ae5b33f82955c63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  input: "{\na:5, \ntext:'Hello World!'\n}"
+  text: {fileID: 0}
+  thing:
+    data: {fileID: 0}

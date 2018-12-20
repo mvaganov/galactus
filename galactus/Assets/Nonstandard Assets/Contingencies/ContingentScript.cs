@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using NS;
 #if UNITY_EDITOR
 using UnityEditor;
 using _NS.Contingency;
@@ -108,21 +109,21 @@ namespace _NS.Contingency {
 	/// Used to more easily reference Components within the Unity editor
 	[System.Serializable]
 	public struct ObjectPtr : NS.IReference {
-		[SerializeField]
 		public Object data;
-		public Object Data { get { return data as Object; } set { data = value; } }
-		//public ObjectPtr(){data = null;}
-		public ObjectPtr(Object obj) { data = obj; }
-		public override string ToString() { return "ObjectPtr -> " + data; }
-		public object Dereference() { return Data; }
+		public Object Data { get { return data; } set { data = value; } }
+		public object Dereference() { return data; }
 	}
 }
 #if UNITY_EDITOR
 [CustomPropertyDrawer(typeof(_NS.Contingency.ObjectPtr))]
 public class PropertyDrawer_NS_Contingency_ObjectPtr : PropertyDrawer_ObjectPtr {
+	protected string[] namespacesToGetDefaultSelectableClassesFrom = { "NS.Contingency.Response" };
+	protected override string[] GetDefaultSelectableClassNamespace() {
+		return namespacesToGetDefaultSelectableClassesFrom;
+	}
 
 	public override float GetPropertyHeight(SerializedProperty _property, GUIContent label) {
-		SerializedProperty asset = _property.FindPropertyRelative("data");
+		SerializedProperty asset = ObjectPtrAsset(_property);
 		Contingentable c = asset.objectReferenceValue as Contingentable;
 		if(c != null) {
 			return c.CalcPropertyHeight(this);
@@ -130,8 +131,11 @@ public class PropertyDrawer_NS_Contingency_ObjectPtr : PropertyDrawer_ObjectPtr 
 		return StandardCalcPropertyHeight();
 	}
 	public override Object FilterDirectReferenceAdjustment(Object newObjToReverence, Object prevObj, Component self) {
+		return FilterDirectReferenceAdjustment_(newObjToReverence, prevObj, self);
+	}
+	public static Object FilterDirectReferenceAdjustment_(Object newObjToReverence, Object prevObj, Component self) {
 		Contingentable cself = self as Contingentable;
-		if(prevObj != newObjToReverence && cself != null && cself.ContingencyRecursionCheck() != null) {
+		if(newObjToReverence != null && prevObj != newObjToReverence && cself != null && cself.ContingencyRecursionCheck() != null) {
 			Debug.LogWarning("Disallowing recursion of " + newObjToReverence);
 			newObjToReverence = prevObj;
 		}

@@ -7,16 +7,11 @@ using System.Linq;
 #endif
 
 namespace NS {
-	/// Used to more easily reference Components within the Unity editor
 	[System.Serializable]
 	public struct ObjectPtr : IReference {
-		[SerializeField]
 		public Object data;
-		public Object Data { get { return data as Object; } set { data = value; } }
-		//public ObjectPtr(){data = null;}
-		public ObjectPtr(Object obj) { data = obj; }
-		public override string ToString() { return "ObjectPtr -> " + data; }
-		public object Dereference() { return Data; }
+		public Object Data { get { return data; } set { data = value; } }
+		public object Dereference() { return data; }
 	}
 }
 
@@ -37,7 +32,7 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 	public static string setToNull = "set to null", delete = "delete";
 	public static float defaultOptionWidth = 16, defaultLabelWidth = 48, unitHeight = 16;
 	/// <summary>The namespaces to get default selectable classes from</summary>
-	protected string[] namespacesToGetDefaultSelectableClassesFrom = { "NS.Contingency.Response" };
+	protected virtual string[] GetDefaultSelectableClassNamespace() { return null; }
 
 	public override float GetPropertyHeight(SerializedProperty _property, GUIContent label) {
 		return StandardCalcPropertyHeight();
@@ -57,9 +52,10 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 	private void GenerateTypeCreationList(Component self, out string[] names, out SelectNextObjectFunction[] functions) {
 		List<string> list = new List<string>();
 		List<SelectNextObjectFunction> list_of_data = new List<SelectNextObjectFunction>();
-		if(namespacesToGetDefaultSelectableClassesFrom != null) {
-			for(int i = 0; i < namespacesToGetDefaultSelectableClassesFrom.Length; ++i) {
-				string namespaceName = namespacesToGetDefaultSelectableClassesFrom[i];
+		string[] theList = GetDefaultSelectableClassNamespace();
+		if(theList != null) {
+			for(int i = 0; i < theList.Length; ++i) {
+				string namespaceName = theList[i];
 				possibleResponses = NS.Reflection.GetTypesInNamespace(namespaceName);
 				list.AddRange(NS.Reflection.TypeNamesCleaned(possibleResponses, namespaceName));
 				for(int t = 0; t < possibleResponses.Length; t++) {
@@ -70,7 +66,7 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 				}
 			}
 		}
-		list.Insert(0, "<-- select Object or create...");
+		list.Insert(0, (theList != null)?"<-- select Object or create...":"<-- select Object");
 		list_of_data.Insert(0, null);
 		names = list.ToArray();
 		functions = list_of_data.ToArray();
@@ -170,9 +166,15 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 		return newObjToReverence;
 	}
 
+	public static SerializedProperty ObjectPtrAsset(SerializedProperty _property){
+		SerializedProperty asset = _property.FindPropertyRelative("data");
+		//asset = asset.FindPropertyRelative("data");
+		return asset;
+	}
+
 	public override void OnGUI(Rect _position, SerializedProperty _property, GUIContent _label) {
 		EditorGUI.BeginProperty(_position, GUIContent.none, _property);
-		SerializedProperty asset = _property.FindPropertyRelative("data");
+		SerializedProperty asset = ObjectPtrAsset(_property);
 		int oldIndent = EditorGUI.indentLevel;
 		EditorGUI.indentLevel = 0;
 		if(PropertyDrawer_ObjectPtr.showLabel) {

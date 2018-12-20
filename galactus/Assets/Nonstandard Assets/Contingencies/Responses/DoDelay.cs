@@ -11,7 +11,10 @@ namespace NS.Contingency.Response {
 		protected float secondsDelay;
 		public bool activate = true;
 		
-		public ObjectPtr next;
+		public _NS.Contingency.ObjectPtr next;
+
+		public override int GetChildContingencyCount() { return 1; }
+		public override Object GetChildContingency(int index) { return next.Data; }
 
 		public float Seconds { set { this.secondsDelay = value; } get { return this.secondsDelay; } }
 		public void DoActivate (object whatTriggeredThis, object whatIsBeingTriggerd, bool activate) {
@@ -37,14 +40,13 @@ namespace NS.Contingency.Response {
 			activate = (choice==0);
 			r.x += r.width;
 			r.width = _position.width - w - wl;
-			SerializedObject so = new SerializedObject(this);
-			SerializedProperty prop = so.FindProperty("next");
-			SerializedProperty asset = prop.FindPropertyRelative("data");
-			Object o = asset.objectReferenceValue;
-			//asset.objectReferenceValue = p.EditorGUIObjectReference(r, asset.objectReferenceValue, this);
+
 			PropertyDrawer_ObjectPtr.showLabel = false;
-			EditorGUI.PropertyField (r, prop);
-			next.Data = asset.objectReferenceValue;
+
+			Object prevObj = next.Data;
+			next = new _NS.Contingency.ObjectPtr { Data = p.EditorGUIObjectReference(r, prevObj, self) };
+			next = new _NS.Contingency.ObjectPtr { Data = PropertyDrawer_NS_Contingency_ObjectPtr.FilterDirectReferenceAdjustment_(next.Data, prevObj, self) };
+
 			PropertyDrawer_ObjectPtr.showLabel = true;
 
 			obj = p.ShowObjectPtrChoicesPopup(r, obj, self, true);

@@ -183,7 +183,8 @@ namespace NS {
 			}
 		}
 		public class Option : State {
-			public string text, next;
+			public string text;
+			public object next;
 			public List<object> commands;
 			public ScreenArea screenArea = ScreenArea.bottom;
 
@@ -224,7 +225,8 @@ namespace NS {
 				}
 				if(next != null) {
 					b.onClick.AddListener(() => {
-						FinishedWithOptions(story); story.StartBranch(next);
+						FinishedWithOptions(story);
+						story.StartBranch(next);
 					});
 				}
 				if(next == null && commands == null) {
@@ -297,19 +299,24 @@ namespace NS {
 				}
 			}
 
-			public void StartBranch(string name) {
-				Branch currentBranch = null;
-				if(!s_all_dialogs.TryGetValue(name, out currentBranch)) {
-					state.SetState(Error("Could not find Branch \"" + name + "\""), this);
-				} else {
-					state.SetState(currentBranch, this);
+			public void StartBranch(object branch) {
+				Branch currentBranch = branch as Branch;
+				if(currentBranch == null){
+					string n = branch as string;
+					if(n != null && !s_all_dialogs.TryGetValue(n, out currentBranch)) {
+						state.SetState(Error("Could not find Branch \"" + n + "\""), this);
+					}
 				}
+				if(branch != null && currentBranch == null) {
+					Debug.LogWarning("Could not parse branch " + branch.ToString());
+				}
+				state.SetState(currentBranch, this);
 			}
 
 			// TODO optionally read this from a plain text file
 			[TextArea(3, 5)]
 			public string input =
-				"type B NS.Branch type S NS.Story.Say type O NS.Story.Option\n" +
+				"#type B NS.Branch #type S NS.Story.Say #type O NS.Story.Option\n" +
 				"[\n" +
 				"  B{\n" +
 				"    name:'intro'\n" +

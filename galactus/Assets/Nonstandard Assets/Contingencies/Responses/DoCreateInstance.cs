@@ -9,6 +9,8 @@ namespace NS.Contingency.Response {
 			allowMultiples,
 			onlyEverCreateOne
 		}
+		public override int GetChildContingencyCount() { return 1; }
+		public override Object GetChildContingency(int index) { return whatToInstantiate; }
 		public CreationSettings creationSettings = CreationSettings.allowMultiples;
 		private List<Object> created = null;
 		public void DoActivateTrigger () {

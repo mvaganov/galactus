@@ -59,7 +59,7 @@ namespace NS.Contingency.Response {
 				// label the type-of-list, and the number of elements
 				Rect labelr = r;
 				labelr.width = wl;
-				kindOfList = Reflection.EditorGUI_EnumPopup<KindOfList>(labelr, kindOfList);
+				kindOfList = Reflection.EditorGUI_EnumPopup(labelr, kindOfList);
 				labelr.width = r.width - wl;
 				labelr.x += wl;
 				int count = EditorGUI.IntField(labelr, sl.elements.Count);
@@ -69,28 +69,26 @@ namespace NS.Contingency.Response {
 						for (int i = sl.elements.Count - 1; i >= count; --i) { sl.elements.RemoveAt (i); }
 					} else {
 						for (int i = sl.elements.Count; i < count; ++i) {
-							sl.elements.Add (new _NS.Contingency.ObjectPtr (null));
+							sl.elements.Add (new _NS.Contingency.ObjectPtr {Data=null});
 						}
 					}
 				}
 				r.y += h;
 				// draw the elements below
-				for (int i = 0; i < sl.elements.Count; ++i) {
-					Object prevObj = sl.elements [i].Data;
-					Object eobj = p.EditorGUIObjectReference (r, sl.elements [i].Data, self);
-					sl.elements [i] = new _NS.Contingency.ObjectPtr (eobj);
+				for(int i = 0; i < sl.elements.Count; ++i) {
+					Object prevObj = sl.elements[i].Data;
+					Object eobj = p.EditorGUIObjectReference(r, sl.elements[i].Data, self);
+					sl.elements[i] = new _NS.Contingency.ObjectPtr { Data = eobj };
 
+					// prevent recursion of Contingent objects
 					if(eobj != prevObj && ContingencyRecursionCheck() != null) {
 						Debug.LogWarning("Disallowing recursion of "+eobj);
-						sl.elements [i] = new _NS.Contingency.ObjectPtr (prevObj);
+						sl.elements[i] = new _NS.Contingency.ObjectPtr { Data = prevObj };
 					}
-
+					// prevent assignment of illeagal Contingency
 					_NS.Contingency.Contingentable c = sl.elements [i].Data as _NS.Contingency.Contingentable;
-					if(c != null) {
-						if(c.gameObject == null) {
-							sl.elements [i] = new _NS.Contingency.ObjectPtr (null);
-						}
-					}
+					if(c != null && c.gameObject == null) { sl.elements [i] = new _NS.Contingency.ObjectPtr {Data=null}; }
+
 					float expectedHeight = CalculateElementHeight(p, sl.elements [i].Data, h);
 					r.y += expectedHeight + vpadding;
 				}

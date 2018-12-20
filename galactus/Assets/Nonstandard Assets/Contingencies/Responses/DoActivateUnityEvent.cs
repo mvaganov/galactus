@@ -30,21 +30,8 @@ namespace NS.Contingency.Response {
 			_position.height = h;
 			_position.width = originalWidth - w;
 
-
 			EditorGUI.PropertyField (_position, prop);
 
-			//p.choice = EditorGUI.Popup(new Rect(_position.x+_position.width, 
-			//	_position.y, w, h), 0, PropertyDrawer_EditorGUIObjectReference.editChoiceOrNullify);
-			// if (0 != p.choice) {
-			// 	if(PropertyDrawer_EditorGUIObjectReference.editChoiceOrNullify[p.choice] == PropertyDrawer_EditorGUIObjectReference.setToNull) {
-			// 		obj = null;
-			// 		p.choice = 0;
-			// 	} else if(PropertyDrawer_EditorGUIObjectReference.editChoiceOrNullify[p.choice] == PropertyDrawer_EditorGUIObjectReference.delete) {
-			// 		DestroyImmediate(obj);
-			// 		obj = null;
-			// 		p.choice = 0;
-			// 	}
-			// }
 			return p.ShowObjectPtrChoicesPopup(new Rect(_position.x + _position.width - w, _position.y, w, h), obj, self, true);
 		}
 
