@@ -1,11 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using NS;
 #if UNITY_EDITOR
 using UnityEditor;
 using _NS.Contingency;
-using System.Linq;
 #endif
 
 namespace _NS.Contingency {
@@ -118,7 +116,7 @@ namespace _NS.Contingency {
 [CustomPropertyDrawer(typeof(_NS.Contingency.ObjectPtr))]
 public class PropertyDrawer_NS_Contingency_ObjectPtr : PropertyDrawer_ObjectPtr {
 	protected string[] namespacesToGetDefaultSelectableClassesFrom = { "NS.Contingency.Response" };
-	protected override string[] GetDefaultSelectableClassNamespace() {
+	protected override string[] GetNamespacesForNewComponentOptions() {
 		return namespacesToGetDefaultSelectableClassesFrom;
 	}
 
@@ -130,16 +128,16 @@ public class PropertyDrawer_NS_Contingency_ObjectPtr : PropertyDrawer_ObjectPtr 
 		}
 		return StandardCalcPropertyHeight();
 	}
-	public override Object FilterDirectReferenceAdjustment(Object newObjToReverence, Object prevObj, Component self) {
-		return FilterDirectReferenceAdjustment_(newObjToReverence, prevObj, self);
+	public override Object FilterFinal(Object newObjToReference, Object prevObj, Component self) {
+		return FilterDirectReferenceAdjustment_(newObjToReference, prevObj, self);
 	}
-	public static Object FilterDirectReferenceAdjustment_(Object newObjToReverence, Object prevObj, Component self) {
+	public static Object FilterDirectReferenceAdjustment_(Object newObjToReference, Object prevObj, Component self) {
 		Contingentable cself = self as Contingentable;
-		if(newObjToReverence != null && prevObj != newObjToReverence && cself != null && cself.ContingencyRecursionCheck() != null) {
-			Debug.LogWarning("Disallowing recursion of " + newObjToReverence);
-			newObjToReverence = prevObj;
+		if(newObjToReference != null && prevObj != newObjToReference && cself != null && cself.ContingencyRecursionCheck() != null) {
+			Debug.LogWarning("Disallowing recursion of " + newObjToReference);
+			newObjToReference = prevObj;
 		}
-		return newObjToReverence;
+		return newObjToReference;
 	}
 	public override Object EditorGUIObjectReference(Rect _position, Object obj, Component self) {
 		int oldIndent = EditorGUI.indentLevel;
@@ -154,8 +152,7 @@ public class PropertyDrawer_NS_Contingency_ObjectPtr : PropertyDrawer_ObjectPtr 
 		return obj;
 	}
 
-	public override Object ImmidiateObjectFilter(Object obj, Component self) {
-		// if a scene asset is given... do a quick conversion TODO make a filter function...
+	public override Object FilterImmidiate(Object obj, Component self) {
 		if(obj != null && obj.GetType() == typeof(SceneAsset)) {
 			GameObject go = self.gameObject;
 			if(go) {
@@ -170,9 +167,9 @@ public class PropertyDrawer_NS_Contingency_ObjectPtr : PropertyDrawer_ObjectPtr 
 		return obj;
 	}
 
-	protected override Object FilterNewTypes(System.Type nextT, Component self, Component c, Object obj) {
+	protected override Object FilterNewComponent(System.Type nextT, Component self, Component newlyCreatedComponent) {
 		_NS.Contingency.Response.DoActivateBasedOnContingency doEvent =
-	c as _NS.Contingency.Response.DoActivateBasedOnContingency;
+			newlyCreatedComponent as _NS.Contingency.Response.DoActivateBasedOnContingency;
 		if(doEvent != null) {
 			Contingentable contingencyMaster = self as Contingentable;
 			if(self is NS.Contingency.ContingentScript) {
@@ -182,9 +179,9 @@ public class PropertyDrawer_NS_Contingency_ObjectPtr : PropertyDrawer_ObjectPtr 
 				}
 			}
 			doEvent.RegisterContingency(contingencyMaster);
-			obj = doEvent;
+			newlyCreatedComponent = doEvent;
 		}
-		return obj;
+		return newlyCreatedComponent;
 	}
 }
 #endif

@@ -388,6 +388,7 @@ public class CmdLine : MonoBehaviour {
 	public PutItInWorldSpace WorldSpaceSettings = new PutItInWorldSpace(0.005f, Vector2.zero);
 	[Tooltip("used to color the console on creation")]
 	public InitialColorSettings ColorSet = new InitialColorSettings();
+	/// <summary>the real workhorse of this commandline system</summary>
 	private TMPro.TMP_InputField _tmpInputField;
 	/// <summary>used to prevent multiple simultaneous toggles of visibility</summary>
 	private bool _togglingVisiblityWithMultitouch = false;
@@ -623,16 +624,15 @@ public class CmdLine : MonoBehaviour {
 	}
 	/// <param name="enabled">If <c>true</c>, reads from keybaord. if <c>false</c>, stops reading from keyboard</param>
 	public void SetInputActive(bool enabled) {
-		if (enabled) {
-			_tmpInputField.ActivateInputField ();
-		} else {
-			_tmpInputField.DeactivateInputField ();
-		}
+		if (enabled) { _tmpInputField.ActivateInputField (); }
+		else {         _tmpInputField.DeactivateInputField (); }
 	}
 	/// <param name="enableInteractive"><c>true</c> to turn this on (and turn the previous CmdLine off)</param>
 	public void SetInteractive(bool enableInteractive) {
 		if(_mainView == null && Interactivity != InteractivityEnum.Disabled) {
 			CreateUI();
+			if(nonUserInput.Length == 0) { log(Application.productName + ", v" + Application.version); }
+			else { setText(nonUserInput); }
 		}
 		if(_tmpInputField == null) { return; }
 		bool activityWhenStarted = _tmpInputField.interactable;
@@ -686,9 +686,9 @@ public class CmdLine : MonoBehaviour {
 		int lastPoint = GetRawText ().Length;
 		SetCaretPosition (lastPoint);
 	}
-#endregion // user interface
-#region input validation
-	/// <summary>console data that should not be modifiable as user input</summary>
+	#endregion // user interface
+	#region input validation
+	/// <summary>console data that should not be modifiable as user input. Can be added to before the command-line even has UI components like _tmpInputField.</summary>
 	private string nonUserInput = "";
 	private CmdLineValidator inputvalidator;
 	/// <summary>keeps track of user selection so that the text field can be fixed if selected text is removed</summary>
@@ -1104,7 +1104,7 @@ public class CmdLine : MonoBehaviour {
 		}
 		indexWherePromptWasPrintedRecently = -1;
 	}
-	/// <param name="text">line to add as output, also turning current user input into text output</param>
+	/// <param name="line">line to add as output, also turning current user input into text output</param>
 	public void println (string line) {
 		AddText (line + "\n");
 	}
@@ -1226,11 +1226,6 @@ public class CmdLine : MonoBehaviour {
 		NeedToRefreshUserPrompt = true;
 		// test code
 		PopulateWithBasicCommands();
-		if (nonUserInput.Length == 0) {
-			log (Application.productName + ", v" + Application.version);
-		} else {
-			setText (nonUserInput);
-		}
 		SetInteractive(ActiveOnStart);
 	}
 	void Update () {

@@ -4,7 +4,6 @@ using UnityEngine;
 
 // author: mvaganov@hotmail.com
 // license: Copyfree, public domain. This is free code! Great artists, steal this code!
-// latest version at: https://pastebin.com/hGU8et8s -- added: initial version (2018/02/08)
 namespace NS {
 	public class Noisy : MonoBehaviour {
 		[System.Serializable]

@@ -32,7 +32,7 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 	public static string setToNull = "set to null", delete = "delete";
 	public static float defaultOptionWidth = 16, defaultLabelWidth = 48, unitHeight = 16;
 	/// <summary>The namespaces to get default selectable classes from</summary>
-	protected virtual string[] GetDefaultSelectableClassNamespace() { return null; }
+	protected virtual string[] GetNamespacesForNewComponentOptions() { return null; }
 
 	public override float GetPropertyHeight(SerializedProperty _property, GUIContent label) {
 		return StandardCalcPropertyHeight();
@@ -52,7 +52,7 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 	private void GenerateTypeCreationList(Component self, out string[] names, out SelectNextObjectFunction[] functions) {
 		List<string> list = new List<string>();
 		List<SelectNextObjectFunction> list_of_data = new List<SelectNextObjectFunction>();
-		string[] theList = GetDefaultSelectableClassNamespace();
+		string[] theList = GetNamespacesForNewComponentOptions();
 		if(theList != null) {
 			for(int i = 0; i < theList.Length; ++i) {
 				string namespaceName = theList[i];
@@ -85,7 +85,7 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 		components.Add(typename);
 		nextSelectionFunc.Add(null);
 		GameObject go = choicesAreFor as GameObject;
-		bool addSetToNull = false;
+		bool addSetToNull = true;
 		Object addDelete = null;
 		if(go != null) {
 			Component[] c = go.GetComponents<Component>();
@@ -144,8 +144,19 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 		cleaner.itemsToCleanup = this.itemsToCleanup;
 	}
 
-	protected virtual Object FilterNewTypes(System.Type nextT, Component self, Component c, Object obj){
+	/// <summary>called right after an object is assigned</summary>
+	public virtual Object FilterImmidiate(Object obj, Component self) {
 		return obj;
+	}
+
+	/// <summary>called right after a new component is created to be assigned</summary>
+	protected virtual Object FilterNewComponent(System.Type nextT, Component self, Component newlyCreatedComponent){
+		return newlyCreatedComponent;
+	}
+
+	/// <summary>called just before UI is finished. This is the last chance to adjust the new setting.</summary>
+	public virtual Object FilterFinal(Object newObjToReference, Object prevObj, Component self) {
+		return newObjToReference;
 	}
 
 	private Object CreateSelectedClass(System.Type nextT, Component self) {
@@ -155,15 +166,11 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 			if(nextT.IsSubclassOf(typeof(ScriptableObject))) {
 				obj = ScriptableObjectUtility.CreateAsset(nextT);
 			} else {
-				Component c = go.AddComponent(nextT);
-				obj = FilterNewTypes(nextT, self, c, obj);
+				Component newComponent = go.AddComponent(nextT);
+				obj = FilterNewComponent(nextT, self, newComponent);
 			}
 		}
 		return obj;
-	}
-
-	public virtual Object FilterDirectReferenceAdjustment(Object newObjToReverence, Object prevObj, Component self){
-		return newObjToReverence;
 	}
 
 	public static SerializedProperty ObjectPtrAsset(SerializedProperty _property){
@@ -184,7 +191,7 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 		if(asset != null) {
 			Object prevObj = asset.objectReferenceValue;
 			asset.objectReferenceValue = EditorGUIObjectReference(_position, asset.objectReferenceValue, self);
-			asset.objectReferenceValue = FilterDirectReferenceAdjustment(asset.objectReferenceValue, prevObj, self);
+			asset.objectReferenceValue = FilterFinal(asset.objectReferenceValue, prevObj, self);
 			//Contingentable cself = self as Contingentable;
 			//if(prevObj != asset.objectReferenceValue && cself != null && cself.ContingencyRecursionCheck() != null) {
 			//	Debug.LogWarning("Disallowing recursion of " + asset.objectReferenceValue);
@@ -235,31 +242,17 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 		return obj;
 	}
 
-	public virtual Object ImmidiateObjectFilter(Object obj, Component self) {
-		return obj;
-	}
-
 	public Object StandardEditorGUIObjectReference(Rect _position, Object obj, Component self) {
 		float originalWidth = _position.width;
 		_position.width = originalWidth - defaultOptionWidth;
 		Object prevSelection = obj;
 		obj = EditorGUI.ObjectField(_position, obj, typeof(Object), true);
-		obj = ImmidiateObjectFilter(obj, self);
-		//// if a scene asset is given... do a quick conversion TODO make a filter function...
-		//if(obj != null && obj.GetType() == typeof(SceneAsset)) {
-		//	GameObject go = self.gameObject;
-		//	if(go) {
-		//		SceneAsset sa = obj as SceneAsset;
-		//		DoActivateSceneLoad sceneLoad = go.AddComponent<DoActivateSceneLoad>();
-		//		sceneLoad.RegisterContingency(self as Contingentable);
-		//		obj = sceneLoad;
-		//		sceneLoad.sceneName = sa.name;
-		//	}
-		//}
-		return ShowObjectPtrChoicesPopup(_position, obj, self, obj != prevSelection);
+		obj = FilterImmidiate(obj, self);
+		obj = ShowObjectPtrChoicesPopup(_position, obj, self, obj != prevSelection);
+		return obj;
 	}
 
-	public static Object DoGUIEnumLabeledString<T>(Rect _position, Object obj, Component self, PropertyDrawer_ObjectPtr p,
+	public Object DoGUIEnumLabeledString<T>(Rect _position, Object obj, Component self,
 		ref T enumValue, ref string textValue) {
 		int oldindent = EditorGUI.indentLevel;
 		EditorGUI.indentLevel = 0;
@@ -270,13 +263,13 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 		r.x += r.width;
 		r.width = _position.width - w - wl;
 		textValue = EditorGUI.TextField(r, textValue);
-		obj = p.ShowObjectPtrChoicesPopup(r, obj, self, true);
+		obj = ShowObjectPtrChoicesPopup(r, obj, self, true);
 		r.x += r.width;
 		r.width = w;
 		EditorGUI.indentLevel = oldindent;
 		return obj;
 	}
-	public static Object DoGUIEnumLabeledObject<T>(Rect _position, Object obj, Component self, PropertyDrawer_ObjectPtr p,
+	public Object DoGUIEnumLabeledObject<T>(Rect _position, Object obj, Component self,
 		ref T enumValue, ref Object objectValue) {
 		int oldindent = EditorGUI.indentLevel;
 		EditorGUI.indentLevel = 0;
@@ -287,7 +280,8 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 		r.x += r.width;
 		r.width = _position.width - w - wl;
 		objectValue = EditorGUI.ObjectField(r, objectValue, typeof(Object), true);
-		obj = p.ShowObjectPtrChoicesPopup(r, obj, self, true);
+		obj = FilterImmidiate(obj, self);
+		obj = ShowObjectPtrChoicesPopup(r, obj, self, true);
 		r.x += r.width;
 		r.width = w;
 		EditorGUI.indentLevel = oldindent;

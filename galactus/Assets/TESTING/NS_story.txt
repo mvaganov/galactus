@@ -2,15 +2,15 @@
 #type S NS.Story.Say
 #type O NS.Story.Option
 [
-  B{name:intro,commands:[
+  B{name:intro,list:[
       {desc:'the first dialog'}
-      S{text: 'Welcome to NonStandard Assets! This is a collection of assets that Michael Vaganov thought should be standard in Unity, but arent. So, he made them, and is sharing them with you!\nWhat would you like information about?',
+      S{text: 'Welcome to NonStandard Assets! This is a collection of assets that one developer thought should be standard in Unity, but arent. So, he made them, and is sharing them with you!\n\nWhat would you like information about?',
         keepOnScreen: true}
       O{next:timer,text:'Timer: time-keeping and setTimeout functionality'}
       O{next:omu,  text:'OMU: Object Modeling for Unity'}
       O{next:noisy,text:'Noisy: interactive sound scripting'}
-      O{next:ztory,text:'Ztory: a branching dialog scripting system'}
-      O{next:platf,text:'Platformer: the 3D, first-through-third, gravity-adjustable character controller'}
+      O{next:story,text:'Story: a branching dialog and command scripting system'}
+      O{next:platf,text:'Platformer: the 3D, first-through-third perspective, gravity-adjustable character controller'}
       O{next:cmd,  text:'CmdLine: the Command Line emulator'}
       O{next:lines,text:'Lines: the 3d line drawing library'}
       O{next:spati,text:'Spatial: the 3d gemoetry library'}
@@ -19,16 +19,16 @@
       O{commands:[exit], text:'exit'}
     ]
   }
-  B{name:timer,commands:[
+  B{name:timer,list:[
     S{text:'The NS.Timer was one of the first pieces of code developed for the Nonstandard Library.'
     S{text:'There are just too many uses for having a timed-callback system, (like JavaScript\'s setTimeout) and it was pretty surprising that Unity did not have one by default.'}
     S{text:'NS.Timer is intended to be used within C# scripts, though it can also be used as a MonoBehaviour, to cause an object or event to occur in some interval or time. Many kinds of objects can be \'executed\' at a specific time, thanks to the Contingency system.'}
     O{next:intro,text:'main menu'}
   ]}
-  B{name:omu,commands:[
+  B{name:omu,list:[
     S{text:'OMU, or Object Modeling for Unity, is a system that uses a JSON-like script to serialize and de-serialize C# objects.'},
     S{text:'OMU is most useful for deserializing data structures into a human-readable, but still highly-compact script, for saving, or transmitting over the internet'},
-    S{text:'The script that was used to generate this dialog-system is written using OMU. The format of the script is based on the C# datastructures used in the Ztory system'},
+    S{text:'The script that was used to generate this dialog-system is written using OMU. The format of the script is based on the C# datastructures used in the Story system'},
     S{next:intro,text:'main menu'}
   ]}
 ]

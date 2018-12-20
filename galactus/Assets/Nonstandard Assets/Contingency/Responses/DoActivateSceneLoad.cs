@@ -40,8 +40,7 @@ namespace NS.Contingency.Response {
 		}
 		#if UNITY_EDITOR
 		public override Object DoGUI(Rect _position, Object obj, Component self, PropertyDrawer_ObjectPtr p) {
-			obj = PropertyDrawer_ObjectPtr.DoGUIEnumLabeledString<SceneLoadType>(
-				_position, obj, self, p, ref loadType, ref sceneName);
+			obj = p.DoGUIEnumLabeledString(_position, obj, self, ref loadType, ref sceneName);
 			return obj;
 		}
 		#endif

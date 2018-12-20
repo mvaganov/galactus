@@ -26,8 +26,7 @@ namespace NS.Contingency.Response {
 		#if UNITY_EDITOR
 		public override Object DoGUI(Rect _position, Object obj, Component self, PropertyDrawer_ObjectPtr p) {
 			string t = Text;
-			obj = PropertyDrawer_ObjectPtr.DoGUIEnumLabeledString<Purpose>(
-				_position, obj, self, p, ref purpose, ref t);
+			obj = p.DoGUIEnumLabeledString(_position, obj, self, ref purpose, ref t);
 			Text = t;
 			return obj;
 		}
