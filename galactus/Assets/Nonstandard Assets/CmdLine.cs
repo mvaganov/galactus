@@ -92,9 +92,7 @@ public class CmdLine : MonoBehaviour {
 	public static void DoSystemCommand(string command) {
 		bool isNewInstance = _instance == null;
 		Instance.doSystemCommand(command);
-		if(isNewInstance) {
-			Instance.Interactivity = InteractivityEnum.Disabled;
-		}
+		if(isNewInstance) { Instance.Interactivity = InteractivityEnum.Disabled; }
 	}
 #if !CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
 	public void doSystemCommand(string command) {
@@ -315,7 +313,10 @@ public class CmdLine : MonoBehaviour {
 	}
 	/// <summary>Enqueues a command to run, which will be run during the next Update</summary>
 	public static void DoCommand(string commandWithArguments){
+		bool isNewInstance = _instance == null;
+		// TODO ensure this executes the internal CmdLine commands... at the moment, it will do System commands if Bash is running.
 		Instance.EnqueueRun(commandWithArguments);
+		if(isNewInstance) { Instance.Interactivity = InteractivityEnum.Disabled; }
 	}
 	/// <summary>Enqueues a command to run, which will be run during the next Update</summary>
 	/// <param name="commandWithArguments">Command string, with arguments.</param>
@@ -630,6 +631,9 @@ public class CmdLine : MonoBehaviour {
 	}
 	/// <param name="enableInteractive"><c>true</c> to turn this on (and turn the previous CmdLine off)</param>
 	public void SetInteractive(bool enableInteractive) {
+		if(_mainView == null && Interactivity != InteractivityEnum.Disabled) {
+			CreateUI();
+		}
 		if(_tmpInputField == null) { return; }
 		bool activityWhenStarted = _tmpInputField.interactable;
 		if (enableInteractive && currentlyActiveCmdLine != null) {
@@ -860,6 +864,7 @@ public class CmdLine : MonoBehaviour {
 		return index;
 	}
 	public int GetUserInputLength() {
+		if(_tmpInputField == null) return 0;
 		string s = GetRawText ();
 		return s.Length - (nonUserInput.Length);
 	}
@@ -905,11 +910,17 @@ public class CmdLine : MonoBehaviour {
 				GameObject g = new GameObject ();
 				_instance = g.AddComponent<CmdLine> ();
 				g.name = "<" + _instance.GetType ().Name + ">";
+#if UNITY_EDITOR
+				_instance.whereItWasStarted = Environment.StackTrace;
+#endif
 			}
 			return _instance;
 		}
 	}
-	#endregion // singleton
+#if UNITY_EDITOR
+	public string whereItWasStarted;
+#endif
+#endregion // singleton
 	#region static utility functions
 	public static class Util {
 		/// <param name="layer">what Unity layer to set the given object, and all child objects, recursive</param>
@@ -1211,7 +1222,6 @@ public class CmdLine : MonoBehaviour {
 #endregion // Enable/Disable
 #region MonoBehaviour
 	void Start () {
-		CreateUI ();
 		showBottomWhenTextIsAdded = true;
 		NeedToRefreshUserPrompt = true;
 		// test code
@@ -1221,7 +1231,7 @@ public class CmdLine : MonoBehaviour {
 		} else {
 			setText (nonUserInput);
 		}
-		SetInteractive (ActiveOnStart);
+		SetInteractive(ActiveOnStart);
 	}
 	void Update () {
 #if UNITY_EDITOR
@@ -1293,21 +1303,22 @@ public class CmdLine : MonoBehaviour {
 		}
 #endif
 
-		if (NeedToRefreshUserPrompt && onInput == null
+		if(Interactivity != InteractivityEnum.Disabled) {
+			if(NeedToRefreshUserPrompt && onInput == null
 #if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
 		&& bash.IsProbablyIdle()
 #endif
-		&& (waitingToReadLine == null || waitingToReadLine.GetInvocationList ().Length == 0)) {
-			// in case of keyboard mashing...
-			if (GetUserInputLength () > 0) {
-				string userInput = GetUserInput ();
-				SetText (nonUserInput);  GetInputValidator().EndUserInput (true);
-				PrintPrompt(); GetInputValidator ().AddUserInput (userInput);
-				nonUserInput = _tmpInputField.text.Substring (0, _tmpInputField.text.Length - userInput.Length);
-			} else { PrintPrompt(); }
-			NeedToRefreshUserPrompt = false;
+		&& (waitingToReadLine == null || waitingToReadLine.GetInvocationList().Length == 0)) {
+				// in case of keyboard mashing...
+				if(GetUserInputLength() > 0) {
+					string userInput = GetUserInput();
+					SetText(nonUserInput); GetInputValidator().EndUserInput(true);
+					PrintPrompt(); GetInputValidator().AddUserInput(userInput);
+					nonUserInput = _tmpInputField.text.Substring(0, _tmpInputField.text.Length - userInput.Length);
+				} else { PrintPrompt(); }
+				NeedToRefreshUserPrompt = false;
+			}
 		}
-
 		// if this is the active command line and it has not yet disabled user controls. done in update to stop many onStart and onStop calls from being invoked in series
 		if (currentlyActiveCmdLine == this && disabledUserControls != this) {
 			// if another command line disabled user controls

@@ -47,7 +47,7 @@ namespace NS.Contingency.Response {
 			next.Data = asset.objectReferenceValue;
 			PropertyDrawer_ObjectPtr.showLabel = true;
 
-			obj = p.ShowChoicesPopup(r, obj, self, true);
+			obj = p.ShowObjectPtrChoicesPopup(r, obj, self, true);
 			r.x += r.width;
 			r.width = w;
 			return obj;

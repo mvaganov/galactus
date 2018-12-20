@@ -26,5 +26,14 @@ namespace NS.Contingency.Response {
 				created.RemoveAt(lastIndex);
 			}
 		}
+#if UNITY_EDITOR
+		public override Object DoGUI(Rect _position, Object obj, Component self, PropertyDrawer_ObjectPtr p) {
+			Object selected = whatToInstantiate;
+			obj = PropertyDrawer_ObjectPtr.DoGUIEnumLabeledObject<CreationSettings>(
+				_position, obj, self, p, ref creationSettings, ref selected);
+			whatToInstantiate = selected;
+			return obj;
+		}
+#endif
 	}
 }

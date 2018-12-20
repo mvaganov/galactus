@@ -45,7 +45,7 @@ namespace NS.Contingency.Response {
 			// 		p.choice = 0;
 			// 	}
 			// }
-			return p.ShowChoicesPopup(new Rect(_position.x + _position.width - w, _position.y, w, h), obj, self, true);
+			return p.ShowObjectPtrChoicesPopup(new Rect(_position.x + _position.width - w, _position.y, w, h), obj, self, true);
 		}
 
 		public override float CalcPropertyHeight (PropertyDrawer_ObjectPtr p) {

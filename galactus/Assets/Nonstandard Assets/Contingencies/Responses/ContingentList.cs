@@ -95,7 +95,7 @@ namespace NS.Contingency.Response {
 					r.y += expectedHeight + vpadding;
 				}
 			}
-			return p.ShowChoicesPopup(new Rect(_position.x + _position.width - w*2, _position.y, w, h), obj, self, true);
+			return p.ShowObjectPtrChoicesPopup(new Rect(_position.x + _position.width - w*2, _position.y, w, h), obj, self, true);
 		}
 
 		// really kludgy function... should be using GetPropertyHeight of the Contingentable, but only once I figure out what the seralization madness is all about

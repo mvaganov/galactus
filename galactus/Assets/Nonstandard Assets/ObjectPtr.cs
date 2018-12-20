@@ -27,12 +27,12 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 	delegate Object SelectNextObjectFunction();
 	public static bool showLabel = true;
 	public int choice = 0;
-	string[] choices_name = new string[] { };
-	SelectNextObjectFunction[] choices_selectFunc = new SelectNextObjectFunction[] { };
-	Object choicesAreFor = null;
-	System.Type[] possibleResponses = null;
-	string[] cached_typeCreationList_names = null;
-	SelectNextObjectFunction[] cached_TypeCreationList_function = null;
+	string[] choices_name = { };
+	SelectNextObjectFunction[] choices_selectFunc = { };
+	Object choicesAreFor;
+	System.Type[] possibleResponses;
+	string[] cached_typeCreationList_names;
+	SelectNextObjectFunction[] cached_TypeCreationList_function;
 
 	public static string setToNull = "set to null", delete = "delete";
 	public static float defaultOptionWidth = 16, defaultLabelWidth = 48, unitHeight = 16;
@@ -119,11 +119,33 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 		if(addDelete != null) {
 			components.Add(delete);
 			nextSelectionFunc.Add(() => {
-				Object.DestroyImmediate(addDelete); choice = 0; return null;
+				//Object.DestroyImmediate(addDelete); 
+				itemsToCleanup.Add(addDelete);
+				choice = 0; return null;
 			});
 		}
 		names = components.ToArray();
 		functions = nextSelectionFunc.ToArray();
+	}
+
+	[ExecuteInEditMode]
+	private class IndirectCleaner : MonoBehaviour{
+		public List<Object> itemsToCleanup;
+		private void Update() {
+			for(int i = itemsToCleanup.Count - 1; i >= 0; --i) {
+				Object o = itemsToCleanup[i];
+				if(o != null) { Object.DestroyImmediate(o); }
+			}
+			itemsToCleanup.Clear();
+			DestroyImmediate(this); // cleaning lady disposes of herself too
+		}
+	}
+	private List<Object> itemsToCleanup = new List<Object>();
+	private void RequestCleanup(Component self) {
+		// if any items need to be deleted, don't do it now! the UI is in the middle of being drawn!
+		// create a separate process that will do it for you
+		IndirectCleaner cleaner = self.gameObject.AddComponent<IndirectCleaner>();
+		cleaner.itemsToCleanup = this.itemsToCleanup;
 	}
 
 	protected virtual Object FilterNewTypes(System.Type nextT, Component self, Component c, Object obj){
@@ -169,6 +191,7 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 		}
 		EditorGUI.indentLevel = oldIndent;
 		EditorGUI.EndProperty();
+		if(itemsToCleanup.Count != 0) { RequestCleanup(self); }
 	}
 
 	// TODO rename this to DoGUI
@@ -180,7 +203,7 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 		return obj;
 	}
 
-	public Object ShowChoicesPopup(Rect _position, Object obj, Component self, bool recalculateChoices) {
+	public Object ShowObjectPtrChoicesPopup(Rect _position, Object obj, Component self, bool recalculateChoices) {
 		// if the object needs to have it's alternate forms calculated
 		if(recalculateChoices || choicesAreFor != obj || choices_name.Length == 0) {
 			choicesAreFor = obj;
@@ -231,7 +254,7 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 		//		sceneLoad.sceneName = sa.name;
 		//	}
 		//}
-		return ShowChoicesPopup(_position, obj, self, obj != prevSelection);
+		return ShowObjectPtrChoicesPopup(_position, obj, self, obj != prevSelection);
 	}
 
 	public static Object DoGUIEnumLabeledString<T>(Rect _position, Object obj, Component self, PropertyDrawer_ObjectPtr p,
@@ -245,7 +268,24 @@ public class PropertyDrawer_ObjectPtr : PropertyDrawer {
 		r.x += r.width;
 		r.width = _position.width - w - wl;
 		textValue = EditorGUI.TextField(r, textValue);
-		obj = p.ShowChoicesPopup(r, obj, self, true);
+		obj = p.ShowObjectPtrChoicesPopup(r, obj, self, true);
+		r.x += r.width;
+		r.width = w;
+		EditorGUI.indentLevel = oldindent;
+		return obj;
+	}
+	public static Object DoGUIEnumLabeledObject<T>(Rect _position, Object obj, Component self, PropertyDrawer_ObjectPtr p,
+		ref T enumValue, ref Object objectValue) {
+		int oldindent = EditorGUI.indentLevel;
+		EditorGUI.indentLevel = 0;
+		Rect r = _position;
+		float w = defaultOptionWidth, wl = defaultLabelWidth;
+		r.width = wl;
+		enumValue = NS.Reflection.EditorGUI_EnumPopup<T>(r, enumValue);
+		r.x += r.width;
+		r.width = _position.width - w - wl;
+		objectValue = EditorGUI.ObjectField(r, objectValue, typeof(Object), true);
+		obj = p.ShowObjectPtrChoicesPopup(r, obj, self, true);
 		r.x += r.width;
 		r.width = w;
 		EditorGUI.indentLevel = oldindent;

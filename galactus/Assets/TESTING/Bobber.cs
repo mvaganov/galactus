@@ -38,8 +38,8 @@ public class Bobber : MonoBehaviour {
 	public Vector3 gait = new Vector3 (1, 0, 1);
 
 	void Start () {
-		CmdLine.Instance.EnableDebugLogIntercept();
-		CmdLine.Instance.ActiveOnStart = false;
+		//CmdLine.Instance.EnableDebugLogIntercept();
+		//CmdLine.Instance.ActiveOnStart = false;
 		//CmdLine.Instance.hideInWorldSpace = true;
 		//Debug.LogWarning ("hi");
 		//Debug.LogError ("hi");

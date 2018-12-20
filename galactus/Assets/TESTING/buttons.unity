@@ -360,7 +360,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &221953313
 RectTransform:
   m_ObjectHideFlags: 0
@@ -596,15 +596,14 @@ MonoBehaviour:
   commandIndex: 0
   letterIndex: 0
   msPerCharacter: 50
-  input: "type B M.Branch type S M.Say type O M.Option\n[\n  B{\n    name:'intro'\n
+  input: "type B NS.Branch type S NS.Story.Say type O NS.Story.Option\n[\n  B{\n    name:'intro'\n
     \   list:[\n      S{text:'Hello World!'},\n      S{text:'What an amazing start
     to my dialog!',keepOnScreen:true}\n      O{text:'I know, right?',next:'ikr'}\n
-    \     O{text:'Kinda lame...',next:'lame'}\n      O{text:'what?',next:'intro'}\n
-    \     O{text:error,next:ErrorWindow}\n      O{text:'Quit',commands:[exit]}\n    ]\n
-    \ }\n  B{\n    name:ikr\n    list:[\n      {desc:'testing the text functionality'}\n
-    \     S{text:'Right!'},\n      S{text:'totally.'},\n    ]\n  }\n  B{\n    name:lame\n
-    \   list:[\n      {desc:'testing the quit functionality'}\n      S{text:'super
-    lame'},\n      M.Cmd{cmd:exit}\n    ]\n  }\n]"
+    \     O{text:'Kinda lame...',next:'lame'}\n      O{text:'Quit',commands:[exit]}\n
+    \     O{text:'what?',next:'intro'}\n    ]\n  }\n  B{\n    name:ikr\n    list:[\n
+    \     {desc:'testing the text functionality'}\n      S{text:'Right!'},\n      S{text:'totally.'},\n
+    \   ]\n  }\n  B{\n    name:lame\n    list:[\n      {desc:'testing the quit functionality'}\n
+    \     S{text:'super lame'},\n      NS.Story.Cmd{cmd:exit}\n    ]\n  }\n]"
   startBranch: intro
   knownResources: []
 --- !u!1 &469725150
@@ -6417,7 +6416,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1331241366
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6692,7 +6691,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1459650912
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6889,7 +6888,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   RecentInstruction: 
   PromptArtifact: '$ '
-  interactivity: 3
+  interactivity: 0
   KeyToActivate: 96
   KeyToDeactivate: 27
   ScreenOverlaySettings:
@@ -6914,6 +6913,7 @@ MonoBehaviour:
   textMeshProFont: {fileID: 11400000, guid: bd574a2f49d2f4a78be0a2e2a6231b84, type: 2}
   maxLines: 99
   maxColumnsPerLine: 120
+  whereItWasStarted: 
   interceptDebugLog: 0
   callbacks:
     whenThisActivates:
@@ -6962,7 +6962,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1638277408
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7078,7 +7078,7 @@ GameObject:
   - component: {fileID: 1994217068}
   - component: {fileID: 1994217067}
   m_Layer: 0
-  m_Name: line
+  m_Name: bobber
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7090,7 +7090,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1994217066}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5cf3e5f19faad4d2f9fa7b1eac4835f8, type: 3}
   m_Name: 
@@ -7224,7 +7224,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2096341288
 MonoBehaviour:
   m_ObjectHideFlags: 0
