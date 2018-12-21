@@ -168,16 +168,35 @@ namespace OMU {
 					if (!parsed) {
 						parsed = Int64.TryParse(s, out number);
 					} if (!parsed) {
+						bool bigEndian = false;
 						int hexStartsAt = -1;
 						if (s.StartsWith("0x")) {
 							hexStartsAt = 2;
 						} else if (s.StartsWith("#")) {
 							hexStartsAt = 1;
+							bigEndian = true;
+							if(s.Length <= 5) {
+								string color = "#";// for short color codes, <=4 values
+								if(s.Length > 1) { color += s[1].ToString() + s[1].ToString(); }//r
+								if(s.Length > 2) { color += s[2].ToString() + s[2].ToString(); }//g
+								if(s.Length > 3) { color += s[3].ToString() + s[3].ToString(); }//b
+								if(s.Length > 4) { color += s[4].ToString() + s[4].ToString(); }//a
+								s = color;
+							}
+							while(s.Length < 7) { s += "0"; }
+							if (s.Length == 7) { s += "ff"; }
 						}
 						if (hexStartsAt != -1) {
 							parsed = Int64.TryParse(s.Substring(hexStartsAt),
 								System.Globalization.NumberStyles.HexNumber,
 								null, out number);
+							if(bigEndian) {
+								long swapped = ((number >> 24) & 0xff) | // move byte 3 to byte 0
+												((number << 8) & 0xff0000) | // move byte 1 to byte 2
+												((number >> 8) & 0xff00) | // move byte 2 to byte 1
+												((number << 24) & 0xff000000); // byte 0 to byte 3
+								number = swapped;
+							}
 						}
 					}
 				}

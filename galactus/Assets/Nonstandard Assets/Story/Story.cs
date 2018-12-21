@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace NS {
-	public enum ScreenArea {
-		top = 0, bottom, left, right, upperLeft, upperRight, lowerLeft, lowerRight, middle
-	}
 	public interface IStateRunner {
 		void AdvanceStateTree();
 	}
@@ -13,10 +10,13 @@ namespace NS {
 	namespace Story {
 		public class Say : NS.StateMachine.State {
 			public string text;
+			public TMPro.TextAlignmentOptions align = TMPro.TextAlignmentOptions.BottomLeft;
 			public Color bgcolor;
 			public bool keepOnScreen;
-			public ScreenArea screenArea = ScreenArea.top;
-			public ScreenArea portrainArea = ScreenArea.lowerRight;
+			public ScreenArea screenArea = ScreenArea.Top;
+			public string portrait;
+			public ScreenArea portraitArea = ScreenArea.BottomRight;
+			public float portraitScale;
 			class Vars {
 				public Color prev_bgcolor;
 			}
@@ -38,24 +38,36 @@ namespace NS {
 						}
 					}
 				}
+				if(story.portraitPanel) {
+					RectTransform r = story.portraitPanel;
+					Util.AnchorRect(r, portraitArea);
+					UnityEngine.UI.Image img = r.GetComponent<UnityEngine.UI.Image>();
+					Sprite s = story.GetSprite(portrait);
+					if(s != null){
+						img.sprite = s;
+						if(portraitScale == 0) { portraitScale = 1; }
+						r.sizeDelta = new Vector2(img.preferredWidth, img.preferredHeight) * portraitScale;
+					}
+					img.enabled = s != null;
+				}
 				AdvanceLetter(story);
 			}
 			public override void Execute(IStateRunner sr) {
 				Story story = sr as Story;
 				if(Input.GetKeyDown(KeyCode.UpArrow)) {
-					screenArea = Util.Shift(screenArea, ScreenArea.top);
+					screenArea = Util.Shift(screenArea, ScreenArea.Top);
 					Util.SetRect(story.textPanel, screenArea);
 				}
 				if(Input.GetKeyDown(KeyCode.DownArrow)) {
-					screenArea = Util.Shift(screenArea, ScreenArea.bottom);
+					screenArea = Util.Shift(screenArea, ScreenArea.Bottom);
 					Util.SetRect(story.textPanel, screenArea);
 				}
 				if(Input.GetKeyDown(KeyCode.LeftArrow)) {
-					screenArea = Util.Shift(screenArea, ScreenArea.left);
+					screenArea = Util.Shift(screenArea, ScreenArea.Left);
 					Util.SetRect(story.textPanel, screenArea);
 				}
 				if(Input.GetKeyDown(KeyCode.RightArrow)) {
-					screenArea = Util.Shift(screenArea, ScreenArea.right);
+					screenArea = Util.Shift(screenArea, ScreenArea.Right);
 					Util.SetRect(story.textPanel, screenArea);
 				}
 				if(Input.GetButtonDown("Jump")) {
@@ -104,7 +116,7 @@ namespace NS {
 			public string text;
 			public object next;
 			public List<object> commands;
-			public ScreenArea screenArea = ScreenArea.bottom;
+			public ScreenArea screenArea = ScreenArea.Bottom;
 
 			public override void Enter(IStateRunner sr) {
 				Story story = sr as Story;
@@ -172,6 +184,7 @@ namespace NS {
 
 		public class Story : MonoBehaviour, IStateRunner {
 			public RectTransform textPanel;
+			public RectTransform portraitPanel;
 			public TMPro.TMP_Text textOuput;
 			public RectTransform optionPanel;
 			public RectTransform optionPrefab;
@@ -219,9 +232,9 @@ namespace NS {
 				s_all_dialogs[branch.name] = branch;
 			}
 
-			public void AddBranches(IList dialogs) {
-				for(int i = 0; i < dialogs.Count; ++i) {
-					AddBranch(dialogs[i] as NS.StateMachine.Branch);
+			public void AddBranches(IList branches) {
+				for(int i = 0; i < branches.Count; ++i) {
+					AddBranch(branches[i] as NS.StateMachine.Branch);
 				}
 			}
 
@@ -237,16 +250,30 @@ namespace NS {
 					}
 				}
 				if(nextState == null) {
-					Debug.LogWarning("Could not parse branch " + a_state);
+					Debug.LogWarning("Could not parse state " + a_state);
 				}
 				state.SetState(nextState, this);
 			}
 
 			public NS.TextPtr.ObjectPtr textSource;
-			public string startBranch = "intro";
+			public string startBranchName = "intro";
 
 			[Tooltip("where to put images, icons, and portraits for dialog, to be referenced by the script")]
 			public List<Object> knownResources = new List<Object>();
+
+			public Sprite GetSprite(string name){
+				Sprite found = null;
+				if(name != null) {
+					for(int i = 0; i < knownResources.Count; ++i) {
+						Sprite s = knownResources[i] as Sprite;
+						if(s.name == name) {
+							found = s;
+							break;
+						}
+					}
+				}
+				return found;
+			}
 
 			void Update() {
 				state.Execute(this);
@@ -259,11 +286,19 @@ namespace NS {
 				//Debug.Log(OMU.Util.ToScript(ob, true));
 				Debug.Log(OMU.Util.ToScriptTiny(ob));
 				AddBranches(ob as IList);
-				if(startBranch != null) {
-					StartState(startBranch);
+				if(startBranchName != null) {
+					StartState(startBranchName);
 				}
 			}
 		}
+	}
+	/// <summary><c>
+	/// <para> 4 0 5 </para>
+	/// <para> 2 8 3 </para>
+	/// <para> 6 1 7 </para>
+	/// </c></summary>
+	public enum ScreenArea {
+		Top = 0, Bottom = 1, Left = 2, Right = 3, TopLeft = 4, TopRight = 5, BottomLeft = 6, BottomRight = 7, Center = 8
 	}
 	public static class Util {
 		private static readonly Vector2
@@ -276,122 +311,38 @@ namespace NS {
 			vll = new Vector2(0.0f, 0.0f),
 			vlr = new Vector2(1.0f, 0.0f),
 			vmc = new Vector2(0.5f, 0.5f);
+		private static readonly Vector2[] screenAreaPositions = new Vector2[] { 
+			vuc,vlc,vml,vmr,vul,vur,vll,vlr,vmc
+		};
+		private static readonly Vector2[,] screenBoundsPositions = new Vector2[,]{
+			{vml,vur}, {vll,vmr}, {vll,vuc}, {vlc,vur}, {vml,vuc}, {vmc,vur}, {vll,vmc}, {vlc,vmr}, {vll,vur}
+		};
 		public static void SetRect(RectTransform r, ScreenArea area, bool pivotOnly = false) {
-			switch(area) {
-			case ScreenArea.top: r.pivot = vuc; if(!pivotOnly) { r.anchorMin = vml; r.anchorMax = vur; } break;
-			case ScreenArea.bottom: r.pivot = vlc; if(!pivotOnly) { r.anchorMin = vll; r.anchorMax = vmr; } break;
-			case ScreenArea.left: r.pivot = vml; if(!pivotOnly) { r.anchorMin = vll; r.anchorMax = vuc; } break;
-			case ScreenArea.right: r.pivot = vmr; if(!pivotOnly) { r.anchorMin = vlc; r.anchorMax = vur; } break;
-			case ScreenArea.upperLeft: r.pivot = vul; if(!pivotOnly) { r.anchorMin = vml; r.anchorMax = vuc; } break;
-			case ScreenArea.upperRight: r.pivot = vur; if(!pivotOnly) { r.anchorMin = vmc; r.anchorMax = vur; } break;
-			case ScreenArea.lowerLeft: r.pivot = vll; if(!pivotOnly) { r.anchorMin = vll; r.anchorMax = vmc; } break;
-			case ScreenArea.lowerRight: r.pivot = vlr; if(!pivotOnly) { r.anchorMin = vlc; r.anchorMax = vmr; } break;
-			case ScreenArea.middle: r.pivot = vmc; if(!pivotOnly) { r.anchorMin = vll; r.anchorMax = vur; } break;
+			r.pivot = screenAreaPositions[(int)area];
+			if(!pivotOnly) {
+				r.anchorMin = screenBoundsPositions[(int)area, 0];
+				r.anchorMax = screenBoundsPositions[(int)area, 1];
 			}
 		}
+		public static void AnchorRect(RectTransform r, ScreenArea area) {
+			r.pivot = screenAreaPositions[(int)area];
+			r.anchorMin = r.anchorMax = r.pivot;
+			r.offsetMin = r.offsetMax = Vector2.zero;
+		}
+		/// <summary>The ScreenArea shift matrix. If ScreenArea changes, this will break.</summary>
+		private static readonly int[,] screenAreaShiftMatrix = new int[,]{
+			{0,8,4,5,2,3,2,3,0},
+			{8,1,6,7,2,3,6,7,1},
+			{4,6,2,8,4,0,6,1,2},
+			{5,7,8,3,0,5,1,7,3},
+			{0,2,2,0,4,0,2,8,4},
+			{0,3,0,3,0,5,8,3,5},
+			{2,1,2,1,2,8,6,1,6},
+			{3,1,1,3,8,3,1,7,7},
+			{0,1,2,3,4,5,6,7,8}        
+		};
 		public static ScreenArea Shift(ScreenArea start, ScreenArea mod) {
-			switch(start) {
-			case ScreenArea.top:
-				switch(mod) {
-				case ScreenArea.top: start = ScreenArea.top; break;
-				case ScreenArea.bottom: start = ScreenArea.middle; break;
-				case ScreenArea.left: start = ScreenArea.upperLeft; break;
-				case ScreenArea.right: start = ScreenArea.upperRight; break;
-				case ScreenArea.upperLeft: start = ScreenArea.left; break;
-				case ScreenArea.upperRight: start = ScreenArea.right; break;
-				case ScreenArea.lowerLeft: start = ScreenArea.left; break;
-				case ScreenArea.lowerRight: start = ScreenArea.right; break;
-				}
-				break;
-			case ScreenArea.bottom:
-				switch(mod) {
-				case ScreenArea.top: start = ScreenArea.middle; break;
-				case ScreenArea.bottom: start = ScreenArea.bottom; break;
-				case ScreenArea.left: start = ScreenArea.lowerLeft; break;
-				case ScreenArea.right: start = ScreenArea.lowerRight; break;
-				case ScreenArea.upperLeft: start = ScreenArea.left; break;
-				case ScreenArea.upperRight: start = ScreenArea.right; break;
-				case ScreenArea.lowerLeft: start = ScreenArea.lowerLeft; break;
-				case ScreenArea.lowerRight: start = ScreenArea.lowerRight; break;
-				}
-				break;
-			case ScreenArea.left:
-				switch(mod) {
-				case ScreenArea.top: start = ScreenArea.upperLeft; break;
-				case ScreenArea.bottom: start = ScreenArea.lowerLeft; break;
-				case ScreenArea.left: start = ScreenArea.left; break;
-				case ScreenArea.right: start = ScreenArea.middle; break;
-				case ScreenArea.upperLeft: start = ScreenArea.upperLeft; break;
-				case ScreenArea.upperRight: start = ScreenArea.top; break;
-				case ScreenArea.lowerLeft: start = ScreenArea.lowerLeft; break;
-				case ScreenArea.lowerRight: start = ScreenArea.bottom; break;
-				}
-				break;
-			case ScreenArea.right:
-				switch(mod) {
-				case ScreenArea.top: start = ScreenArea.upperRight; break;
-				case ScreenArea.bottom: start = ScreenArea.lowerRight; break;
-				case ScreenArea.left: start = ScreenArea.middle; break;
-				case ScreenArea.right: start = ScreenArea.right; break;
-				case ScreenArea.upperLeft: start = ScreenArea.top; break;
-				case ScreenArea.upperRight: start = ScreenArea.upperRight; break;
-				case ScreenArea.lowerLeft: start = ScreenArea.bottom; break;
-				case ScreenArea.lowerRight: start = ScreenArea.lowerRight; break;
-				}
-				break;
-			case ScreenArea.upperLeft:
-				switch(mod) {
-				case ScreenArea.top: start = ScreenArea.top; break;
-				case ScreenArea.bottom: start = ScreenArea.left; break;
-				case ScreenArea.left: start = ScreenArea.left; break;
-				case ScreenArea.right: start = ScreenArea.top; break;
-				case ScreenArea.upperLeft: start = ScreenArea.upperLeft; break;
-				case ScreenArea.upperRight: start = ScreenArea.top; break;
-				case ScreenArea.lowerLeft: start = ScreenArea.left; break;
-				case ScreenArea.lowerRight: start = ScreenArea.middle; break;
-				}
-				break;
-			case ScreenArea.upperRight:
-				switch(mod) {
-				case ScreenArea.top: start = ScreenArea.top; break;
-				case ScreenArea.bottom: start = ScreenArea.right; break;
-				case ScreenArea.left: start = ScreenArea.top; break;
-				case ScreenArea.right: start = ScreenArea.right; break;
-				case ScreenArea.upperLeft: start = ScreenArea.top; break;
-				case ScreenArea.upperRight: start = ScreenArea.upperRight; break;
-				case ScreenArea.lowerLeft: start = ScreenArea.middle; break;
-				case ScreenArea.lowerRight: start = ScreenArea.right; break;
-				}
-				break;
-			case ScreenArea.lowerLeft:
-				switch(mod) {
-				case ScreenArea.top: start = ScreenArea.left; break;
-				case ScreenArea.bottom: start = ScreenArea.bottom; break;
-				case ScreenArea.left: start = ScreenArea.left; break;
-				case ScreenArea.right: start = ScreenArea.bottom; break;
-				case ScreenArea.upperLeft: start = ScreenArea.left; break;
-				case ScreenArea.upperRight: start = ScreenArea.middle; break;
-				case ScreenArea.lowerLeft: start = ScreenArea.lowerLeft; break;
-				case ScreenArea.lowerRight: start = ScreenArea.bottom; break;
-				}
-				break;
-			case ScreenArea.lowerRight:
-				switch(mod) {
-				case ScreenArea.top: start = ScreenArea.right; break;
-				case ScreenArea.bottom: start = ScreenArea.bottom; break;
-				case ScreenArea.left: start = ScreenArea.bottom; break;
-				case ScreenArea.right: start = ScreenArea.right; break;
-				case ScreenArea.upperLeft: start = ScreenArea.middle; break;
-				case ScreenArea.upperRight: start = ScreenArea.right; break;
-				case ScreenArea.lowerLeft: start = ScreenArea.bottom; break;
-				case ScreenArea.lowerRight: start = ScreenArea.lowerRight; break;
-				}
-				break;
-			case ScreenArea.middle:
-				start = mod;
-				break;
-			}
-			return start;
+			return (ScreenArea)screenAreaShiftMatrix[(int)start,(int)mod];
 		}
 	}
 }
