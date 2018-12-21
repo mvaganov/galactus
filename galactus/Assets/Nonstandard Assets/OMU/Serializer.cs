@@ -150,8 +150,8 @@ namespace OMU {
 					lastAttempt = shorthand;
 					for(int letters = 0; letters < shorthand.Length && !renamed; letters++) {
 						string abbrev = shorthand.Substring(0, letters+1);
-						if(aliases.IndexOf(shorthand) < 0) {
-							aliases.Add(shorthand);
+						if(aliases.IndexOf(abbrev) < 0) {
+							aliases.Add(abbrev);
 							renamed = true;
 						}
 					}
