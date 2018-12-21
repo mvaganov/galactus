@@ -103,7 +103,7 @@ namespace OMU {
 		int index = 0;
 		string filename;
 		StringReader text;
-		const string typeReplaceToken = "#type"; // similar to '#define' from C preprocessor, but only for types.
+		public const string typeReplaceToken = "#type"; // similar to '#define' from C preprocessor, but only for types.
 		Dictionary<string, System.Type> typeReplace = new Dictionary<string, System.Type>();
 		public enum ParseType { JSON, CSV };
 		Result.Type errorLevelOfMissingColon = Result.Type.none;

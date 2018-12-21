@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using System;
 
@@ -12,18 +13,18 @@ namespace OMU {
 		/// <returns>A JSON encoded string, or null if object 'json' is not serializable</returns>
 		public static string Stringify (object obj, string indentation = "\t", 
 			bool hideZeroOrNull = true, bool compressNames = false, string[] ignoreFieldPrefixes = null) {
-			return Serializer.SerializeInternal (obj, indentation, hideZeroOrNull, compressNames, ignoreFieldPrefixes);
+			return SerializeInternal (obj, indentation, hideZeroOrNull, compressNames, ignoreFieldPrefixes);
 		}
 
 		/// <returns>OM equivalent of given object, in a compressed form</returns>
 		/// <param name="obj">Object.</param>
 		/// <param name="ignoreFieldPrefixes">Ignores fields with these prefixes. null means include all possible fields</param>
 		public static string StringifyTiny(object obj, string[] ignoreFieldPrefixes = null) {
-			return Serializer.Stringify (obj, null, true, true, ignoreFieldPrefixes);
+			return Stringify (obj, null, true, true, ignoreFieldPrefixes);
 		}
 		
 		public static string StringifyExpression (object obj, bool whitespace, bool compressNames = false) {
-			return Serializer.SerializeInternal (obj, whitespace?" ":null, false, compressNames, null, 1);
+			return SerializeInternal (obj, whitespace?" ":null, false, compressNames, null, 1);
 		}
 
 		int indentationLevel = 0;
@@ -71,7 +72,7 @@ namespace OMU {
 		}
 		
 		Serializer () { builder = new StringBuilder(); }
-		
+
 		private static string SerializeInternal (object obj, string indentation = "\t",
 			bool hideZeroOrNull = true, bool compressNames = false, string[] ignoreFieldPrefixes = null, int expressionDepth = 0) {
 			Serializer instance = new Serializer();
@@ -81,24 +82,115 @@ namespace OMU {
 			instance.ignoreFieldPrefixes = ignoreFieldPrefixes;
 			instance.expressionDepth = expressionDepth;
 			instance.SerializeValue (obj);
+			instance.ExtractTypes();
 			string str = instance.builder.ToString ();
 			return str;
 		}
+
+		struct TypeAtIndex { public Type t; public int i; }
+		List<TypeAtIndex> typeAtLocation = new List<TypeAtIndex>();
+		Dictionary<Type, List<int>> locationsOfType = new Dictionary<Type, List<int>>();
+
+		void FoundAnother(Type t, int atIndex) {
+			typeAtLocation.Add(new TypeAtIndex { t = t, i = atIndex });
+			List<int> list;
+			if(!locationsOfType.TryGetValue(t, out list)) {
+				locationsOfType[t] = new List<int>() { atIndex }; }
+			else { list.Add(atIndex); }
+		}
+
+		public static string ShortenTypeName(string fullname, int wordFragmentLength = 1){
+			// get the name without namespaces
+			int lastDot = fullname.LastIndexOf('.');
+			string name = fullname.Substring(lastDot + 1);
+			int limit = wordFragmentLength;
+			if(limit > name.Length) { limit = name.Length; }
+			string letters = name.Substring(0, limit);
+			// get the first 'wordFragmentLength' letters of each word
+			for(int i = wordFragmentLength; i < name.Length; ++i){
+				if(Char.IsUpper(name[i])){
+					limit = wordFragmentLength;
+					if(i+limit > name.Length) { limit = name.Length-i; }
+					letters += name.Substring(0, limit);
+					i += limit;
+				}
+			}
+			return letters;
+		}
+
+		private void ExtractTypes(bool prefaceAllTypes = false) {
+			//string outp = "----\n";
+			// get the types in order of most common
+			List<Type> typesToAlias = new List<Type>();
+			foreach(var kvp in locationsOfType) {
+				if(prefaceAllTypes || kvp.Value.Count > 1) { typesToAlias.Add(kvp.Key); }
+				//outp += kvp.Key + OMU.Util.ToScript(kvp.Value) + "\n";
+			}
+			//Debug.Log(outp);
+			typesToAlias.Sort((a, b) => { return locationsOfType[a].Count < locationsOfType[b].Count ? -1 : 1; });
+			List<string> aliases = new List<string>();
+			for(int i = 0; i < typesToAlias.Count; ++i){
+				Type t = typesToAlias[i];
+				bool renamed = false;
+				int attempts = 0;
+				string fullname = t.ToString(), lastAttempt = null;
+				bool tryingFullname = false;
+				while(attempts < fullname.Length && !renamed) {
+					string shorthand = null;
+					if(!tryingFullname) {
+						shorthand = ShortenTypeName(fullname, attempts + 1);
+						if(lastAttempt == shorthand) {
+							tryingFullname = true;
+						}
+					} if(tryingFullname) {
+						shorthand = fullname;
+					}
+					if(lastAttempt == fullname) { throw new Exception("Exhausted short names!"); }
+					//Debug.Log("trying "+shorthand+" for "+fullname);
+					lastAttempt = shorthand;
+					for(int letters = 0; letters < shorthand.Length && !renamed; letters++) {
+						string abbrev = shorthand.Substring(0, letters+1);
+						if(aliases.IndexOf(shorthand) < 0) {
+							aliases.Add(shorthand);
+							renamed = true;
+						}
+					}
+					attempts++;
+				}
+			}
+			// create the preface
+			string preface = "";
+			for(int i = 0; i < aliases.Count; ++i){
+				preface += Parser.typeReplaceToken + " " + aliases[i] + " " + typesToAlias[i]+"\n";
+			}
+			// replace names backwards, so indexes don't get shuffled around
+			for(int i = typeAtLocation.Count - 1; i >= 0; --i) {
+				Type t = typeAtLocation[i].t;
+				int index = typesToAlias.IndexOf(t);
+				if(index >= 0) {
+					string fullname = t.ToString();
+					builder.Replace(fullname, aliases[index], typeAtLocation[i].i, fullname.Length);
+				}
+			}
+			// add the preface
+			builder.Insert(0, preface);
+		}
+
 		void SerializeValue (object value) {
 			IList asList;
 			IDictionary asDict;
-            if (value == null) {
-                Append("null");
-            } else if (Data.IsStringType(value.GetType())) {
-                SerializeString(value.ToString(), expressionDepth>0);
-            } else if (value is bool) {
-                Append((bool)value ? "true" : "false");
-            } else if ((asList = value as IList) != null) {
-                SerializeList(asList);
-            } else if ((asDict = value as IDictionary) != null) {
-                SerializeObject(asDict);
-            } else if (value is char) {
-                SerializeString(new string((char)value, 1), expressionDepth>0);
+			if (value == null) {
+				Append("null");
+			} else if (Data.IsStringType(value.GetType())) {
+				SerializeString(value.ToString(), expressionDepth>0);
+			} else if (value is bool) {
+				Append((bool)value ? "true" : "false");
+			} else if ((asList = value as IList) != null) {
+				SerializeList(asList);
+			} else if ((asDict = value as IDictionary) != null) {
+				SerializeObject(asDict);
+			} else if (value is char) {
+				SerializeString(new string((char)value, 1), expressionDepth>0);
 			} else if (value is Expression) {
 				Append ((value as Expression).ToString (indentation != null));
 			} else if (value is float) {
@@ -118,6 +210,7 @@ namespace OMU {
 				object om = Data.SerializeToOm(value, hideZeroOrNull, compressNames, ignoreFieldPrefixes);
 				Type t = value.GetType();
 				if(!Data.IsNativeType(t) && t != arrayTypeToIgnore) {
+					FoundAnother(t, builder.Length);
 					SerializeString(t.ToString(), false);
 					if(indentation != null) Append(' ');
 				}

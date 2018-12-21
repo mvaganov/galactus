@@ -183,7 +183,7 @@ namespace NS {
 			public int commandIndex, letterIndex;
 			public float msPerCharacter = 50;
 			public Dictionary<char, float> specificCharMultiplier = new Dictionary<char, float>() {
-				{',', 4}, {'.', 2}, {':', 3}, {';', 5}, {'\t', 0}, {'\'', 2}, {'\"', 2}, {'?', 3}, {'!', 3}, {'\n', 2},
+				{',', 5}, {'.', 15}, {':', 5}, {';', 10}, {'\t', 0}, {'\'', 5}, {'\"', 5}, {'?', 15}, {'!', 15}, {'\n', 5},
 			};
 
 			private static Dictionary<string, NS.StateMachine.Branch> s_all_dialogs = 
