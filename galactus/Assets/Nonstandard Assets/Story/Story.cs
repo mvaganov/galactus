@@ -144,7 +144,7 @@ namespace NS {
 				if(next != null) {
 					b.onClick.AddListener(() => {
 						FinishedWithOptions(story);
-						story.StartBranch(next);
+						story.StartState(next);
 					});
 				}
 				if(next == null && commands == null) {
@@ -196,7 +196,6 @@ namespace NS {
 			}
 
 			public static NS.StateMachine.State Error(string errorMessage) {
-				Debug.Log("ERROR " + errorMessage);
 				return new Say { text = errorMessage, bgcolor = new Color(1, 0, 0, .25f) };
 			}
 			public void SetBranchState(NS.StateMachine.State command) {
@@ -226,18 +225,21 @@ namespace NS {
 				}
 			}
 
-			public void StartBranch(object branch) {
-				NS.StateMachine.Branch currentBranch = branch as NS.StateMachine.Branch;
-				if(currentBranch == null){
-					string n = branch as string;
-					if(n != null && !s_all_dialogs.TryGetValue(n, out currentBranch)) {
-						state.SetState(Error("Could not find Branch \"" + n + "\""), this);
+			public void StartState(object a_state) {
+				NS.StateMachine.State nextState = a_state as NS.StateMachine.State;
+				if(nextState == null){
+					string n = a_state as string;
+					NS.StateMachine.Branch b = null;
+					if(n != null && !s_all_dialogs.TryGetValue(n, out b)) {
+						nextState = Error("Could not find state \"" + n + "\"");
+					} else {
+						nextState = b;
 					}
 				}
-				if(branch != null && currentBranch == null) {
-					Debug.LogWarning("Could not parse branch " + branch.ToString());
+				if(nextState == null) {
+					Debug.LogWarning("Could not parse branch " + a_state);
 				}
-				state.SetState(currentBranch, this);
+				state.SetState(nextState, this);
 			}
 
 			public NS.TextPtr.ObjectPtr textSource;
@@ -253,13 +255,12 @@ namespace NS {
 			void Start() {
 				textPanel.gameObject.SetActive(false);
 				optionPanel.gameObject.SetActive(false);
-				string input = textSource.ToString();
-				object ob = OMU.Util.FromScript(input);
+				object ob = OMU.Util.FromScript(textSource.ToString(), textSource.SourceName);
 				//Debug.Log(OMU.Util.ToScript(ob, true));
 				Debug.Log(OMU.Util.ToScriptTiny(ob));
 				AddBranches(ob as IList);
 				if(startBranch != null) {
-					StartBranch(startBranch);
+					StartState(startBranch);
 				}
 			}
 		}

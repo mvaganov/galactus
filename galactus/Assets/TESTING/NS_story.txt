@@ -1,4 +1,4 @@
-﻿#type B NS.Branch
+﻿#type B NS.StateMachine.Branch
 #type S NS.Story.Say
 #type O NS.Story.Option
 [
@@ -20,7 +20,7 @@
     ]
   }
   B{name:timer,list:[
-    S{text:'The NS.Timer was one of the first pieces of code developed for the Nonstandard Library.'
+    S{text:'The NS.Timer was one of the first pieces of code developed for the Nonstandard Library.'}
     S{text:'There are just too many uses for having a timed-callback system, (like JavaScript\'s setTimeout) and it was pretty surprising that Unity did not have one by default.'}
     S{text:'NS.Timer is intended to be used within C# scripts, though it can also be used as a MonoBehaviour, to cause an object or event to occur in some interval or time. Many kinds of objects can be \'executed\' at a specific time, thanks to the Contingency system.'}
     O{next:intro,text:'main menu'}
@@ -29,6 +29,6 @@
     S{text:'OMU, or Object Modeling for Unity, is a system that uses a JSON-like script to serialize and de-serialize C# objects.'},
     S{text:'OMU is most useful for deserializing data structures into a human-readable, but still highly-compact script, for saving, or transmitting over the internet'},
     S{text:'The script that was used to generate this dialog-system is written using OMU. The format of the script is based on the C# datastructures used in the Story system'},
-    S{next:intro,text:'main menu'}
+    O{next:intro,text:'main menu'}
   ]}
 ]

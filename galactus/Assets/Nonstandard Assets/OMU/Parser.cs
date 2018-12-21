@@ -96,14 +96,15 @@ namespace OMU {
 		
 		const string WORD_BREAK = "{}[],\":()\\"; // TODO sort and use binary search
 		const string EXPRESSION_BREAK = "+-=*/<>&|%^!#@";
-		string lastParsedToken;
+		string lastParsedToken; // the complete last token that was parsed
+		Type expectedNextType; // the strict type that was last parsed
 		FileParseResults output;
 		Coord coord = new Coord(1,1); // because most text editors count the first line as line 1, and the first column as column 1
 		int index = 0;
 		string filename;
 		StringReader text;
 		const string typeReplaceToken = "#type"; // similar to '#define' from C preprocessor, but only for types.
-		Dictionary<string, string> typeReplace = new Dictionary<string, string>();
+		Dictionary<string, System.Type> typeReplace = new Dictionary<string, System.Type>();
 		public enum ParseType { JSON, CSV };
 		Result.Type errorLevelOfMissingColon = Result.Type.none;
 
@@ -172,25 +173,25 @@ namespace OMU {
 		/// </summary>
 		/// <returns></returns>
 		object ParseSerializedObject () {
-			string typename = lastParsedToken.Trim();
+			string typename = lastParsedToken;
 			EatWhitespace();
-			Type subtype = Type.GetType(typename.ToString());
-			object newObject = Data.CreateNew(subtype);
+			//Type subtype = Type.GetType(typename);
+			object newObject = Data.CreateNew(expectedNextType);
+			expectedNextType = null;
 			//Debug.Log ("created a new <<"+typename+">> "+newObject);
 			string err = null;
 			if(newObject != null) {
 				object value = ParseObject();
 				if(value == null) {
-					err = "explicit type <"+typename+"> must have a body @"+coord;
+					err = "explicit type <"+typename+"> must have a complete body";
 				} else {
 					err = Data.SetObjectFromOmObject(ref newObject, value as OBJ_TYPE, Data.JSONFieldSearchBehavior.failfast, null);
 				}
 			} else {
-				err = "could not create type <"+typename+"> using a default constructor @"+coord;
+				err = "could not create type <"+typename+"> using a default constructor";
 			}
 			if(err != null) {
-				Log (Result.Type.ERROR, err);
-				throw new System.Exception(err);
+				Log (Result.Type.ERROR, err); //throw new System.Exception(err);
 			}
 			return newObject;
 		}
@@ -242,7 +243,7 @@ namespace OMU {
 					name = lastParsedToken;
 					break;
 				case TOKEN.DATETIME:
-					name = ParseDateTime(lastParsedToken.ToString());
+					name = ParseDateTime(lastParsedToken);
 					break;
 				default:
 					UnityEngine.Debug.Log ("oh noes!"+" misunderstood token ("+t+") at " + coord + " right after \"" +lastParsedToken+"\"");
@@ -403,7 +404,7 @@ namespace OMU {
 			case TOKEN.TRUE:            result = true;  break;
 			case TOKEN.FALSE:           result = false; break;
 			case TOKEN.NULL:            result = null;  break;
-			case TOKEN.DATETIME:        result = ParseDateTime(lastParsedToken.ToString()); break;
+			case TOKEN.DATETIME:        result = ParseDateTime(lastParsedToken); break;
 			case TOKEN.UNDEFINED:       result = lastParsedToken;   break;
 			case TOKEN.SPECIFIC_OBJECT_TYPE:    result = ParseSerializedObject(); break;
             default:
@@ -687,19 +688,22 @@ namespace OMU {
 					case typeReplaceToken:
 						EatWhitespace(); string shortHand = NextWord();
 						EatWhitespace(); string longTypeName = NextWord();
-						typeReplace[shortHand] = longTypeName;
+						System.Type t = Type.GetType(longTypeName);
+						if(t == null) {
+							string err = "no such type '" + longTypeName + "', while creating alias " + shortHand;
+							Log(Result.Type.ERROR, err);
+						} else {
+							typeReplace[shortHand] = t;
+						}
 						getAnotherToken = true; break;
 					default:
 						string typeToken = lastParsedToken;
 						if(typeToken.StartsWith("<") && typeToken.EndsWith(">")) {
 							typeToken = typeToken.Substring(1, typeToken.Length - 2);
 						}
-						string trueTypeName;
-						if(typeReplace.TryGetValue(typeToken, out trueTypeName)) {
-							typeToken = trueTypeName.Trim();
-						}
-						Type specificType = Type.GetType(typeToken.ToString());
-						if(specificType != null) {
+						if(!typeReplace.TryGetValue(typeToken, out expectedNextType)) { expectedNextType = null; }
+						if(expectedNextType == null) { expectedNextType = Type.GetType(typeToken); }
+						if(expectedNextType != null) {
 							lastParsedToken = typeToken;
 							return TOKEN.SPECIFIC_OBJECT_TYPE;
 						}
@@ -792,5 +796,15 @@ namespace OMU {
 		public int CountWarnings() { return CountMessageOfType (Result.Type.warning);}
 		public string ToStringErrors() { return ToString (Result.Type.ERROR); }
 		public string ToStringWarnings() { return ToString (Result.Type.warning); }
+
+		public void ForEach(Result.Type type, System.Action<Result> whatToDo) {
+			for(int i = 0; i < Count; ++i) { if(this[i].t == type) { whatToDo(this[i]); } }
+		}
+
+		public void Report(){
+			ForEach(Result.Type.ERROR, (r) => { Debug.LogError("@" + filename + r.coord + ": " + r.text); });
+			ForEach(Result.Type.warning, (r) => { Debug.LogWarning("@" + filename + r.coord + ": " + r.text); });
+			ForEach(Result.Type.none, (r) => { Debug.Log("@" + filename + r.coord + ": " + r.text); });
+		}
 	}
 }

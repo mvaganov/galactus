@@ -8,8 +8,10 @@ namespace OMU {
 			return FromScript(omScript, "unnamed script");
 		}
 		public static object FromScript(string omScript, string sourceName) {
-			FileParseResults results = null;
-			return Parser.Parse(Parser.ParseType.JSON, sourceName, omScript, ref results);
+			FileParseResults parseResults = new FileParseResults(sourceName, omScript);
+			object result = Parser.Parse(Parser.ParseType.JSON, sourceName, omScript, ref parseResults);
+			parseResults.Report();
+			return result;
 		}
 
 		public static string ToScript(object obj, bool hideZeroOrNull = false) {

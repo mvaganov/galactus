@@ -594,12 +594,12 @@ MonoBehaviour:
   optionPanel: {fileID: 789081039}
   optionPrefab: {fileID: 224194048806034602, guid: 2e779a8beabad42c5b26349d0e3f20cb,
     type: 2}
-  textNoise: {fileID: 8300000, guid: 14a396b1562834718b2d52b9c4639264, type: 3}
+  textNoise: {fileID: 8300000, guid: 774486030b696474e8b3cf7f178123da, type: 3}
   commandIndex: 0
   letterIndex: 0
   msPerCharacter: 25
   textSource:
-    data: {fileID: 433071259}
+    data: {fileID: 4900000, guid: b3959a56b79e14e32b36066b931afec3, type: 3}
   startBranch: intro
   knownResources: []
 --- !u!114 &433071259
