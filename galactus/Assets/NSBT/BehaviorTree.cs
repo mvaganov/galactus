@@ -35,6 +35,7 @@ public class BehaviorTree : MonoBehaviour, BT.Behavable {
 		if(behavior == null && behaviorTreeScriptFile != null) {
 			Debug.Log(behaviorTreeScriptFile.text);
 			behavior = OMU.Parser.Compile(behaviorTreeScriptFile.name, behaviorTreeScriptFile.text) as BT.Behavior;
+			Debug.Log(OMU.Util.ToScript(behavior, true));
 		} else {
 			Debug.LogError("missing script file");
 		}

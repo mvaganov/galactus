@@ -494,7 +494,7 @@ public class MovingEntity : MOB
     }
     /// <summary>where physics-related changes happen</summary>
     protected override void FixedUpdate() {
-        Debug.Log("Platformer");
+        //Debug.Log("Platformer");
         if(gravity.application != GravityState.none) { StandLogic(); }
         MoveLogic();
         //// keep track of where we are in relation to the parent platform object

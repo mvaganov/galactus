@@ -1287,23 +1287,33 @@ namespace OMU {
 		/// <param name="compressNames">If set to <c>true</c> compress names.</param>
 		/// <param name="ignoreFieldsPrefixedWith">if not null, ignores fields with these prefixes.</param>
 		/// <param name="objectHierarchy">keeps track of nested objects, to cause errors in the case of recursion</param> 
-		public static object SerializeToOm(object obj, bool hideZeroNull, bool compressNames, string[] ignoreFieldsPrefixedWith) {
+		public static object SerializeToOm(object obj, bool hideZeroNull, bool compressNames, string[] ignoreFieldsPrefixedWith, string metadataElement) {
 			// return SerializeToOm (obj, hideZeroNull, compressNames, ignoreFieldsPrefixedWith, null);
-			return SerializedToOm(obj, obj.GetType(), hideZeroNull, compressNames, ignoreFieldsPrefixedWith, null);
+			return SerializedToOm(obj, obj.GetType(), hideZeroNull, compressNames, ignoreFieldsPrefixedWith, null, metadataElement);
 		}
+
+		struct FieldEntry { public string name; public FieldInfo f; }
 		/// <returns>compiled Document Object Model (made of Dictionary, List, and primitive objects, ready for string serialization)</returns>
 		/// <param name="obj">Object.</param>
 		/// <param name="hideZeroNull">If set to <c>true</c> hide zero/null values.</param>
 		/// <param name="compressNames">If set to <c>true</c> compress names.</param>
 		/// <param name="ignoreFieldsPrefixedWith">if not null, ignores fields with these prefixes.</param>
 		/// <param name="objectHierarchy">keeps track of nested objects, to cause errors in the case of recursion</param> 
-		public static object SerializeToOm(object obj, bool hideZeroNull, bool compressNames, string[] ignoreFieldsPrefixedWith, LIST_TYPE objectHierarchy) {
+		/// <param name="metadataElement">if not null, will write metadate (like field order) into a field with this name.</param>
+		public static object SerializeToOm(object obj, bool hideZeroNull, bool compressNames, string[] ignoreFieldsPrefixedWith, LIST_TYPE objectHierarchy, string metadataElement) {
 			Type t = obj.GetType ();
-			System.Reflection.FieldInfo[] fields = t.GetFields ();
+			FieldInfo[] fields = t.GetFields ();
 			string[] fieldNames = null;
 			OBJ_TYPE dict = new OBJ_TYPE ();
+			List<FieldEntry> memberOrder = null;
+			Dictionary<object, Type> notableType = null;
+			if(metadataElement != null) {
+				memberOrder = new List<FieldEntry>();
+				notableType = new Dictionary<object, Type>();
+			}
 			for(int i = 0; i < fields.Length; ++i) { // TODO make a method called "serialize field"
-				string fname = fields[i].Name;
+				FieldInfo f = fields[i];
+				string fname = f.Name;
 				bool ignoreThisField = false;
 				if(ignoreFieldsPrefixedWith != null) {
 					for(int a = 0; a < ignoreFieldsPrefixedWith.Length; ++a) {
@@ -1314,7 +1324,7 @@ namespace OMU {
 					}
 				}
 				// ignore constants
-				if(fields[i].IsLiteral)
+				if(f.IsLiteral)
 					ignoreThisField = true;
 				if(ignoreThisField) continue;
 				if(compressNames) {
@@ -1324,23 +1334,61 @@ namespace OMU {
 							fieldNames[a] = fields[a].Name; 
 						}
 					}
-					int limit = Data.AmbiguousPrefixCheck(fname, fieldNames);
+					int limit = AmbiguousPrefixCheck(fname, fieldNames);
 					if(limit+1 < fname.Length) {
 						fname = fname.Substring(0, limit+1) + "*";
 					}
 				}
-				object value = fields[i].GetValue(obj);
+				object value = f.GetValue(obj);
 				if(hideZeroNull && Data.IsZeroOrNull(value)) {
 					// Type ft = null;
 					// if(fields[i] != null) ft = fields[i].FieldType;
 					// Debug.Log("\""+fname+"\" <"+ft+">: ("+value+") <-- ignored");
 				} else {
-					Type ft = fields[i].FieldType;
+					Type ft = f.FieldType;
+					if(metadataElement != null) {
+						if(value.GetType() != ft) { notableType[fname] = value.GetType(); }
+						memberOrder.Add(new FieldEntry { name = fname, f = f });
+					}
 					// Debug.Log ("in:  \""+fname+"\" <"+ft+">: ("+value+")");
-					value = SerializedToOm(value, ft, hideZeroNull, compressNames, ignoreFieldsPrefixedWith, objectHierarchy);
+					value = SerializedToOm(value, ft, hideZeroNull, compressNames, ignoreFieldsPrefixedWith, objectHierarchy, metadataElement);
 					// Debug.Log ("out: \""+fname+"\" <"+ft+">: ("+value+")");
 					dict[fname] = value;
 				}
+			}
+			if(memberOrder != null && memberOrder.Count > 0) {
+				memberOrder.Sort((a, b) => {
+					bool isa, isb;
+					// the root-most parent's fields should come first
+					isa = a.f.DeclaringType.IsAssignableFrom(b.f.DeclaringType);
+					isb = b.f.DeclaringType.IsAssignableFrom(a.f.DeclaringType);
+					if( isa && !isb) { return -1; } if(!isa &&  isb) { return 1; }
+					// strings should come first
+					isa = a.f.FieldType is IEquatable<string>; isb = b.f.FieldType is IEquatable<string>;
+					if( isa && !isb) { return -1; } if(!isa &&  isb) { return 1; }
+					// other primitives go first
+					isa = a.f.FieldType.IsPrimitive; isb = b.f.FieldType.IsPrimitive;
+					if( isa && !isb) { return -1; } if(!isa &&  isb) { return 1; }
+					// followed by structs
+					isa = a.f.FieldType.IsValueType; isb = b.f.FieldType.IsValueType;
+					if( isa && !isb) { return -1; } if(!isa &&  isb) { return 1; }
+					// Ilist last
+					isa = a.f.FieldType is IList; isb = b.f.FieldType is IList;
+					if( isa && !isb) { return 1; } if(!isa &&  isb) { return -1; }
+					// IDictionary last
+					isa = a.f.FieldType is IDictionary; isb = b.f.FieldType is IDictionary;
+					if( isa && !isb) { return 1; } if(!isa &&  isb) { return -1; }
+					// othrwise, order based on alphabetical order of field name
+					return string.Compare(a.name, b.name);
+				});
+				Dictionary<string, object> metadata = new Dictionary<string, object>();
+				List<object> justTheOrder = new List<object>();
+				for(int i = 0; i < memberOrder.Count; ++i) {
+					justTheOrder.Add(memberOrder[i].name);
+				}
+				metadata[Serializer.metadataOrder] = justTheOrder;
+				metadata[Serializer.metadataIncludetype] = notableType;
+				dict[metadataElement] = metadata;
 			}
 			return dict;
 		}
@@ -1348,8 +1396,8 @@ namespace OMU {
 		/// <returns>The compiled value (made of Dictionary&lt;object,object&rt;, List&lt;object&rt;, and basic types including OM.Expression)</returns>
 		/// <param name="value">Value.</param>
 		/// <param name="ft">what type is being parsed (not the type that will be returned)</param>
-		static public object SerializedToOm(object objToCompile, Type ft, bool hideZeroNull, bool compressNames, string[] ignoreFieldsPrefixedWith, LIST_TYPE objectHierarchy) {
-			if(Data.IsNativeType(ft)) {
+		static public object SerializedToOm(object objToCompile, Type ft, bool hideZeroNull, bool compressNames, string[] ignoreFieldsPrefixedWith, LIST_TYPE objectHierarchy, string metadataElement) {
+			if(IsNativeType(ft)) {
 				// no need to do anything special, these are natively recognized by the system
 			} else if(ft == typeof(Vector2)) {
 				Vector2 v2 = (Vector2)objToCompile;
@@ -1403,7 +1451,7 @@ namespace OMU {
 						for(int a = 0; a < objectHierarchy.Count; ++a) {
 							sb.Append(objectHierarchy[a]+" -> ");
 						}
-						// TODO replace with reference via OM.Expression?
+						// TODO replace with reference via OM.Expression? TODO Add error to ParseResults object?
 						throw new System.Exception("found recursion while parsing "+objectHierarchy[0]+"\n"+sb+" {"+objToCompile+"}");
 					}
 					if(objectHierarchy == null) {
@@ -1411,7 +1459,7 @@ namespace OMU {
 					}
 					objectHierarchy.Add(objToCompile);
 					// Debug.Log("----------------------- serializing ("+value+")");
-					objToCompile = SerializeToOm(objToCompile, hideZeroNull, compressNames, ignoreFieldsPrefixedWith, objectHierarchy);
+					objToCompile = SerializeToOm(objToCompile, hideZeroNull, compressNames, ignoreFieldsPrefixedWith, objectHierarchy, metadataElement);
 					// Debug.Log("----------------------- done serializing ("+value+")");
 					objectHierarchy.RemoveAt(objectHierarchy.Count-1);
 				} else {

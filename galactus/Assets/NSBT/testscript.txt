@@ -1,26 +1,36 @@
-{
-	behavior{< BT.Sequence >{desc*"entire process"c*[
-		{< BT.SetVariableToGlobalObject >{n*"box"o*"random area"desc*"set the random area box"}}
-		{< BT.SetVariableToGlobalObject >{n*"marker"o*"marker"desc*"set the MoveAt marker"}}
-		{< BT.SetVariableToResource >{n*"explosion"o*"poof"desc*"set the explosion"}}
-		{< BT.NextRoot >{desc*"switch to main process"c*:
-			{< BT.Selector >{desc*"select behavior"c*[
-				{< BT.Sequence >{desc*"target seeking option"c*[
-					{< BT.HasVariable >{n*"target"desc*"if has target"}}
-					{< BT.Selector >{desc*"I have a target now what"c*[
-						{< BT.Sequence >{desc*"Am I there yet?"c*[
-							{< BT.WithinRange >{v*"target"r*:2 desc*"checking if I'm there"}}
-							{< BT.Instantiate >{prefab*"explosion"loc*"target"desc*"victory particle effect!"}}
-							{< BT.ClearVariable >{v*"target"desc*"don't need this target anymore"}}
-						]}}
-						{< BT.MoveAt >{t*"target"desc*"not there? I should move there!"}}
-					]}}
-				]}}
-				{< BT.Sequence >{desc*"no target to seek"c*[
-					{< BT.RandomLocationFromBox >{box*"box"v*"target"desc*"pick a random location in box, put it in target"}}
-					{< BT.TeleportObject >{t*"marker"dest*"target"desc*"move my marker object to the target"}}
-				]}}
-			]}}
-		}}
-	]}}
-}
+#type{S:BT.Sequence
+SV:BT.SetVariableToGlobalObject
+SVT:BT.SetVariableToResource
+N:BT.NextRoot
+Se:BT.Selector
+H:BT.HasVariable
+W:BT.WithinRange
+I:BT.Instantiate
+C:BT.ClearVariable
+M:BT.MoveAt
+R:BT.RandomLocationFromBox
+T:BT.TeleportObject}
+S{d*:"entire process",c*:[
+	SV{d*:"set the random area box",n*:box,o*:"random area"}
+	SV{d*:"set the MoveAt marker",n*:marker,o*:marker}
+	SVT{d*:"set the explosion",n*:explosion,o*:poof}
+	N{d*:"switch to main process",c*:
+		Se{d*:"select behavior",c*:[
+			S{d*:"target seeking option",c*:[
+				H{d*:"if has target",n*:target}
+				Se{d*:"I have a target now what",c*:[
+					S{d*:"Am I there yet?",c*:[
+						W{d*:"checking if I\'m there",r*:2,v*:target}
+						I{d*:"victory particle effect!",l*:target,p*:explosion}
+						C{d*:"don\'t need this target anymore",v*:target}
+					]}
+					M{d*:"not there? I should move there!",t*:target}
+				]}
+			]}
+			S{d*:"no target to seek",c*:[
+				R{d*:"pick a random location in box, put it in target",b*:box,v*:target}
+				T{desc*:"move my marker object to the target",dest*:target,t*:marker}
+			]}
+		]}
+	}
+]}

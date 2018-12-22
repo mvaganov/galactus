@@ -34,46 +34,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using UnityEngine;
 
-// Example usage:
-//
-//  using UnityEngine;
-//  using System.Collections;
-//  using System.Collections.Generic;
-//
-//  public class MiniJSONTest : MonoBehaviour {
-//      void Start () {
-//          var jsonString = "{ \"array\": [1.44,2,3], " +
-//                          "\"object\": {\"key1\":\"value1\", \"key2\":256}, " +
-//                          "\"string\": \"The quick brown fox \\\"jumps\\\" over the lazy dog \", " +
-//                          "\"unicode\": \"\\u3041 Men\u00fa sesi\u00f3n\", " +
-//                          "\"int\": 65536, // this is a comment\n" +
-//                          "\"float\": 3.1415926, " +
-//                          "\"bool\": true, /* this is also a comment */" +
-//                          "\"null\": null, " +
-//							"a:b, " +
-//							"\" c \"d, " +
-//							"e\" f \"," +
-//							"g{a:b,test}," +
-//							"h[1%,2x,3pigs,4] }";
-//
-//          var dict = OM.Deserialize(jsonString) as Dictionary<string,object>;
-//
-//          Debug.Log("deserialized: " + dict.GetType());
-//          Debug.Log("dict['array'][0]: " + ((List<object>) dict["array"])[0]);
-//          Debug.Log("dict['string']: " + (string) dict["string"]);
-//          Debug.Log("dict['float']: " + (double) dict["float"]); // floats come out as doubles
-//          Debug.Log("dict['int']: " + (long) dict["int"]); // ints come out as longs
-//          Debug.Log("dict['unicode']: " + (string) dict["unicode"]);
-//
-//          var str = OM.Serialize(dict);
-//
-//          Debug.Log("serialized: " + str);
-//      }
-//  }
+// TODO turn this into a proper unit test
 
 /// <summary>
 /// This class encodes and decodes JSON strings.
@@ -83,42 +46,6 @@ using UnityEngine;
 /// CSV is an Array of Arrays
 /// All numbers are parsed to doubles.
 /// </summary>
-namespace OMU {
-/*
-	{
-		text : "object model test",
-		listOfNumbers : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-		listOfMathConstants : [
-			{
-				name : "Pi",
-				symbol : "\u03c0",
-				value : 3.141592654,
-			},{
-				name : "euler's number",
-				symbol : "e"
-				value : 2.71828,
-			}
-		],
-		T : true,
-		F : false,
-		N : null,
-		testOf2 : (1 + 1),
-		testOfTruth : (1 > 0),
-		testOfFalse : ((F) == true),
-		testOfTruth2 : ((testOf2) == 2),
-	}
-*/
-	// usecase: reading JSON into Value, including int, string, float, unicode, bool, array, object, true/false/null, expression
-	// usecase: viewing parser results (errors and warnings)
-	// usecase: using JSON from value with operator[]
-	// usecase: serializing back into JSON
-	// usecase: show comments, show optional commas, show optional colons, show optional quotes for single-token literals
-	// usecase: creating a strictly-typed object, creating an Object Model and applying it to an object
-	// usecase: short-names that end with *
-	// usecase: evaluating expressions, including providing a context
-	// usecase: evaluating expressions to modify public variables and call public methods with parameters
-
-}
 
 public class Pt { 
     public float x, y;
@@ -129,7 +56,7 @@ public class TestClass {
     public float score; public Pt pos;
     public Dictionary<object,object> attributes;
     public Pt[] history;
-    public System.DateTime when;
+    public DateTime when;
     public void setPos(float n){pos.x=pos.y=n;}
 }
 
@@ -182,4 +109,10 @@ namespace OMU {
             Debug.Log(OMU.Serializer.Stringify(t));
         }
     }
+}
+public class ObjectModel : MonoBehaviour{
+	private void Start() {
+		OMU.Test t = new OMU.Test();
+		t.TestScript();
+	}
 }

@@ -107,6 +107,7 @@ namespace OMU {
 		Dictionary<string, System.Type> typeReplace = new Dictionary<string, System.Type>();
 		public enum ParseType { JSON, CSV };
 		Result.Type errorLevelOfMissingColon = Result.Type.none;
+		bool allowTypecasting = true;
 
 		private int usingExpressionWordBreak = 0;		
 		public static bool IsWordBreak (char c) {
@@ -209,6 +210,7 @@ namespace OMU {
 				name = null;
 				v = null;
 				TOKEN t = NextToken (usingExpressionWordBreak>0);
+				//Debug.Log("Next Token " + t + "  " + lastParsedToken);
 				switch (t) {
 				case TOKEN.EOF:	Log (Result.Type.ERROR, "unexpected EOF in dictionary at " + coord);
 					return null;
@@ -246,14 +248,16 @@ namespace OMU {
 					name = ParseDateTime(lastParsedToken);
 					break;
 				default:
-					UnityEngine.Debug.Log ("oh noes!"+" misunderstood token ("+t+") at " + coord + " right after \"" +lastParsedToken+"\"");
-					Log (Result.Type.warning, "misunderstood token ("+t+") at " + coord + " \"" +lastParsedToken);
+					string err = "misunderstood token (" + t + ") at " + coord + " right after \"" + lastParsedToken;
+					UnityEngine.Debug.Log ("oh noes!"+err);
+					Log (Result.Type.warning, err);
 					break;
 				}
 				if (name != null) {
 					//Debug.Log (index+":"+coord + "\""+name+"\":...");
 					// Debug.Log("+name "+name+" "+t);
 					t = NextToken (false);
+					//Debug.Log(t+" "+lastParsedToken);
 					if(this.usingExpressionWordBreak != 0){
 						Debug.Log("hmm... using expression for key? "+lastParsedToken);
 					}
@@ -686,26 +690,36 @@ namespace OMU {
 					case "//":  EatLineComment ();  getAnotherToken = true; break;
 					case "/*":  EatBlockComment (); getAnotherToken = true; break;
 					case typeReplaceToken:
-						EatWhitespace(); string shortHand = NextWord();
-						EatWhitespace(); string longTypeName = NextWord();
-						System.Type t = Type.GetType(longTypeName);
-						if(t == null) {
-							string err = "no such type '" + longTypeName + "', while creating alias " + shortHand;
-							Log(Result.Type.ERROR, err);
+						EatWhitespace(); c = PeekChar();
+						string shortHand;
+						if(c == '{') {
+							allowTypecasting = false;
+							OBJ_TYPE typeDictionary = ParseObject();
+							allowTypecasting = true;
+							foreach(var kvp in typeDictionary){
+								shortHand = kvp.Key.ToString();
+								Type t = GetTypeNamed(kvp.Value.ToString(), shortHand);
+								if(t != null) { typeReplace[shortHand] = t; }
+							}
 						} else {
-							typeReplace[shortHand] = t;
+							shortHand = NextWord();
+							EatWhitespace(); string longTypeName = NextWord();
+							Type t = GetTypeNamed(longTypeName, shortHand);
+							if(t != null) { typeReplace[shortHand] = t; }
 						}
 						getAnotherToken = true; break;
 					default:
-						string typeToken = lastParsedToken;
-						if(typeToken.StartsWith("<") && typeToken.EndsWith(">")) {
-							typeToken = typeToken.Substring(1, typeToken.Length - 2);
-						}
-						if(!typeReplace.TryGetValue(typeToken, out expectedNextType)) { expectedNextType = null; }
-						if(expectedNextType == null) { expectedNextType = Type.GetType(typeToken); }
-						if(expectedNextType != null) {
-							lastParsedToken = typeToken;
-							return TOKEN.SPECIFIC_OBJECT_TYPE;
+						if(allowTypecasting) {
+							string typeToken = lastParsedToken;
+							if(typeToken.StartsWith("<") && typeToken.EndsWith(">")) {
+								typeToken = typeToken.Substring(1, typeToken.Length - 2);
+							}
+							if(!typeReplace.TryGetValue(typeToken, out expectedNextType)) { expectedNextType = null; }
+							if(expectedNextType == null) { expectedNextType = Type.GetType(typeToken); }
+							if(expectedNextType != null) {
+								lastParsedToken = typeToken;
+								return TOKEN.SPECIFIC_OBJECT_TYPE;
+							}
 						}
 						break;
 					}
@@ -717,9 +731,17 @@ namespace OMU {
 			}
 			return TOKEN.UNDEFINED;
 		}
+		private System.Type GetTypeNamed(string longTypeName, string shortHand) {
+			System.Type t = Type.GetType(longTypeName);
+			if(t == null) {
+				string err = "no such type '" + longTypeName + "', while creating alias " + shortHand;
+				Log(Result.Type.ERROR, err);
+			}
+			return t;
+		}
 	}
 
-		/// a single compile result
+	/// a single compile result
 	public class Result {
 		static public bool printResultsInConsoleAsTheyHappen = false;//true;//
 		public enum Type { none, ERROR, warning };

@@ -40,6 +40,8 @@ namespace OMU {
 		bool wordWrapForLongHomogeneousArrays = false;
 		bool hideZeroOrNull;
 		bool compressNames;
+		public const string metadataOrder = "order";
+		public const string metadataIncludetype = "includeType";
 
 		void Append (string str) {
 			Coord lastPosition = coord;
@@ -73,16 +75,17 @@ namespace OMU {
 		
 		Serializer () { builder = new StringBuilder(); }
 
-		private static string SerializeInternal (object obj, string indentation = "\t",
-			bool hideZeroOrNull = true, bool compressNames = false, string[] ignoreFieldPrefixes = null, int expressionDepth = 0) {
+		private static string SerializeInternal (object obj, string indentation = "\t", bool hideZeroOrNull = true,
+		bool compressNames = false, string[] ignoreFieldPrefixes = null, int expressionDepth = 0, 
+		string metadataElement = "__meta") {
 			Serializer instance = new Serializer();
 			instance.indentation = indentation;
 			instance.hideZeroOrNull = hideZeroOrNull;
 			instance.compressNames = compressNames;
 			instance.ignoreFieldPrefixes = ignoreFieldPrefixes;
 			instance.expressionDepth = expressionDepth;
-			instance.SerializeValue (obj);
-			instance.ExtractTypes();
+			instance.SerializeValue (obj, metadataElement);
+			instance.ExtractTypes(true);
 			string str = instance.builder.ToString ();
 			return str;
 		}
@@ -99,21 +102,30 @@ namespace OMU {
 			else { list.Add(atIndex); }
 		}
 
-		public static string ShortenTypeName(string fullname, int wordFragmentLength = 1){
+		public static string ShortenTypeName(string fullname, bool compressed, int attempt = 0){
 			// get the name without namespaces
-			int lastDot = fullname.LastIndexOf('.');
-			string name = fullname.Substring(lastDot + 1);
-			int limit = wordFragmentLength;
-			if(limit > name.Length) { limit = name.Length; }
-			string letters = name.Substring(0, limit);
-			// get the first 'wordFragmentLength' letters of each word
-			for(int i = wordFragmentLength; i < name.Length; ++i){
-				if(Char.IsUpper(name[i])){
-					limit = wordFragmentLength;
-					if(i+limit > name.Length) { limit = name.Length-i; }
-					letters += name.Substring(0, limit);
-					i += limit;
+			string letters;
+			if(compressed) {
+				int lastDot = fullname.LastIndexOf('.');
+				string name = fullname.Substring(lastDot + 1);
+				int limit = attempt+1;
+				if(limit > name.Length) { limit = name.Length; }
+				letters = name.Substring(0, limit);
+				// get the first 'wordFragmentLength' letters of each word
+				for(int i = limit; i < name.Length; ++i) {
+					if(Char.IsUpper(name[i])) {
+						limit = attempt+1;
+						if(i + limit > name.Length) { limit = name.Length - i; }
+						letters += name.Substring(i, limit);
+						i += limit;
+					}
 				}
+			} else {
+				int index = fullname.Length-1;
+				for(int i = 0; i < attempt; ++i){
+					index = fullname.LastIndexOf('.', index);
+				}
+				letters = fullname.Substring(index + 1);
 			}
 			return letters;
 		}
@@ -127,7 +139,7 @@ namespace OMU {
 				//outp += kvp.Key + OMU.Util.ToScript(kvp.Value) + "\n";
 			}
 			//Debug.Log(outp);
-			typesToAlias.Sort((a, b) => { return locationsOfType[a].Count < locationsOfType[b].Count ? -1 : 1; });
+			typesToAlias.Sort((a, b) => { return locationsOfType[a].Count < locationsOfType[b].Count ? 1 : -1; });
 			List<string> aliases = new List<string>();
 			for(int i = 0; i < typesToAlias.Count; ++i){
 				Type t = typesToAlias[i];
@@ -138,7 +150,7 @@ namespace OMU {
 				while(attempts < fullname.Length && !renamed) {
 					string shorthand = null;
 					if(!tryingFullname) {
-						shorthand = ShortenTypeName(fullname, attempts + 1);
+						shorthand = ShortenTypeName(fullname, compressNames, attempts);
 						if(lastAttempt == shorthand) {
 							tryingFullname = true;
 						}
@@ -148,21 +160,31 @@ namespace OMU {
 					if(lastAttempt == fullname) { throw new Exception("Exhausted short names!"); }
 					//Debug.Log("trying "+shorthand+" for "+fullname);
 					lastAttempt = shorthand;
-					for(int letters = 0; letters < shorthand.Length && !renamed; letters++) {
-						string abbrev = shorthand.Substring(0, letters+1);
-						if(aliases.IndexOf(abbrev) < 0) {
-							aliases.Add(abbrev);
-							renamed = true;
+					if(!string.IsNullOrEmpty(shorthand)) {
+						if(compressNames) {
+							for(int letters = 0; letters < shorthand.Length && !renamed; letters++) {
+								string abbrev = shorthand.Substring(0, letters + 1);
+								if(aliases.IndexOf(abbrev) < 0) {
+									aliases.Add(abbrev);
+									renamed = true;
+								}
+							}
+						} else {
+							if(aliases.IndexOf(shorthand) < 0) {
+								aliases.Add(shorthand);
+								renamed = true;
+							}
 						}
 					}
 					attempts++;
 				}
 			}
 			// create the preface
-			string preface = "";
+			string preface = Parser.typeReplaceToken +"{";
 			for(int i = 0; i < aliases.Count; ++i){
-				preface += Parser.typeReplaceToken + " " + aliases[i] + " " + typesToAlias[i]+"\n";
-			}
+				if(i > 0) preface += "\n";
+				preface += aliases[i] + ":" + typesToAlias[i];
+			}preface += "}\n";
 			// replace names backwards, so indexes don't get shuffled around
 			for(int i = typeAtLocation.Count - 1; i >= 0; --i) {
 				Type t = typeAtLocation[i].t;
@@ -176,7 +198,7 @@ namespace OMU {
 			builder.Insert(0, preface);
 		}
 
-		void SerializeValue (object value) {
+		void SerializeValue (object value, string metadataElement) {
 			IList asList;
 			IDictionary asDict;
 			if (value == null) {
@@ -186,9 +208,9 @@ namespace OMU {
 			} else if (value is bool) {
 				Append((bool)value ? "true" : "false");
 			} else if ((asList = value as IList) != null) {
-				SerializeList(asList);
+				SerializeList(asList, metadataElement);
 			} else if ((asDict = value as IDictionary) != null) {
-				SerializeObject(asDict);
+				SerializeObject(asDict, metadataElement);
 			} else if (value is char) {
 				SerializeString(new string((char)value, 1), expressionDepth>0);
 			} else if (value is Expression) {
@@ -207,20 +229,20 @@ namespace OMU {
 				Color32 c32 = c;
 				Append ("0x"+c32.a.ToString("X2")+c32.b.ToString("X2")+c32.g.ToString("X2")+c32.r.ToString("X2"));
 			} else {
-				object om = Data.SerializeToOm(value, hideZeroOrNull, compressNames, ignoreFieldPrefixes);
+				object om = Data.SerializeToOm(value, hideZeroOrNull, compressNames, ignoreFieldPrefixes, metadataElement);
 				Type t = value.GetType();
 				if(!Data.IsNativeType(t) && t != arrayTypeToIgnore) {
 					FoundAnother(t, builder.Length);
 					SerializeString(t.ToString(), false);
 					if(indentation != null) Append(' ');
 				}
-				SerializeValue (om);
+				SerializeValue (om, metadataElement);
 				//SerializeString (value.ToString ());
 			}
 		}
 		private Type arrayTypeToIgnore = null;
 		
-		void SerializeObject (IDictionary obj) {
+		void SerializeObject (IDictionary obj, string metadataElement) {
 			bool needsWhitespace = indentation != null;
 			if (obj.Count == 0) { needsWhitespace = false; }
 			if (needsWhitespace && obj.Count < 5) {
@@ -241,7 +263,28 @@ namespace OMU {
 				indentationLevel += 1;
 				Indent ();
 			}
-			foreach (object e in obj.Keys) {
+			List<object> orderOfElements = null;
+			Dictionary<object, Type> includeType = null;
+			if(metadataElement != null) {
+				object e;
+				Dictionary<string, object> metadata = obj[metadataElement] as Dictionary<string, object>;
+				if(metadata != null) {
+					if(metadata.TryGetValue(metadataOrder, out e)) {
+						orderOfElements = e as List<object>;
+					}
+					if(metadata.TryGetValue(metadataIncludetype, out e)) {
+						includeType = e as Dictionary<object, Type>;
+					}
+				}
+			}
+			if(orderOfElements == null) {
+				ICollection keys = obj.Keys;
+				orderOfElements = new List<object>();
+				foreach(object e in keys) { orderOfElements.Add(e); }
+			}
+			for(int i = 0; i < orderOfElements.Count; ++i){
+				object e = orderOfElements[i];
+				if(e != null && e.Equals(metadataElement)){ continue; }
 				if (!first) {
 					Append (',');
 					if (indentation != null) Append (' ');
@@ -252,7 +295,15 @@ namespace OMU {
 				}
 				SerializeString (e.ToString (), expressionDepth>0);
 				Append ((indentation == null)?":":" : ");
-				SerializeValue (obj[e]);
+				if(includeType != null){
+					Type t;
+					if(includeType.TryGetValue(e, out t)) {
+						FoundAnother(t, builder.Length);
+						SerializeString(t.ToString(), false);
+						if(indentation != null) Append(' ');
+					}
+				}
+				SerializeValue (obj[e], metadataElement);
 				first = false;
 			}
 			if (needsWhitespace) {
@@ -263,7 +314,7 @@ namespace OMU {
 			Append ('}');
 		}
 		
-		void SerializeList (IList anArray) {
+		void SerializeList (IList anArray, string metadataElement) {
 			Type typeExpectedByList = anArray.GetType().GetElementType();
 			if(typeExpectedByList == null){
 				typeExpectedByList = anArray.GetType().GetGenericArguments()[0];
@@ -318,7 +369,7 @@ namespace OMU {
 					} else if (indentation != null) Append (' ');
 				}
 				arrayTypeToIgnore = typeExpectedByList; // strict arrays don't need their types written
-				SerializeValue (obj);
+				SerializeValue (obj, metadataElement);
 				arrayTypeToIgnore = null;
 				first = false;
 			}
