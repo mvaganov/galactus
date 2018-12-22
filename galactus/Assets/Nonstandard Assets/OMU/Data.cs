@@ -191,10 +191,16 @@ namespace OMU {
 								System.Globalization.NumberStyles.HexNumber,
 								null, out number);
 							if(bigEndian) {
+								//int a = (int)((number >> 0) & 0xff);
+								//int b = (int)((number >> 8) & 0xff);
+								//int g = (int)((number >> 16) & 0xff);
+								//int r = (int)((number >> 24) & 0xff);
+								//Debug.Log(a + " " + g + " " + b + " " + r);
 								long swapped = ((number >> 24) & 0xff) | // move byte 3 to byte 0
 												((number << 8) & 0xff0000) | // move byte 1 to byte 2
 												((number >> 8) & 0xff00) | // move byte 2 to byte 1
 												((number << 24) & 0xff000000); // byte 0 to byte 3
+								//Debug.Log("0x" + number.ToString("X8")+" swapped to " + "0x" + swapped.ToString("X8"));
 								number = swapped;
 							}
 						}
@@ -230,16 +236,17 @@ namespace OMU {
 			long number;
 			bool parsed = TryParseLong(o, out number);
 			if(parsed) {
-				float r = ((number >> 0) & 0xff) / 256.0f;
-				float g = ((number >> 8) & 0xff) / 256.0f;
-				float b = ((number >> 16) & 0xff) / 256.0f;
-				float a = ((number >> 24) & 0xff) / 256.0f;
+				float r = ((number >> 0) & 0xff) / 255.0f;
+				float g = ((number >> 8) & 0xff) / 255.0f;
+				float b = ((number >> 16) & 0xff) / 255.0f;
+				float a = ((number >> 24) & 0xff) / 255.0f;
 				string s = NormalizeString(o);
 				if(s != null) {
 					// if no alpha was specified, full opacity.
 					if(s.StartsWith("0x") && s.Length <= 8
-					|| s.StartsWith("#")  && s.Length <= 7)
+					|| (s.StartsWith("#") && (s.Length == 4 || s.Length == 7))) {
 						a = 1;
+					}
 				}
 				color = new Color(r,g,b,a);
 			}
@@ -1356,8 +1363,17 @@ namespace OMU {
 				objToCompile = v3list;
 			} else if(ft == typeof(Color)) {
 				Color color = (Color)objToCompile;
-				Int32 num = (int)(color.r*255) | ((int)(color.g*255) << 8) | ((int)(color.g*255) << 16) | ((int)(color.a*255) << 24);
-				objToCompile = "0x"+num.ToString("X8");
+				bool a = color.a != 1;
+				string txt = "#" + ((int)(color.r * 255)).ToString("X2") +
+									((int)(color.g * 255)).ToString("X2") +
+									((int)(color.b * 255)).ToString("X2") +
+								(a? ((int)(color.a * 255)).ToString("X2"):"");
+				if(txt[1] == txt[2] && txt[3] == txt[4] && txt[5] == txt[6] && (!a || txt[7] == txt[8])){
+					txt = "#" + txt[1].ToString() + txt[3].ToString() + txt[5].ToString() + (a ? txt[7].ToString() : "");
+				}
+				objToCompile = txt;
+				//Int32 num = (int)(color.r*255) | ((int)(color.g*255) << 8) | ((int)(color.g*255) << 16) | ((int)(color.a*255) << 24);
+				//objToCompile = "0x"+num.ToString("X8");
 			} else if(ft.IsEnum) {
 				string vstring = objToCompile.ToString();
 				if(compressNames) {
