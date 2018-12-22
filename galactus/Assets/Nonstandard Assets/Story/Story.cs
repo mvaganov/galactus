@@ -104,7 +104,9 @@ namespace NS {
 						delay *= mul;
 					}
 					NS.Chrono.setTimeoutRealtime(() => { AdvanceLetter(story); }, (long)delay);
-					story.TriggerTextNoise();
+					if(delay != 0) {
+						story.TriggerTextNoise();
+					}
 				}
 				if(story.textOuput.text.Length != i) {
 					story.textOuput.text = text.Substring(0, i);
@@ -196,7 +198,7 @@ namespace NS {
 			public int commandIndex, letterIndex;
 			public float msPerCharacter = 50;
 			public Dictionary<char, float> specificCharMultiplier = new Dictionary<char, float>() {
-				{',', 5}, {'.', 15}, {':', 5}, {';', 10}, {'\t', 0}, {'\'', 5}, {'\"', 5}, {'?', 15}, {'!', 15}, {'\n', 5},
+				{',', 5}, {'.', 10}, {':', 5}, {';', 7}, {'\t', 0}, {'\'', 5}, {'\"', 5}, {'?', 15}, {'!', 15}, {'\n', 5},
 			};
 
 			private static Dictionary<string, NS.StateMachine.Branch> s_all_dialogs = 
