@@ -82,6 +82,7 @@ namespace OMU {
 			else if(t == typeof(Color)){ return ((Color)obj) == Color.clear; }
 			else if(t == typeof(Vector2)){ return ((Vector2)obj) == Vector2.zero; }
 			else if(t == typeof(Vector3)){ return ((Vector3)obj) == Vector3.zero; }
+			else if(t == typeof(Vector4)){ return ((Vector4)obj) == default(Vector4); }
 			else if(t == typeof(Quaternion)){ return ((Quaternion)obj) == Quaternion.identity; }
 			else if(t == typeof(Dictionary<string,OBJ_TYPE>)) { return (obj as Dictionary<string,OBJ_TYPE>).Count == 0; }
 			return false;
@@ -258,25 +259,22 @@ namespace OMU {
 			v = null;
 			if (o is IList) {
 				IList list = o as IList;
-				float x = 0, y = 0, z = 0;
+				float x = 0, y = 0, z = 0, w = 0;
 				double d;
-				if (list.Count > 0) {
-					TryParseDouble(list[0], out d); x = (float)d;
-				}
-				if (list.Count > 1) {
-					TryParseDouble(list[1], out d); y = (float)d;
-				}
-				if (list.Count > 2) {
-					TryParseDouble(list[2], out d); z = (float)d;
-				}
+				if (list.Count > 0) { TryParseDouble(list[0], out d); x = (float)d; }
+				if (list.Count > 1) { TryParseDouble(list[1], out d); y = (float)d; }
+				if (list.Count > 2) { TryParseDouble(list[2], out d); z = (float)d; }
+				if (list.Count > 3) { TryParseDouble(list[3], out d); w = (float)d; }
 				parsed = true;
 				switch (twoOrThree) {
 					case 2:	v = new Vector2(x, y);	break;
 					case 3:	v = new Vector3(x, y, z); break;
+					case 4: v = new Vector4(x, y, z, w); break;
 					default: parsed = false; break;
 				}
 			} else if(o is Vector2 && twoOrThree == 2){ v = (Vector2)o; parsed = true;
 			} else if(o is Vector3 && twoOrThree == 3){ v = (Vector3)o; parsed = true;
+			} else if(o is Vector4 && twoOrThree == 4){ v = (Vector4)o; parsed = true;
 			}
 			return parsed;
 		}
@@ -299,12 +297,25 @@ namespace OMU {
 			return parsed;
 		}
 
+		public static bool TryParseVector4(object o, out Vector4 v) {
+			if (o is Vector2) { v = (Vector4)o; return true; }
+			else if (o is Vector3) { v = (Vector4)o; return true; }
+			else if (o is Vector4) { v = (Vector4)o; return true; }
+			object ob;
+			bool parsed = TryParseVectorX(o, out ob, 4);
+			v = parsed ? ((Vector4)ob) : default(Vector4);
+			return parsed;
+		}
+
         public static bool TryParseQuaternion(object o, out Quaternion v) {
+			Vector4 v4;
             if (o is Quaternion) { v = (Quaternion)o; return true; }
             else if (o is Vector3) { v = Quaternion.Euler((Vector3)o); return true; }
+			else if (o is Vector4) { v4 = (Vector4)o; v = new Quaternion(v4.x,v4.y,v4.z,v4.w); return true; }
             object ob;
-            bool parsed = TryParseVectorX(o, out ob, 3);
-            v = parsed ? (Quaternion.Euler((Vector3)ob)) : Quaternion.identity;
+            bool parsed = TryParseVectorX(o, out ob, 4);
+			v4 = (Vector4)ob;
+			v = parsed ? (new Quaternion(v4.x, v4.y, v4.z, v4.w)) : Quaternion.identity;
             return parsed;
         }
 
@@ -772,6 +783,10 @@ namespace OMU {
 				Vector3 v; // array of numbers
 				if (TryParseVector3(value, out v)) { parsedValue = v; }
 				else { errorMessage = "\"" + value + "\" can't onvert to Vector3 (list of numbers)!"; }
+			} else if(typeToParseInto == typeof(Vector4) && value is IList) {
+				Vector4 v; // array of numbers
+				if(TryParseVector4(value, out v)) { parsedValue = v; }
+				else { errorMessage = "\"" + value + "\" can't onvert to Vector4 (list of numbers)!"; }
 			} else if (typeToParseInto == typeof(Quaternion) && value is IList) {
 				Quaternion v; // array of numbers
 				if (TryParseQuaternion(value, out v)) { parsedValue = v; }
@@ -1401,22 +1416,24 @@ namespace OMU {
 				// no need to do anything special, these are natively recognized by the system
 			} else if(ft == typeof(Vector2)) {
 				Vector2 v2 = (Vector2)objToCompile;
-				List<float> v2list = new List<float>(2);
-				v2list.Add (v2.x);	v2list.Add (v2.y);
+				List<float> v2list = new List<float>(2) { v2.x, v2.y };
 				objToCompile = v2list;
 			} else if(ft == typeof(Vector3)){
 				Vector3 v3 = (Vector3)objToCompile;
-				List<float> v3list = new List<float>(3);
-				v3list.Add (v3.x);	v3list.Add (v3.y);	v3list.Add (v3.z);
+				List<float> v3list = new List<float>() { v3.x, v3.y, v3.z };
 				objToCompile = v3list;
+			} else if(ft == typeof(Vector4)) {
+				Vector4 v4 = (Vector4)objToCompile;
+				List<float> v4list = new List<float>() { v4.x, v4.y, v4.z, v4.w };
+				objToCompile = v4list;
 			} else if(ft == typeof(Color)) {
 				Color color = (Color)objToCompile;
 				bool a = color.a != 1;
 				string txt = "#" + ((int)(color.r * 255)).ToString("X2") +
 									((int)(color.g * 255)).ToString("X2") +
 									((int)(color.b * 255)).ToString("X2") +
-								(a? ((int)(color.a * 255)).ToString("X2"):"");
-				if(txt[1] == txt[2] && txt[3] == txt[4] && txt[5] == txt[6] && (!a || txt[7] == txt[8])){
+								(a ? ((int)(color.a * 255)).ToString("X2") : "");
+				if(txt[1] == txt[2] && txt[3] == txt[4] && txt[5] == txt[6] && (!a || txt[7] == txt[8])) {
 					txt = "#" + txt[1].ToString() + txt[3].ToString() + txt[5].ToString() + (a ? txt[7].ToString() : "");
 				}
 				objToCompile = txt;
@@ -1427,12 +1444,12 @@ namespace OMU {
 				if(compressNames) {
 					string[] names = Enum.GetNames(ft);
 					int limit = Data.AmbiguousPrefixCheck(vstring, names);
-					if(limit+1 < vstring.Length) {
-						vstring = vstring.Substring(0, limit+1) + "*";
+					if(limit + 1 < vstring.Length) {
+						vstring = vstring.Substring(0, limit + 1) + "*";
 					}
 				}
 				objToCompile = vstring;
-			} else if (objToCompile is IList) {
+			} else if(objToCompile is IList) {
 				// leave lists as is, the rest of the serialization code knows how to deal with ILists just fine.
 				//IList inList = objToCompile as IList; 
 				//LIST_TYPE outArr = Data.CreateListWithSize(inList.Count);
@@ -1449,10 +1466,10 @@ namespace OMU {
 					if(objectHierarchy != null && objectHierarchy.IndexOf(objToCompile) >= 0) {
 						StringBuilder sb = new StringBuilder();
 						for(int a = 0; a < objectHierarchy.Count; ++a) {
-							sb.Append(objectHierarchy[a]+" -> ");
+							sb.Append(objectHierarchy[a] + " -> ");
 						}
 						// TODO replace with reference via OM.Expression? TODO Add error to ParseResults object?
-						throw new System.Exception("found recursion while parsing "+objectHierarchy[0]+"\n"+sb+" {"+objToCompile+"}");
+						throw new System.Exception("found recursion while parsing " + objectHierarchy[0] + "\n" + sb + " {" + objToCompile + "}");
 					}
 					if(objectHierarchy == null) {
 						objectHierarchy = new LIST_TYPE();
@@ -1461,7 +1478,7 @@ namespace OMU {
 					// Debug.Log("----------------------- serializing ("+value+")");
 					objToCompile = SerializeToOm(objToCompile, hideZeroNull, compressNames, ignoreFieldsPrefixedWith, objectHierarchy, metadataElement);
 					// Debug.Log("----------------------- done serializing ("+value+")");
-					objectHierarchy.RemoveAt(objectHierarchy.Count-1);
+					objectHierarchy.RemoveAt(objectHierarchy.Count - 1);
 				} else {
 					Debug.Log("----------------------- ignoring null");
 				}

@@ -17,6 +17,7 @@ namespace NS {
 			public string portrait;
 			public ScreenArea portraitArea = ScreenArea.BottomRight;
 			public float portraitScale;
+			public Vector4 textPadding;
 			class Vars {
 				public Color prev_bgcolor;
 			}
@@ -35,6 +36,22 @@ namespace NS {
 						vars.prev_bgcolor = img.color;
 						if(bgcolor != default(Color)) {
 							img.color = bgcolor;
+						}
+						if(img.hasBorder){
+							Vector4 bounds = img.sprite.border;
+							Debug.Log(bounds);
+							UnityEngine.UI.CanvasScaler cs = story.textPanel.GetComponentInParent<UnityEngine.UI.CanvasScaler>();
+							float scale = cs.referencePixelsPerUnit / img.sprite.pixelsPerUnit;
+							float l = bounds.x * scale, t = bounds.y * scale, r = bounds.z * scale, b = bounds.w * scale;
+							if(textPadding != default(Vector4)){
+								l += textPadding.x;
+								t += textPadding.y;
+								r += textPadding.z;
+								b += textPadding.w;
+							}
+							RectTransform rect = story.textOuput.GetComponent<RectTransform>();
+							rect.offsetMin = new Vector2(l, b);
+							rect.offsetMax = new Vector2(-r, -t);
 						}
 					}
 				}

@@ -5,7 +5,7 @@
   B{name:intro,list:[
       {desc:'the first dialog'}
       S{text:"Welcome to NonStandard Assets! Mr. V made these code assets, which he thinks should be standard in Unity.\n\nWhat would you like information about?"
-      portraitArea:BottomRight portrait:MrV portraitScale:.5 bgcolor:#0ff8 keepOnScreen: true}
+      portraitArea:BottomRight portrait:MrV portraitScale:.5 bgcolor:#0ff8 keepOnScreen: true textPadding:[0,0,50,0]}
       O{next:timer,text:'Timer: time-keeping and setTimeout functionality'}
       O{next:omu,  text:'OMU: Object Modeling for Unity'}
       O{next:noisy,text:'Noisy: interactive sound scripting'}
