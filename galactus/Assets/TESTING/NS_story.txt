@@ -16,6 +16,7 @@
       O{next:spati,text:'Spatial: the 3d gemoetry library'}
       O{next:conti,text:'Contingency: rich object-interaction behaviors that reduce the need for C# scripting'}
       O{next:spati,text:'NSBT: the NonStandard Behavior Tree'}
+      O{commands:["cmd ls", "cmd pwd", pwd], text:'cmd test'}
       O{commands:[exit], text:'exit'}
     ]
   }

@@ -1346,12 +1346,12 @@ namespace OMU {
 					if(fieldNames == null) {
 						fieldNames = new string[fields.Length];
 						for(int a = 0; a < fields.Length; ++a) {
-							fieldNames[a] = fields[a].Name; 
+							fieldNames[a] = fields[a].Name;
 						}
 					}
 					int limit = AmbiguousPrefixCheck(fname, fieldNames);
-					if(limit+1 < fname.Length) {
-						fname = fname.Substring(0, limit+1) + "*";
+					if(limit + 1 < fname.Length) {
+						fname = fname.Substring(0, limit + 1) + "*";
 					}
 				}
 				object value = f.GetValue(obj);
@@ -1362,7 +1362,10 @@ namespace OMU {
 				} else {
 					Type ft = f.FieldType;
 					if(metadataElement != null) {
-						if(value.GetType() != ft) { notableType[fname] = value.GetType(); }
+						if(value.GetType() != ft && !IsNativeType(value.GetType())) {
+							Debug.Log(value.GetType()+" for "+fname+" : "+value);
+							notableType[fname] = value.GetType();
+						}
 						memberOrder.Add(new FieldEntry { name = fname, f = f });
 					}
 					// Debug.Log ("in:  \""+fname+"\" <"+ft+">: ("+value+")");
@@ -1412,7 +1415,7 @@ namespace OMU {
 		/// <param name="value">Value.</param>
 		/// <param name="ft">what type is being parsed (not the type that will be returned)</param>
 		static public object SerializedToOm(object objToCompile, Type ft, bool hideZeroNull, bool compressNames, string[] ignoreFieldsPrefixedWith, LIST_TYPE objectHierarchy, string metadataElement) {
-			if(IsNativeType(ft)) {
+			if(IsNativeType(ft) || (objToCompile != null && ft == typeof(object) && IsNativeType(objToCompile.GetType()))) {
 				// no need to do anything special, these are natively recognized by the system
 			} else if(ft == typeof(Vector2)) {
 				Vector2 v2 = (Vector2)objToCompile;

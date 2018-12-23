@@ -17,9 +17,11 @@ public class CmdLine : MonoBehaviour {
 	public event CommandHandler OnCommand;
 	/// <summary>known commands</summary>
 	private Dictionary<string, Command> commands = new Dictionary<string, Command>();
+	/// <summary>every command can be executed by a different user</summary>
+	[Serializable] public class Instruction { public string text; public object user; }
 	/// <summary>queue of instructions that this command line needs to execute.</summary>
-	private List<string> instructionList = new List<string>();
-	private string PopInstruction() {
+	private List<Instruction> instructionList = new List<Instruction>();
+	private Instruction PopInstruction() {
 		if(instructionList.Count > 0) {
 			RecentInstruction = instructionList[0];
 			instructionList.RemoveAt(0);
@@ -29,15 +31,15 @@ public class CmdLine : MonoBehaviour {
 	}
 	[Tooltip("Easily accessible way of finding out what instruction was executed last")]
 	/// <summary>useful for callbacks, for finding out what is going on right now</summary>
-	[ReadOnly] public string RecentInstruction;
+	[ReadOnly] public Instruction RecentInstruction;
 
 	/// <summary>example of how to populate the command-line with commands</summary>
 	public void PopulateWithBasicCommands() {
 		//When adding commands, you must add a call below to registerCommand() with its name, implementation method, and help text.
-		addCommand("help", (args) => {
+		addCommand("help", (args,user) => {
 			log(" - - - -\n" + CommandHelpString() + "\n - - - -");
 		}, "prints this help.");
-		addCommand("load", (args) => {
+		addCommand("load", (args, user) => {
 			if(args.Length > 1) {
 				if(args[1] == ".") { args[1] = SceneManager.GetActiveScene().name; }
 				SceneManager.LoadScene(args[1]);
@@ -46,7 +48,7 @@ public class CmdLine : MonoBehaviour {
 					SceneManager.GetActiveScene().name + "</color>");
 			}
 		}, "loads given scene. use: load <scene name>");
-		addCommand("pref", (args) => {
+		addCommand("pref", (args, user) => {
 			for(int i = 1; i < args.Length; ++i) {
 				string output = null;
 				try { output = "<#" + ColorSet.SpecialTextHex + ">" + PlayerPrefs.GetString(args[i]) + "</color>"; } catch(System.Exception e) { output = "<#" + ColorSet.ErrorTextHex + ">" + e.ToString() + "</color>"; }
@@ -54,7 +56,7 @@ public class CmdLine : MonoBehaviour {
 				log(args[i] + ":" + output);
 			}
 		}, "shows player prefs value. use: pref [variableName, ...]");
-		addCommand("prefsave", (args) => {
+		addCommand("prefsave", (args, user) => {
 			if(args.Length > 1) {
 				PlayerPrefs.SetString(args[1], (args.Length > 2) ? args[2] : null);
 				PlayerPrefs.Save();
@@ -62,14 +64,14 @@ public class CmdLine : MonoBehaviour {
 				log("missing arguments");
 			}
 		}, "save player prefs value. use: pref variableName [variableValue]");
-		addCommand("prefreset", (args) => {
+		addCommand("prefreset", (args, user) => {
 			PlayerPrefs.DeleteAll();
 			PlayerPrefs.Save();
 		}, "clears player prefs.");
-		addCommand("echo", (args) => {
+		addCommand("echo", (args, user) => {
 			println(string.Join(" ", args, 1, args.Length - 1));
 		}, "repeat given arguments as output");
-		addCommand("exit", (args) => {
+		addCommand("exit", (args, user) => {
 #if UNITY_EDITOR
 			UnityEditor.EditorApplication.isPlaying = false;
 #elif UNITY_WEBPLAYER
@@ -80,27 +82,29 @@ public class CmdLine : MonoBehaviour {
 		}, "quits this application");
 		#region os_commandline_terminal
 #if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
-		addCommand ("cmd", (args) => {
+		addCommand ("cmd", (args, user) => {
 			if(AllowSystemAccess) {
-				bash.DoCommand(string.Join(" ", args, 1, args.Length - 1), null, this);
+				bash.DoCommand(string.Join(" ", args, 1, args.Length - 1), this, null, this);
 			} else {
 				HandleLog("Access Denied", "", LogType.Warning);
 			}
 		}, "access the true system's command-line terminal");
 #endif
 	}
-	public static void DoSystemCommand(string command) {
+	public static void DoSystemCommand(string command, object whosAsking = null) {
 		bool isNewInstance = _instance == null;
-		Instance.doSystemCommand(command);
+		Instance.doSystemCommand(command, whosAsking);
 		if(isNewInstance) { Instance.Interactivity = InteractivityEnum.Disabled; }
 	}
 #if !CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
-	public void doSystemCommand(string command) {
+	public void doSystemCommand(string command, object whosAsking = null) {
 		Debug.LogWarning("can't do '"+command+
 			"', #define CONNECT_TO_REAL_COMMAND_LINE_TERMINAL");
 	}
 #else
-	public void doSystemCommand(string command) { bash.DoCommand(command, null, this); }
+	public void doSystemCommand(string command, object whosAsking = null) {
+		bash.DoCommand(command, (whosAsking == null) ? bash : whosAsking, null, this);
+	}
 
 	private class BASH {
 		System.Diagnostics.Process system_process;
@@ -116,7 +120,7 @@ public class CmdLine : MonoBehaviour {
 		/// used to communicate to the CmdLine that the bash thread finished something
 		private bool probablyFinishedCommand = true;
 
-		public void DoCommand(string s, DoAfterStringIsRead cb = null, CmdLine cmd = null) {
+		public void DoCommand(string s, object whosAsking, DoAfterStringIsRead cb = null, CmdLine cmd = null) {
 			if(activeDir == null) { activeDir = PWD(); }
 			if(thread == null) {
 				currentCommand = s.Trim();
@@ -168,13 +172,14 @@ public class CmdLine : MonoBehaviour {
 					while(true) {
 						if(!string.IsNullOrEmpty(currentCommand)) {
 							promptNeedsRedraw = true;
-							lastCommand = currentCommand;
 							if(currentCommand == "exit") {
+								lastCommand = currentCommand;
 								break;
 							}
 							system_process.StandardInput.WriteLine(currentCommand);
 							system_process.StandardInput.Flush();
 							probablyFinishedCommand = false;
+							lastCommand = currentCommand;
 							currentCommand = "";
 							waitForSysproc = 0;
 						}
@@ -194,15 +199,16 @@ public class CmdLine : MonoBehaviour {
 					}
 					system_process.StandardInput.WriteLine("exit");
 					system_process.StandardInput.Flush();
-					system_process.WaitForExit();
-					system_process.Close();
-					isInitialized = false;
-					system_process = null;
+					Debug.Log("Exit...");
+					System.Diagnostics.Process proc = system_process;
 					System.Threading.Thread t = thread;
+					if(cmd != null) { cmd.NeedToRefreshUserPrompt = true; }
 					thread = null;
-					if(cmd != null) {
-						cmd.NeedToRefreshUserPrompt = true;
-					}
+					system_process = null;
+					isInitialized = false;
+					proc.WaitForExit();
+					Debug.Log("Exited!");
+					proc.Close();
 					t.Join(); // should be the last statement
 				});
 				thread.Start();
@@ -242,7 +248,7 @@ public class CmdLine : MonoBehaviour {
 
 		public string MachineName { get { return system_process.MachineName; } }
 
-		public void Update(string s, CmdLine cmd) {
+		public void Update(Instruction inst, CmdLine cmd) {
 			bool somethingPrinted = false;
 			if(log != null) {
 				while(log.Count > 0) {
@@ -258,12 +264,14 @@ public class CmdLine : MonoBehaviour {
 					somethingPrinted = true;
 				}
 			}
-			if(s != null){
-				DoCommand(s);
+			string s = null;
+			if(inst != null) {
+				s = inst.text;
+				if(s != null) { DoCommand(s, inst.user); }
 			}
 			if(string.IsNullOrEmpty(s) &&
-				string.IsNullOrEmpty(currentCommand) &&
-			   (somethingPrinted || promptNeedsRedraw)) {
+			string.IsNullOrEmpty(currentCommand) &&
+			(somethingPrinted || promptNeedsRedraw)) {
 				cmd.NeedToRefreshUserPrompt = true;
 			}
 			if(cmd.NeedToRefreshUserPrompt) {
@@ -271,7 +279,7 @@ public class CmdLine : MonoBehaviour {
 			}
 		}
 	}
-	private BASH bash = new BASH();
+	private BASH bash;
 #endif
 	#endregion // os_commandline_terminal
 
@@ -293,7 +301,7 @@ public class CmdLine : MonoBehaviour {
 	public void ClearCommands() { commands.Clear(); }
 	/// <summary>command-line handler. think "standard main" from Java or C/C++.
 	/// args[0] is the command, args[1] and beyond are the arguments.</summary>
-	public delegate void CommandHandler(string[] args);
+	public delegate void CommandHandler(string[] args, object whosAsking);
 	public class Command {
 		public string command { get; private set; }
 		public CommandHandler handler { get; private set; }
@@ -312,38 +320,37 @@ public class CmdLine : MonoBehaviour {
 		return sb.ToString();
 	}
 	/// <summary>Enqueues a command to run, which will be run during the next Update</summary>
-	public static void DoCommand(string commandWithArguments){
+	public static void DoCommand(string commandWithArguments, object fromWho = null){
 		bool isNewInstance = _instance == null;
-		// TODO ensure this executes the internal CmdLine commands... at the moment, it will do System commands if Bash is running.
-		Instance.EnqueueRun(commandWithArguments);
+		Instance.EnqueueRun(new Instruction() { text = commandWithArguments, user = fromWho });
 		if(isNewInstance) { Instance.Interactivity = InteractivityEnum.Disabled; }
 	}
 	/// <summary>Enqueues a command to run, which will be run during the next Update</summary>
-	/// <param name="commandWithArguments">Command string, with arguments.</param>
-	public void EnqueueRun(string commandWithArguments, bool userInitiated = false) {
-		instructionList.Add(commandWithArguments);
-		if(userInitiated) {
+	/// <param name="instruction">Command string, with arguments.</param>
+	public void EnqueueRun(Instruction instruction) {
+		instructionList.Add(instruction);
+		if((instruction.user == this._tmpInputField)) {
 			indexWherePromptWasPrintedRecently = -1; // make sure this command stays visible
 		}
 	}
-	private void Run(string commandWithArguments) {
+	private void Run(Instruction instruction) {
 		if(waitingToReadLine != null) {
-			waitingToReadLine(commandWithArguments);
+			waitingToReadLine(instruction.text);
 			waitingToReadLine = null;
 		} else if(onInput != null) {
-			onInput(commandWithArguments);
+			onInput(instruction.text);
 		} else {
-			if(string.IsNullOrEmpty(commandWithArguments)) { return; }
-			string s = commandWithArguments.Trim(Util.WHITESPACE); // cut leading & trailing whitespace
+			if(string.IsNullOrEmpty(instruction.text)) { return; }
+			string s = instruction.text.Trim(Util.WHITESPACE); // cut leading & trailing whitespace
 			string[] args = Util.ParseArguments(s).ToArray();
 			if(args.Length < 1) { return; }
-			if(OnCommand != null) { OnCommand(args); }
-			Run(args[0].ToLower(), args);
+			if(OnCommand != null) { OnCommand(args, instruction.user); }
+			Run(args[0].ToLower(), args, instruction.user);
 		}
 	}
 	/// <param name="command">Command.</param>
 	/// <param name="args">Arguments. [0] is the name of the command, with [1] and beyond being the arguments</param>
-	private void Run(string command, string[] args) {
+	private void Run(string command, string[] args, object user) {
 		Command cmd = null;
 		// try to find the given command. or the default command. if we can't find either...
 		if(!commands.TryGetValue(command, out cmd) && !commands.TryGetValue("", out cmd)) {
@@ -360,7 +367,7 @@ public class CmdLine : MonoBehaviour {
 		if(cmd != null) {
 			// execute it if it has valid code
 			if(cmd.handler != null) {
-				cmd.handler(args);
+				cmd.handler(args, user);
 			} else {
 				log("Null command '" + command + "'");
 			}
@@ -808,6 +815,7 @@ public class CmdLine : MonoBehaviour {
 			}
 			// if the user wants to execute (because they pressed enter)
 			else if (c =='\n') {
+				object whoExecutes = cmd._tmpInputField; // the user-controlled input field
 				string inpt = cmd.GetUserInput ();
 				int start = 0, end = -1;
 				do {
@@ -815,13 +823,13 @@ public class CmdLine : MonoBehaviour {
 					if(end >= start && start < inpt.Length) {
 						int len = end-start;
 						if(len > 0) {
-							cmd.EnqueueRun(inpt.Substring(start, len), true);
+							cmd.EnqueueRun(new Instruction() { text = inpt.Substring(start, len), user = whoExecutes });
 						}
 						start = end+1;
 					}
 				} while(end > 0);
 				if (start < inpt.Length) {
-					cmd.EnqueueRun(inpt.Substring(start), true);
+					cmd.EnqueueRun(new Instruction() { text = inpt.Substring(start), user = whoExecutes });
 				}
 				EndUserInput (ref text);
 			}
@@ -1283,14 +1291,18 @@ public class CmdLine : MonoBehaviour {
 				_tmpInputField.verticalScrollbar.value = 1;
 			}
 		}
+		Instruction instruction = PopInstruction();
 #if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
-		if(bash.IsInitialized() && AllowSystemAccess) {
-			bash.Update(PopInstruction(), this);
+		if(bash == null) { bash = new BASH(); }
+		if(bash.IsInitialized() && AllowSystemAccess 
+		&& (instruction == null || instruction.user == _tmpInputField || instruction.user == bash)) {
+			bash.Update(instruction, this); // always update, since this also pushes the pipeline
 		} else {
 #endif
 			// run any queued-up commands
-			if (instructionList.Count > 0) {
-				Run (PopInstruction());
+			if(instruction != null) {
+			//if(instructionList.Count > 0) {
+				Run(instruction);
 				NeedToRefreshUserPrompt = true;
 				if(!callbacks.ignoreCallbacks && callbacks.whenCommandRuns != null) callbacks.whenCommandRuns.Invoke();
 			}

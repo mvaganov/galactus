@@ -39,7 +39,6 @@ namespace NS {
 						}
 						if(img.hasBorder){
 							Vector4 bounds = img.sprite.border;
-							Debug.Log(bounds);
 							UnityEngine.UI.CanvasScaler cs = story.textPanel.GetComponentInParent<UnityEngine.UI.CanvasScaler>();
 							float scale = cs.referencePixelsPerUnit / img.sprite.pixelsPerUnit;
 							float l = bounds.x * scale, t = bounds.y * scale, r = bounds.z * scale, b = bounds.w * scale;
