@@ -18,7 +18,10 @@ public class CmdLine : MonoBehaviour {
 	/// <summary>known commands</summary>
 	private Dictionary<string, Command> commands = new Dictionary<string, Command>();
 	/// <summary>every command can be executed by a different user</summary>
-	[Serializable] public class Instruction { public string text; public object user; }
+	[Serializable] public class Instruction {
+		public string text; public object user;
+		public bool IsUser(object a_user) { return user == a_user; }
+	}
 	/// <summary>queue of instructions that this command line needs to execute.</summary>
 	private List<Instruction> instructionList = new List<Instruction>();
 	private Instruction PopInstruction() {
@@ -329,7 +332,7 @@ public class CmdLine : MonoBehaviour {
 	/// <param name="instruction">Command string, with arguments.</param>
 	public void EnqueueRun(Instruction instruction) {
 		instructionList.Add(instruction);
-		if((instruction.user == this._tmpInputField)) {
+		if(instruction.IsUser(_tmpInputField)) {
 			indexWherePromptWasPrintedRecently = -1; // make sure this command stays visible
 		}
 	}
@@ -788,18 +791,18 @@ public class CmdLine : MonoBehaviour {
 			}
 			return added;
 		}
-		public override char Validate(ref string text, ref int i, char c) {
+		public override char Validate(ref string text, ref int pos, char ch) {
 			if (!cmd.IsInteractive ()) return '\0';
 			char letter = '\0';
-			if (i < text.Length) {
-				letter = text [i];
+			if (pos < text.Length) {
+				letter = text [pos];
 			}
-			if (i < cmd.nonUserInput.Length) {
-				i = cmd.GetRawText ().Length;
+			if (pos < cmd.nonUserInput.Length) {
+				pos = cmd.GetRawText ().Length;
 			}
-			i += AddUserInput (ref text, c);
+			pos += AddUserInput (ref text, ch);
 			// if the user is attempting to break out of noparse...
-			if (c == '>') {
+			if (ch == '>') {
 				// check if a tag is being ended
 				int startOfTag = text.LastIndexOf ('<');
 				int endOfTag = text.LastIndexOf ('>', text.Length - 2);
@@ -814,7 +817,7 @@ public class CmdLine : MonoBehaviour {
 				}
 			}
 			// if the user wants to execute (because they pressed enter)
-			else if (c =='\n') {
+			else if (ch =='\n') {
 				object whoExecutes = cmd._tmpInputField; // the user-controlled input field
 				string inpt = cmd.GetUserInput ();
 				int start = 0, end = -1;
@@ -994,8 +997,8 @@ public class CmdLine : MonoBehaviour {
 			int r = (int)(255 * c.r), g = (int)(255 * c.g), b = (int)(255 * c.b), a = (int)(255 * c.a);
 			return r.ToString("X2") + g.ToString("X2") + b.ToString("X2") + ((c.a != 1) ? a.ToString("X2") : "");
 		}
-		public static readonly char[] QUOTES = new char[] { '\'', '\"' },
-		WHITESPACE = new char[] { ' ', '\t', '\n', '\b', '\r' };
+		public static readonly char[] QUOTES = { '\'', '\"' },
+		WHITESPACE = { ' ', '\t', '\n', '\b', '\r' };
 		/// <returns>index of the end of the token that starts at the given index 'i'</returns>
 		public static int FindEndArgumentToken(string str, int i) {
 			bool isWhitespace;
@@ -1204,7 +1207,7 @@ public class CmdLine : MonoBehaviour {
 		Gizmos.DrawMesh(_editorMesh, transform.position, transform.rotation, s);
 		Transform t = transform;
 		// calculate extents
-		Vector3[] points = new Vector3[]{(t.up*s.y/2 + t.right*s.x/-2),(t.up*s.y/2 + t.right*s.x/2),
+		Vector3[] points = {(t.up*s.y/2 + t.right*s.x/-2),(t.up*s.y/2 + t.right*s.x/2),
 			(t.up*s.y/-2 + t.right*s.x/2),(t.up*s.y/-2 + t.right*s.x/-2)};
 		for (int i = 0; i < points.Length; ++i) { points[i] += t.position; }
 		Gizmos.color = ColorSet.Background;
@@ -1230,6 +1233,7 @@ public class CmdLine : MonoBehaviour {
 #endregion // Enable/Disable
 #region MonoBehaviour
 	void Start () {
+		if(_instance == null){ _instance = this; }
 		showBottomWhenTextIsAdded = true;
 		NeedToRefreshUserPrompt = true;
 		// test code
@@ -1295,13 +1299,12 @@ public class CmdLine : MonoBehaviour {
 #if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
 		if(bash == null) { bash = new BASH(); }
 		if(bash.IsInitialized() && AllowSystemAccess 
-		&& (instruction == null || instruction.user == _tmpInputField || instruction.user == bash)) {
+		&& (instruction == null || instruction.IsUser(_tmpInputField) || instruction.user == bash)) {
 			bash.Update(instruction, this); // always update, since this also pushes the pipeline
 		} else {
 #endif
 			// run any queued-up commands
 			if(instruction != null) {
-			//if(instructionList.Count > 0) {
 				Run(instruction);
 				NeedToRefreshUserPrompt = true;
 				if(!callbacks.ignoreCallbacks && callbacks.whenCommandRuns != null) callbacks.whenCommandRuns.Invoke();
