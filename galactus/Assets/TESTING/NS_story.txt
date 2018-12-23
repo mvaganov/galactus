@@ -2,34 +2,33 @@
 #type S NS.Story.Say
 #type O NS.Story.Option
 [
-  B{name:intro,list:[
-      {desc:'the first dialog'}
-      S{text:"Welcome to NonStandard Assets! Mr. V made these code assets, which he thinks should be standard in Unity.\n\nWhat would you like information about?"
-      portraitArea:BottomRight portrait:MrV portraitScale:.5 bgcolor:#0ff8 keepOnScreen: true textPadding:[0,0,50,0]}
-      O{next:timer,text:'Timer: time-keeping and setTimeout functionality'}
-      O{next:omu,  text:'OMU: Object Modeling for Unity'}
-      O{next:noisy,text:'Noisy: interactive sound scripting'}
-      O{next:story,text:'Story: a branching dialog and command scripting system'}
-      O{next:platf,text:'Platformer: the 3D, first-through-third perspective, gravity-adjustable character controller'}
-      O{next:cmd,  text:'CmdLine: the Command Line emulator'}
-      O{next:lines,text:'Lines: the 3d line drawing library'}
-      O{next:spati,text:'Spatial: the 3d gemoetry library'}
-      O{next:conti,text:'Contingency: rich object-interaction behaviors that reduce the need for C# scripting'}
-      O{next:spati,text:'NSBT: the NonStandard Behavior Tree'}
-      O{commands:["cmd ls", "cmd pwd", pwd], text:'cmd test'}
-      O{commands:[exit], text:'exit'}
-    ]
-  }
-  B{name:timer,list:[
-    S{text:'The NS.Timer was one of the first pieces of code developed for the Nonstandard Library.'}
-    S{text:'There are just too many uses for having a timed-callback system, (like JavaScript\'s setTimeout) and it was pretty surprising that Unity did not have one by default.'}
-    S{text:'NS.Timer is intended to be used within C# scripts, though it can also be used as a MonoBehaviour, to cause an object or event to occur in some interval or time. Many kinds of objects can be \'executed\' at a specific time, thanks to the Contingency system.'}
-    O{next:intro,text:'main menu'}
-  ]}
-  B{name:omu,list:[
-    S{text:'OMU, or Object Modeling for Unity, is a system that uses a JSON-like script to serialize and de-serialize C# objects.'},
-    S{text:'OMU is most useful for deserializing data structures into a human-readable, but still highly-compact script, for saving, or transmitting over the internet'},
-    S{text:'The script that was used to generate this dialog-system is written using OMU. The format of the script is based on the C# datastructures used in the Story system'},
-    O{next:intro,text:'main menu'}
-  ]}
+	B{name:intro,list:[
+		{desc:'the first dialog'}
+		S{text:"Welcome to NonStandard Assets! Mr. V made these code assets, which he thinks should be standard in Unity.\n\nWhat would you like information about?"
+		portraitArea:BottomRight portrait:MrV portraitScale:.5 bgcolor:#0ff8 keepOnScreen: true textPadding:[0,0,50,0]}
+		O{next:timer,text:'Timer: time-keeping and setTimeout functionality'}
+		O{next:omu,  text:'OMU: Object Modeling for Unity'}
+		O{next:noisy,text:'Noisy: interactive sound scripting'}
+		O{next:story,text:'Story: a branching dialog and command scripting system'}
+		O{next:platf,text:'Platformer: the 3D, first-through-third perspective, gravity-adjustable character controller'}
+		O{next:cmd,  text:'CmdLine: the Command Line emulator'}
+		O{next:lines,text:'Lines: the 3d line drawing library'}
+		O{next:spati,text:'Spatial: the 3d gemoetry library'}
+		O{next:conti,text:'Contingency: rich object-interaction behaviors that reduce the need for C# scripting'}
+		O{next:spati,text:'NSBT: the NonStandard Behavior Tree'}
+		O{commands:["cmd ls", "cmd pwd", pwd], text:'cmd test'}
+		O{commands:[exit], text:'exit'}
+	]}
+	B{name:timer,list:[
+		S{text:'The NS.Timer was one of the first pieces of code developed for the Nonstandard Library.'}
+		S{text:'There are just too many uses for having a timed-callback system, (like JavaScript\'s setTimeout) and it was pretty surprising that Unity did not have one by default.'}
+		S{text:'NS.Timer is intended to be used within C# scripts, though it can also be used as a MonoBehaviour, to cause an object or event to occur in some interval or time. Many kinds of objects can be \'executed\' at a specific time, thanks to the Contingency system.'}
+		O{next:intro,text:'main menu'}
+	]}
+	B{name:omu,list:[
+		S{text:'OMU, or Object Modeling for Unity, is a system that uses a JSON-like script to serialize and de-serialize C# objects.'},
+		S{text:'OMU is most useful for deserializing data structures into a human-readable, but still highly-compact script, for saving, or transmitting over the internet'},
+		S{text:'The script that was used to generate this dialog-system is written using OMU. The format of the script is based on the C# datastructures used in the Story system'},
+		O{next:intro,text:'main menu'}
+	]}
 ]

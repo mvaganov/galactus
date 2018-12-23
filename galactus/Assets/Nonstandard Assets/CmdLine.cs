@@ -1,4 +1,5 @@
 ﻿#define CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
+//#define UNKNOWN_CMDLINE_APPEARS
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.EventSystems;
@@ -34,7 +35,9 @@ public class CmdLine : MonoBehaviour {
 	}
 	[Tooltip("Easily accessible way of finding out what instruction was executed last")]
 	/// <summary>useful for callbacks, for finding out what is going on right now</summary>
-	[ReadOnly] public Instruction RecentInstruction;
+	public Instruction RecentInstruction;
+	/// <summary>the user object that should be used for normal input into this CmdLine</summary>
+	public object UserRawInput { get { return _tmpInputField; } } 
 
 	/// <summary>example of how to populate the command-line with commands</summary>
 	public void PopulateWithBasicCommands() {
@@ -101,7 +104,7 @@ public class CmdLine : MonoBehaviour {
 	}
 #if !CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
 	public void doSystemCommand(string command, object whosAsking = null) {
-		Debug.LogWarning("can't do '"+command+
+		Debug.LogWarning(whosAsking+" can't do system command '"+command+
 			"', #define CONNECT_TO_REAL_COMMAND_LINE_TERMINAL");
 	}
 #else
@@ -202,7 +205,6 @@ public class CmdLine : MonoBehaviour {
 					}
 					system_process.StandardInput.WriteLine("exit");
 					system_process.StandardInput.Flush();
-					Debug.Log("Exit...");
 					System.Diagnostics.Process proc = system_process;
 					System.Threading.Thread t = thread;
 					if(cmd != null) { cmd.NeedToRefreshUserPrompt = true; }
@@ -210,7 +212,6 @@ public class CmdLine : MonoBehaviour {
 					system_process = null;
 					isInitialized = false;
 					proc.WaitForExit();
-					Debug.Log("Exited!");
 					proc.Close();
 					t.Join(); // should be the last statement
 				});
@@ -332,7 +333,7 @@ public class CmdLine : MonoBehaviour {
 	/// <param name="instruction">Command string, with arguments.</param>
 	public void EnqueueRun(Instruction instruction) {
 		instructionList.Add(instruction);
-		if(instruction.IsUser(_tmpInputField)) {
+		if(instruction.IsUser(UserRawInput)) {
 			indexWherePromptWasPrintedRecently = -1; // make sure this command stays visible
 		}
 	}
@@ -407,6 +408,47 @@ public class CmdLine : MonoBehaviour {
 #if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
 	public bool AllowSystemAccess = true;
 #endif
+#region Debug.Log intercept
+	[SerializeField, Tooltip("If true, all Debug.Log messages will be intercepted and duplicated here.")]
+	private bool interceptDebugLog = false;
+	public bool InterceptDebugLog { get { return interceptDebugLog; } set { interceptDebugLog = value; SetDebugLogIntercept(interceptDebugLog); } }
+	/// <summary>if this object was intercepting Debug.Logs, this will ensure that it un-intercepts as needed</summary>
+	private bool dbgIntercepted = false;
+
+	public void EnableDebugLogIntercept() { SetDebugLogIntercept(InterceptDebugLog); }
+	public void DisableDebugLogIntercept() { SetDebugLogIntercept(false); }
+	public void SetDebugLogIntercept(bool intercept) {
+#if UNITY_EDITOR
+		if(!Application.isPlaying) return;
+#endif
+		if(intercept && !dbgIntercepted) {
+			Application.logMessageReceived += HandleLog;
+			dbgIntercepted = true;
+		} else if(!intercept && dbgIntercepted) {
+			Application.logMessageReceived -= HandleLog;
+			dbgIntercepted = false;
+		}
+	}
+	private void HandleLog(string logString, string stackTrace = "", LogType type = LogType.Log) {
+		const string cEnd = "</color>\n";
+		switch(type) {
+		case LogType.Error:
+			AddText("<#" + ColorSet.ErrorTextHex + ">" + logString + cEnd);
+			break;
+		case LogType.Exception:
+			string c = "<#" + ColorSet.ExceptionTextHex + ">";
+			AddText(c + logString + cEnd);
+			AddText(c + stackTrace + cEnd);
+			break;
+		case LogType.Warning:
+			AddText("<#" + ColorSet.SpecialTextHex + ">" + logString + cEnd);
+			break;
+		default:
+			log(logString);
+			break;
+		}
+	}
+#endregion // Debug.Log intercept
 	public bool NeedToRefreshUserPrompt { get; set; }
 	/// used to smartly (perhaps overly-smartly) over-write the prompt when printing things out-of-sync
 	private int indexWherePromptWasPrintedRecently = -1;
@@ -555,6 +597,23 @@ public class CmdLine : MonoBehaviour {
 		_tmpInputField.fontAsset = tmpText.font;
 		_tmpInputField.pointSize = tmpText.fontSize;
 		MaximizeRectTransform (tmpText.transform);
+
+		// TODO finish this test code: was working on rescaling the font size to match the desired width 'this.maxColumnsPerLine'
+		//Debug.Log(textMeshProFont.name);
+		//string outp = "" + tmpText.font.characterDictionary.Count+"\n";
+		////for(int i = 0; i < tmpText.textInfo.characterInfo.Length; ++i){
+		//foreach(var kvp in tmpText.font.characterDictionary){
+		//	outp += kvp.Key + " : " + kvp.Value.xAdvance+"\n";
+		//}
+		//Debug.Log(outp);
+		//Debug.Log(".:" + textMeshProFont.characterDictionary[(int)'.'].width);
+		//Debug.Log("a:" + textMeshProFont.characterDictionary[(int)'a'].width);
+		//Debug.Log("w:" + textMeshProFont.characterDictionary[(int)'w'].width);
+		//Debug.Log("!:" + textMeshProFont.characterDictionary[(int)'!'].width);
+		//Debug.Log(Screen.width);
+		//Debug.Log(Screen.width / 90);
+		//Debug.Log(Screen.width / tmpText.fontSize);
+
 		tmpGo.AddComponent<RectMask2D> ();
 		_tmpInputField.onFocusSelectAll = false;
 		tmpText.color = ColorSet.Text;
@@ -696,8 +755,8 @@ public class CmdLine : MonoBehaviour {
 		int lastPoint = GetRawText ().Length;
 		SetCaretPosition (lastPoint);
 	}
-	#endregion // user interface
-	#region input validation
+#endregion // user interface
+#region input validation
 	/// <summary>console data that should not be modifiable as user input. Can be added to before the command-line even has UI components like _tmpInputField.</summary>
 	private string nonUserInput = "";
 	private CmdLineValidator inputvalidator;
@@ -717,7 +776,7 @@ public class CmdLine : MonoBehaviour {
 	private CmdLineValidator GetInputValidator() {
 		if (inputvalidator == null) {
 			inputvalidator = ScriptableObject.CreateInstance<CmdLineValidator> ();
-			inputvalidator.cmd = this;
+			inputvalidator.Init(this);
 		}
 		return inputvalidator;
 	}
@@ -728,16 +787,21 @@ public class CmdLine : MonoBehaviour {
 	/// <summary>the class that tries to keep the user from wrecking the command line terminal</summary>
 	private class CmdLineValidator : TMP_InputValidator {
 		public CmdLine cmd;
+		private TMP_InputField inputField;
 		public bool isUserEnteringInput = false;
+		public void Init(CmdLine cmd){
+			this.cmd = cmd;
+			this.inputField = cmd._tmpInputField;
+		}
 		public void AddUserInput(string userInput) {
-			string s = cmd._tmpInputField.text;
-			int cursor = cmd._tmpInputField.caretPosition; // should this be caretPosition?
+			string s = inputField.text;
+			int cursor = inputField.caretPosition; // should this be caretPosition?
 			for(int i = 0; i < userInput.Length; ++i) {
 				char c = userInput [i];
 				Validate(ref s, ref cursor, c);
 			}
-			cmd._tmpInputField.text = s;
-			cmd._tmpInputField.caretPosition = cursor;
+			inputField.text = s;
+			inputField.caretPosition = cursor;
 		}
 		int AddUserInput(ref string text, char letter) {
 			int added = 0;
@@ -754,9 +818,9 @@ public class CmdLine : MonoBehaviour {
 		public int EndUserInput(bool forced) {
 			if (forced)
 				isUserEnteringInput = true;
-			string s = cmd._tmpInputField.text;
+			string s = inputField.text;
 			int returned = EndUserInput (ref s);
-			cmd._tmpInputField.text = s;
+			inputField.text = s;
 			return returned;
 		}
 		public bool HasProperInputTags(string text) {
@@ -818,7 +882,7 @@ public class CmdLine : MonoBehaviour {
 			}
 			// if the user wants to execute (because they pressed enter)
 			else if (ch =='\n') {
-				object whoExecutes = cmd._tmpInputField; // the user-controlled input field
+				object whoExecutes = cmd.UserRawInput; // the user-controlled input field
 				string inpt = cmd.GetUserInput ();
 				int start = 0, end = -1;
 				do {
@@ -921,18 +985,18 @@ public class CmdLine : MonoBehaviour {
 				GameObject g = new GameObject ();
 				_instance = g.AddComponent<CmdLine> ();
 				g.name = "<" + _instance.GetType ().Name + ">";
-#if UNITY_EDITOR
+#if UNITY_EDITOR && UNKNOWN_CMDLINE_APPEARS
 				_instance.whereItWasStarted = Environment.StackTrace;
 #endif
 			}
 			return _instance;
 		}
 	}
-#if UNITY_EDITOR
+#if UNITY_EDITOR && UNKNOWN_CMDLINE_APPEARS
 	public string whereItWasStarted;
 #endif
 #endregion // singleton
-	#region static utility functions
+#region static utility functions
 	public static class Util {
 		/// <param name="layer">what Unity layer to set the given object, and all child objects, recursive</param>
 		public static void SetLayerRecursive(GameObject go, int layer) {
@@ -1135,48 +1199,7 @@ public class CmdLine : MonoBehaviour {
 	public int GetCaretPosition () { return _tmpInputField.stringPosition; }
 	public void SetCaretPosition (int pos) { _tmpInputField.stringPosition = pos; }
 #endregion // pubilc API
-#region Debug.Log intercept
-	[SerializeField, Tooltip("If true, all Debug.Log messages will be intercepted and duplicated here.")]
-	private bool interceptDebugLog = false;
-	public bool InterceptDebugLog { get { return interceptDebugLog; } set { interceptDebugLog = value; SetDebugLogIntercept(interceptDebugLog); } }
-	/// <summary>if this object was intercepting Debug.Logs, this will ensure that it un-intercepts as needed</summary>
-	private bool dbgIntercepted = false;
-
-	public void EnableDebugLogIntercept () { SetDebugLogIntercept (InterceptDebugLog); }
-	public void DisableDebugLogIntercept () { SetDebugLogIntercept (false); }
-	public void SetDebugLogIntercept (bool intercept) {
-#if UNITY_EDITOR
-		if(!Application.isPlaying) return;
-#endif
-		if (intercept && !dbgIntercepted) {
-			Application.logMessageReceived += HandleLog;
-			dbgIntercepted = true;
-		} else if (!intercept && dbgIntercepted) {
-			Application.logMessageReceived -= HandleLog;
-			dbgIntercepted = false;
-		}
-	}
-	private void HandleLog(string logString, string stackTrace = "", LogType type = LogType.Log) {
-		const string cEnd = "</color>\n";
-		switch (type) {
-		case LogType.Error:
-			AddText ("<#" + ColorSet.ErrorTextHex +">"+logString + cEnd);
-			break;
-		case LogType.Exception:
-			string c = "<#"+ ColorSet.ExceptionTextHex +">";
-			AddText (c + logString + cEnd);
-			AddText (c + stackTrace + cEnd);
-			break;
-		case LogType.Warning:
-			AddText ("<#" + ColorSet.SpecialTextHex +">"+logString + cEnd);
-			break;
-		default:
-			log (logString);
-			break;
-		}
-	}
-	#endregion // Debug.Log intercept
-	#region Unity Editor interaction
+#region Unity Editor interaction
 #if UNITY_EDITOR
 	private static Mesh _editorMesh = null; // one variable to enable better UI in the editor
 
@@ -1299,7 +1322,7 @@ public class CmdLine : MonoBehaviour {
 #if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
 		if(bash == null) { bash = new BASH(); }
 		if(bash.IsInitialized() && AllowSystemAccess 
-		&& (instruction == null || instruction.IsUser(_tmpInputField) || instruction.user == bash)) {
+		&& (instruction == null || instruction.IsUser(UserRawInput) || instruction.user == bash)) {
 			bash.Update(instruction, this); // always update, since this also pushes the pipeline
 		} else {
 #endif
