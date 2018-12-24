@@ -489,7 +489,7 @@ public class CmdLine : MonoBehaviour {
 		public Color SpecialText = new Color(1, .75f, 0);
 		public Color ExceptionText = new Color(1, .5f, 1);
 		public Color Scrollbar = new Color(1, 1, 1, 0.5f);
-		public Color UserInput = new Color(.5f, 1, .75f);
+		public Color UserInput = new Color(.75f, .875f, .75f);
 		public Color UserSelection = new Color(.5f, .5f, 1, .75f);
 		public string UserInputHex { get { return CmdLine.Util.ColorToHexCode(UserInput); } }
 		public string ErrorTextHex { get { return CmdLine.Util.ColorToHexCode(ErrorText); } }
@@ -507,6 +507,7 @@ public class CmdLine : MonoBehaviour {
 	public class PutItInWorldSpace {
 		[Tooltip("If zero, will automatically set to current Screen's pixel size")]
 		public Vector2 screenSize = new Vector2(0, 0);
+		[Tooltip("how many meters each pixel should be")]
 		public float textScale = 0.005f;
 		public PutItInWorldSpace(float scale, Vector2 size) {
 			this.textScale = scale;
@@ -519,7 +520,7 @@ public class CmdLine : MonoBehaviour {
 			c.transform.localPosition = Vector3.zero;
 			c.transform.localRotation = Quaternion.identity;
 			r.anchoredPosition = Vector2.zero;
-			r.localScale = new Vector3(textScale, textScale, textScale);
+			r.localScale = Vector3.one * textScale;
 		}
 	}
 	private void PrintPrompt() {
@@ -1217,17 +1218,18 @@ public class CmdLine : MonoBehaviour {
 		if(s == Vector3.zero) {
 			s = new Vector3(Screen.width, Screen.height, 1);
 		}
-		s.x *= transform.lossyScale.x * WorldSpaceSettings.textScale;
-		s.y *= transform.lossyScale.y * WorldSpaceSettings.textScale;
-		s.z *= transform.lossyScale.z * WorldSpaceSettings.textScale;
-		Gizmos.color = ColorSet.Background;
+		s.Scale(transform.lossyScale);
+		s *= WorldSpaceSettings.textScale;
+		Color c = ColorSet.Background;
+		Gizmos.color = c;
 		Gizmos.DrawMesh(_editorMesh, transform.position, transform.rotation, s);
 		Transform t = transform;
 		// calculate extents
 		Vector3[] points = {(t.up*s.y/2 + t.right*s.x/-2),(t.up*s.y/2 + t.right*s.x/2),
 			(t.up*s.y/-2 + t.right*s.x/2),(t.up*s.y/-2 + t.right*s.x/-2)};
 		for(int i = 0; i < points.Length; ++i) { points[i] += t.position; }
-		Gizmos.color = ColorSet.Background;
+		c.a = 1;
+		Gizmos.color = c;
 		for(int i = 0; i < points.Length; ++i) {
 			Gizmos.DrawLine(points[i], points[(i + 1) % points.Length]);
 		}
