@@ -179,23 +179,26 @@ namespace OMU {
 					attempts++;
 				}
 			}
-			// create the preface
-			string preface = Parser.typeReplaceToken +"{";
-			for(int i = 0; i < aliases.Count; ++i){
-				if(i > 0) preface += "\n";
-				preface += aliases[i] + ":" + typesToAlias[i];
-			}preface += "}\n";
-			// replace names backwards, so indexes don't get shuffled around
-			for(int i = typeAtLocation.Count - 1; i >= 0; --i) {
-				Type t = typeAtLocation[i].t;
-				int index = typesToAlias.IndexOf(t);
-				if(index >= 0) {
-					string fullname = t.ToString();
-					builder.Replace(fullname, aliases[index], typeAtLocation[i].i, fullname.Length);
+			if(aliases.Count > 0) {
+				// create the preface
+				string preface = Parser.typeReplaceToken + "{";
+				for(int i = 0; i < aliases.Count; ++i) {
+					if(i > 0) preface += "\n";
+					preface += aliases[i] + ":" + typesToAlias[i];
 				}
+				preface += "}\n";
+				// replace names backwards, so indexes don't get shuffled around
+				for(int i = typeAtLocation.Count - 1; i >= 0; --i) {
+					Type t = typeAtLocation[i].t;
+					int index = typesToAlias.IndexOf(t);
+					if(index >= 0) {
+						string fullname = t.ToString();
+						builder.Replace(fullname, aliases[index], typeAtLocation[i].i, fullname.Length);
+					}
+				}
+				// add the preface
+				builder.Insert(0, preface);
 			}
-			// add the preface
-			builder.Insert(0, preface);
 		}
 
 		void SerializeValue (object value, string metadataElement) {

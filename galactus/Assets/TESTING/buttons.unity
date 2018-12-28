@@ -7089,7 +7089,7 @@ MonoBehaviour:
     SpecialText: {r: 1, g: 0.75, b: 0, a: 1}
     ExceptionText: {r: 1, g: 0.5, b: 1, a: 1}
     Scrollbar: {r: 1, g: 1, b: 1, a: 0.5}
-    UserInput: {r: 0.7058824, g: 0.85490197, b: 0.7019608, a: 1}
+    UserInput: {r: 0.75, g: 0.875, b: 0.75, a: 1}
     UserSelection: {r: 0.5, g: 0.5, b: 1, a: 0.75}
   ActiveOnStart: 0
   AllowSystemAccess: 1

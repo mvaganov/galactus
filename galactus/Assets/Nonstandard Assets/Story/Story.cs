@@ -217,7 +217,7 @@ namespace NS {
 				{',', 5}, {'.', 10}, {':', 5}, {';', 7}, {'\t', 0}, {'\'', 5}, {'\"', 5}, {'?', 15}, {'!', 15}, {'\n', 5},
 			};
 
-			private static Dictionary<string, NS.StateMachine.Branch> s_all_dialogs = 
+			private Dictionary<string, NS.StateMachine.Branch> allBranches = 
 				new Dictionary<string, NS.StateMachine.Branch>();
 
 			public void TriggerTextNoise() {
@@ -240,14 +240,14 @@ namespace NS {
 
 			public void AddBranch(NS.StateMachine.Branch branch) {
 				NS.StateMachine.Branch d;
-				if(s_all_dialogs.TryGetValue(branch.name, out d)) {
+				if(allBranches.TryGetValue(branch.name, out d)) {
 					if(d == branch) {
 						throw new System.Exception(branch.name + " is being re-added!");
 					} else {
 						throw new System.Exception(branch.name + " already exists!");
 					}
 				}
-				s_all_dialogs[branch.name] = branch;
+				allBranches[branch.name] = branch;
 			}
 
 			public void AddBranches(IList branches) {
@@ -261,7 +261,7 @@ namespace NS {
 				if(nextState == null){
 					string n = a_state as string;
 					NS.StateMachine.Branch b = null;
-					if(n != null && !s_all_dialogs.TryGetValue(n, out b)) {
+					if(n != null && !allBranches.TryGetValue(n, out b)) {
 						nextState = Error("Could not find state \"" + n + "\"");
 					} else {
 						nextState = b;

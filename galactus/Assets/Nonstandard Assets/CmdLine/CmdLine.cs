@@ -54,7 +54,7 @@ public class CmdLine : MonoBehaviour {
 				log("to reload current scene, type <#" + ColorSet.SpecialTextHex + ">load " +
 					SceneManager.GetActiveScene().name + "</color>");
 			}
-		}, "loads given scene. use: load <scene name>");
+		}, "loads given scene. use: load <noparse><scene name></noparse>");
 		addCommand("pref", (args, user) => {
 			for(int i = 1; i < args.Length; ++i) {
 				string output = null;
@@ -543,11 +543,13 @@ public class CmdLine : MonoBehaviour {
 	public void PositionInWorld(Vector3 center, Vector2 size = default(Vector2), float scale = 0.005f) {
 		if(size == Vector2.zero) size = new Vector2(Screen.width, Screen.height);
 		PutItInWorldSpace ws = new PutItInWorldSpace(scale, size);
+		transform.position = center;
 		if(_mainView == null) {
 			WorldSpaceSettings = ws;
 		} else {
 			ws.ApplySettingsTo(_mainView);
 		}
+		RecalculateFontSize();
 	}
 	private void SetOverlayModeInsteadOfWorld(bool useOverlay) {
 		if(useOverlay && _mainView.renderMode != RenderMode.ScreenSpaceOverlay) {
@@ -555,12 +557,8 @@ public class CmdLine : MonoBehaviour {
 		} else if(!useOverlay) {
 			_mainView.renderMode = RenderMode.WorldSpace;
 			WorldSpaceSettings.ApplySettingsTo(_mainView);
+			RecalculateFontSize();
 		}
-	}
-	private float CalculateIdealFontSize(TMP_Text tmpText, int idealCharsPerLine) {
-		float normalCharacterWidth = tmpText.font.characterDictionary[(int)'e'].xAdvance;
-		float idealFontSize = (WorldSpaceSettings.screenSize.x * tmpText.font.creationSettings.pointSize) / (idealCharsPerLine * normalCharacterWidth);
-		return idealFontSize;
 	}
 	private Canvas CreateUI() {
 		_mainView = transform.GetComponentInParent<Canvas>();
@@ -622,6 +620,7 @@ public class CmdLine : MonoBehaviour {
 		_tmpInputField.onValueChanged.AddListener(listener_OnValueChanged);
 		_tmpInputField.characterValidation = TMP_InputField.CharacterValidation.CustomValidator;
 		_tmpInputField.inputValidator = GetInputValidator();
+
 		if(_tmpInputField.verticalScrollbar == null) {
 			GameObject scrollbar = new GameObject("scrollbar vertical");
 			scrollbar.transform.SetParent(_tmpInputField.transform);
@@ -664,11 +663,21 @@ public class CmdLine : MonoBehaviour {
 		tmpGo.SetActive(false); tmpGo.SetActive(true);
 		// put it in the world (if needed)
 		if(Interactivity == InteractivityEnum.WorldSpaceOnly
-			|| Interactivity == InteractivityEnum.ActiveScreenAndInactiveWorld) {
+		|| Interactivity == InteractivityEnum.ActiveScreenAndInactiveWorld) {
 			WorldSpaceSettings.ApplySettingsTo(_mainView);
+			RecalculateFontSize();
 		}
-		tmpText.fontSize = CalculateIdealFontSize(tmpText, idealLettersPerLine); // TODO make this happen whenever the screensize changes... TODO find a way to get words to not word-wrap around word boundaries, but instead to split on characters.
+		// TODO find a way to get words to not word-wrap around word boundaries, but instead to split on characters.
 		return _mainView;
+	}
+	private float CalculateIdealFontSize(TMP_Text tmpText, float idealCharsPerLine) {
+		float normalCharacterWidth = tmpText.font.characterDictionary[(int)'e'].xAdvance;
+		float idealFontSize = (WorldSpaceSettings.screenSize.x * tmpText.font.creationSettings.pointSize) / (idealCharsPerLine * normalCharacterWidth);
+		return idealFontSize;
+	}
+	private void RecalculateFontSize() {
+		TMP_Text tmpText = _tmpInputField.textComponent;
+		tmpText.fontSize = CalculateIdealFontSize(tmpText, idealLettersPerLine + .125f);
 	}
 	private static RectTransform MaximizeRectTransform(Transform t) {
 		return MaximizeRectTransform(t.GetComponent<RectTransform>());
@@ -819,16 +828,29 @@ public class CmdLine : MonoBehaviour {
 			inputField.text = s;
 			return returned;
 		}
+		//public enum ProperInputTagState { missing, has, malformed };
 		public bool HasProperInputTags(string text) {
-			List<string> tags = Util.CalculateTextMeshProTags(text, false);
+			List<string> tags = new List<string>();
+			Util.CalculateTextMeshProTags(text, false, tags);
 			if(tags.Count == 0 || !tags.Contains("noparse"))
 				return false;
 			string colorTag = "#" + cmd.ColorSet.UserInputHex;
 			return tags.Contains(colorTag);
 		}
 		public bool CheckIfUserInputTagsArePresent(string text) {
-			// check if the new text has the input tags opened
-			return isUserEnteringInput = HasProperInputTags(text);
+			string beg = BEGIN_USER_INPUT();
+			int len = beg.Length, pos = cmd.GetCaretPosition();
+			if(pos >= len) {
+				if(text.Substring(pos - len).Contains(beg)) {
+					isUserEnteringInput = true;
+				}else {
+					// check if the new text has the input tags opened
+					isUserEnteringInput = HasProperInputTags(text);
+				}
+			} else {
+				isUserEnteringInput = false;
+			}
+			return isUserEnteringInput;
 		}
 		public string BEGIN_USER_INPUT() {
 			return "<#" + cmd.ColorSet.UserInputHex + "><noparse>";
@@ -852,6 +874,7 @@ public class CmdLine : MonoBehaviour {
 			return added;
 		}
 		public override char Validate(ref string text, ref int pos, char ch) {
+			int posAtStart = pos;
 			if(!cmd.IsInteractive()) return '\0';
 			char letter = '\0';
 			if(pos < text.Length) {
@@ -896,6 +919,11 @@ public class CmdLine : MonoBehaviour {
 				}
 				EndUserInput(ref text);
 			}
+			// if a bunch of letters were was added (either paste, or new user input)
+			if(pos != posAtStart && pos > posAtStart+1) {
+				// recalculate invisible string locations.
+				Util.CalculateTextMeshProTags(text, false, null, cmd.invisibleSubstrings);
+			}
 			return '\0';
 		}
 	}
@@ -905,9 +933,10 @@ public class CmdLine : MonoBehaviour {
 		string newAddition = Input.inputString;
 		// don't allow output text to be modified.
 		if(GetCaretPosition() < nonUserInput.Length) {
-			int offset = selectBegin - selectEnd;
-			string alreadyTyped = GetUserInput(offset);
-			setText(nonUserInput + alreadyTyped);
+			//int offset = selectBegin - selectEnd;
+			//string alreadyTyped = GetUserInput(offset);
+			setText(nonUserInput);
+			//Debug.Log("draining "+alreadyTyped);
 			MoveCaretToEnd();
 		}
 		addingOnChanged = false;
@@ -925,6 +954,7 @@ public class CmdLine : MonoBehaviour {
 	}
 	private int CutoffIndexToEnsureLineCount(String s, int a_maxLines) {
 		int lineCount = 0, columnCount = 0, index;
+		// TODO ignore invisibleTextEntries
 		for(index = s.Length; index > 0; --index) {
 			if(s[index - 1] == '\n' || columnCount++ >= idealLettersPerLine) {
 				lineCount++;
@@ -948,12 +978,100 @@ public class CmdLine : MonoBehaviour {
 		int len = s.Length - (nonUserInput.Length + offset);
 		return (len > 0) ? s.Substring(nonUserInput.Length + offset, len) : "";
 	}
+	public struct Substring : IComparable {
+		public int index, count;
+		public int Limit { get { return index + count; } }
+		public int Middle { get { return index + count / 2; } }
+		public bool Contains(int index){ return this.index <= index && index < Limit; }
+		public int CompareTo(object obj) {
+			Substring other = (Substring)obj;
+			if(other.index < index) return 1;
+			if(other.index > index) return -1;
+			return 0;
+		}
+		public string Of(string s) { return s.Substring(index, count); }
+	}
+
+	// TODO linebreaks every 80 visible characters
+	// TODO GetVisibleText(), which strips out the invisible text
+	// TODO ConvertRealIndexToVisibleIndex(int realIndex)
+	// TODO ConvertVisibleIndexToRealIndex(int visibleIndex)
+	public List<Substring> invisibleSubstrings = new List<Substring>();
+
+	public int WhichInvisibleSubstring(int stringIndex) {
+		Substring te = new Substring { index = stringIndex, count = 0 };
+		int index = invisibleSubstrings.BinarySearch(te);
+		if(index < 0) {
+			index = ~index;
+			if(index > 0 && invisibleSubstrings[index-1].Contains(stringIndex)){
+				index = index - 1;
+			} else {
+				index = -1;
+			}
+		}
+		//int whichSubstring = -1;
+		//for(int i = 0; i < invisibleSubstrings.Count; ++i){
+		//	if(invisibleSubstrings[i].Contains(stringIndex)) { return i; }
+		//	if(invisibleSubstrings[i].index > stringIndex) { break; }
+		//}
+		//if(index != whichSubstring){
+		//	Debug.Log(index + " != " + whichSubstring);
+		//	Debug.Log(OMU.Util.ToScript(invisibleSubstrings));
+		//}
+		//return whichSubstring;
+		return index;
+	}
+
+	private void AddInvisibleSubstring(int textIndex, int count) {
+		Substring te = new Substring { index = textIndex, count = count };
+		int whichSubstring = invisibleSubstrings.BinarySearch(te);
+		if(whichSubstring < 0) {
+			whichSubstring = ~whichSubstring;
+		}
+		ShiftInvisibleSubstringsFrom(whichSubstring, count);
+		bool mergedIn = false;
+		if(whichSubstring > 0) {
+			Substring prev = invisibleSubstrings[whichSubstring - 1];
+			if(prev.Limit == te.index) {
+				prev.count += te.count;
+				invisibleSubstrings[whichSubstring - 1] = prev;
+				mergedIn = true;
+				ShiftInvisibleSubstringsFrom(whichSubstring, te.count);
+			}
+		} else if(whichSubstring < invisibleSubstrings.Count) {
+			Substring alreadyHere = invisibleSubstrings[whichSubstring];
+			if(te.index == alreadyHere.index) {
+				alreadyHere.count += te.count;
+				invisibleSubstrings[whichSubstring] = alreadyHere;
+				mergedIn = true;
+				ShiftInvisibleSubstringsFrom(whichSubstring + 1, te.count);
+			}
+		}
+		if(!mergedIn) {
+			invisibleSubstrings.Insert(whichSubstring, te);
+			ShiftInvisibleSubstringsFrom(whichSubstring + 1, te.count);
+		}
+	}
+	private void ShiftInvisibleSubstringsFrom(int listIndex, int delta){
+		for(int i = listIndex; i < invisibleSubstrings.Count; i++){
+			Substring te = invisibleSubstrings[i];
+			te.index += delta;
+			invisibleSubstrings[i] = te;
+		}
+	}
+
+	private void CalculateInvisibleSubstrings(){
+		Util.CalculateTextMeshProTags(GetAllText(), true, null, invisibleSubstrings);
+	}
+
 	/// <param name="text">What the the output text should be (turns current user input into text output)</param>
 	public void setText(string text) {
 		int cutIndex = CutoffIndexToEnsureLineCount(text, maxLines);
 		List<string> tags = null;
 		if(cutIndex != 0) {
-			tags = Util.CalculateTextMeshProTags(text.Substring(0, cutIndex), false);
+			invisibleSubstrings.Clear();
+			tags = new List<string>();
+			Util.CalculateTextMeshProTags(text.Substring(0, cutIndex), false, tags, invisibleSubstrings);
 			text = text.Substring(cutIndex);
 			if(tags != null && tags.Count > 0) {
 				string openingTags = "";
@@ -963,6 +1081,8 @@ public class CmdLine : MonoBehaviour {
 				text = openingTags + text;
 			}
 			indexWherePromptWasPrintedRecently -= cutIndex;
+		} else {
+			Util.CalculateTextMeshProTags(text, false, null, invisibleSubstrings);
 		}
 		nonUserInput = text;
 		SetRawText(nonUserInput);
@@ -1004,16 +1124,23 @@ public class CmdLine : MonoBehaviour {
 				}
 			}
 		}
+		private static string[] singleTagsTMP = { "br", "page" };
+		private static string[] tagsTMP = { "align", "alpha", "b", "br", "color", "cspace", "font", "i", "indent", "line-height", "line-indent", "link", "lowercase", "margin", "mark", "mspace", "noparse", "nobr", "page", "pos", "size", "space", "sprite", "s", "smallcaps", "style", "sub", "sup", "u", "uppercase", "voffset", "width" };
+		private static string[] tagsTMPallowed = { "alpha", "b", "br", "color", "font", "i", "link", "lowercase", "mark", "mspace", "noparse", "nobr", "page", "sprite", "s", "style", "u", "uppercase"};
 		/// <returns>A list of the open/close tags in the given strings</returns>
 		/// <param name="str">where to look for tags</param>
 		/// <param name="keepClosedTags">If <c>false</c>, remove correctly closed tags</param>
-		public static List<string> CalculateTextMeshProTags(string str, bool keepClosedTags = true) {
-			List<string> tags = new List<string>();
+		public static void CalculateTextMeshProTags(string str, bool keepClosedTags = true, 
+			List<string> tags = null, List<Substring> indexOfEach = null) {
+			if(indexOfEach != null){ indexOfEach.Clear(); }
 			bool noparse = false;
+			int startIndex, end, trueTokenLength;
 			for(int i = 0; i < str.Length; ++i) {
 				char c = str[i];
+				startIndex = i;
 				if(c == '<') {
-					int end = str.IndexOf('>', i);
+					end = str.IndexOf('>', i);
+					trueTokenLength = end - startIndex + 1; // +1 includes the last '>'
 					string token = null;
 					if(end > 0) {
 						// just get the starting token, ignore properties after the first space
@@ -1032,26 +1159,66 @@ public class CmdLine : MonoBehaviour {
 					if(!noparse && token != null && token.Trim() == "noparse") {
 						noparse = true;
 					}
-					if(!keepClosedTags && token != null) {
-						if(token.StartsWith("/") && tags.Count > 0) {
-							int whichTag = tags.IndexOf(token.Substring(1));
-							if(token == "/color") {
-								for(int e = tags.Count - 1; e >= 0; --e) {
-									if(tags[e].StartsWith("#")) {
-										whichTag = e; break;
+					if(token != null && token[0] != '#' && token[0] != '/' && Array.IndexOf(tagsTMPallowed, token) < 0) {
+						Debug.LogWarning("Probably erroneous tag '" + token + "' found at index " + startIndex);
+						if(Array.IndexOf(tagsTMP, token) >= 0) {
+							Debug.LogWarning("CmdLine is explicitly not encouraging use of '" + token + "'");
+						}
+					}
+					if(token != null){
+						if(indexOfEach != null) {
+							int lastIndex = indexOfEach.Count - 1;
+							if(lastIndex >= 0 && indexOfEach[lastIndex].Limit == startIndex) {
+								Substring te = indexOfEach[lastIndex];
+								te.count += trueTokenLength;
+								indexOfEach[lastIndex] = te;
+							} else {
+								indexOfEach.Add(new Substring { index = startIndex, count = trueTokenLength });
+							}
+						}
+					}
+					if(tags != null) {
+						if(!keepClosedTags && token != null) {
+							if(token.StartsWith("/") && tags.Count > 0) {
+								int whichTag = tags.LastIndexOf(token.Substring(1));
+								if(token == "/color") {
+									for(int e = tags.Count - 1; e >= 0; --e) {
+										if(tags[e].StartsWith("#")) {
+											whichTag = e; break;
+										}
 									}
 								}
-							}
-							if(whichTag >= 0) {
-								tags.RemoveAt(whichTag);
+								if(whichTag >= 0) {
+									tags.RemoveAt(whichTag);
+									token = null;
+								} else {
+									Debug.LogWarning("Unexpected closing tag " + token + " found at index " + startIndex);
+								}
+							} else if(token.EndsWith("/") || System.Array.IndexOf(singleTagsTMP, token) != 0) {
 								token = null;
 							}
-						} else if(token.EndsWith("/")) { token = null; }
+						}
+						if(token != null) { tags.Add(token); }
 					}
-					if(token != null) { tags.Add(token); }
 				}
 			}
-			return tags;
+			//if(indexOfEach != null) {
+			//	for(int i = indexOfEach.Count - 1; i > 0; --i) {
+			//		Substring here = indexOfEach[i];
+			//		Substring prev = indexOfEach[i - 1];
+			//		if(here.index == prev.Limit) {
+			//			Debug.Log("merging " + str.Substring(here.index, here.count));
+			//			prev.count += here.count;
+			//			indexOfEach[i - 1] = prev;
+			//			indexOfEach.RemoveAt(i);
+			//		}
+			//	}
+			//	string outp = "";
+			//	for(int i = 0; i < indexOfEach.Count; ++i) {
+			//		outp += indexOfEach[i].index + " '" + indexOfEach[i].Of(str) +"' ->"+ indexOfEach[i].Limit+"\n";
+			//	}
+			//	Debug.Log(str+"\n"+outp);
+			//}
 		}
 		public static string ColorToHexCode(Color c) {
 			int r = (int)(255 * c.r), g = (int)(255 * c.g), b = (int)(255 * c.b), a = (int)(255 * c.a);
@@ -1154,12 +1321,8 @@ public class CmdLine : MonoBehaviour {
 			if(GetRawText().Length >= 0) {
 				//Debug.Log(indexWherePromptWasPrintedRecently+" vs "+GetRawText().Length);
 				if(indexWherePromptWasPrintedRecently < GetRawText().Length) {
-					//Debug.Log("Removing [" + GetRawText().Substring(indexWherePromptWasPrintedRecently) + "]" + sysproc_currentCommand);
-					//SetRawText(GetRawText().Substring(0, indexWherePromptWasPrintedRecently));
 					EndUserInputIfNeeded();
 					setText(GetAllText().Substring(0, indexWherePromptWasPrintedRecently) + text);
-					//Debug.Log("Added [" + text + "]");
-					//Debug.Log("Did I really remove? {" + GetRawText().Substring(indexWherePromptWasPrintedRecently) + "}");
 				} else {
 					EndUserInputIfNeeded();
 					setText(GetAllText() + text);
@@ -1189,7 +1352,12 @@ public class CmdLine : MonoBehaviour {
 	public void log(string line) { println(line); }
 	public void readLine(DoAfterStringIsRead stringCallback) { readLineAsync(stringCallback); }
 	public string GetRawText() { return _tmpInputField.text; }
-	public void SetRawText(string s) { if(_tmpInputField != null) { _tmpInputField.text = s; } }
+	// don't use this, use setText instead, if possible
+	private void SetRawText(string s) {
+		if(_tmpInputField != null) {
+			_tmpInputField.text = s;
+		}
+	}
 	public int GetCaretPosition() { return _tmpInputField.stringPosition; }
 	public void SetCaretPosition(int pos) { _tmpInputField.stringPosition = pos; }
 	#endregion // pubilc API
@@ -1197,7 +1365,7 @@ public class CmdLine : MonoBehaviour {
 #if UNITY_EDITOR
 	private static Mesh _editorMesh = null; // one variable to enable better UI in the editor
 
-	public List<System.Action> thingsToDoWhileEditorIsRunning = new List<Action>();
+	public List<Action> thingsToDoWhileEditorIsRunning = new List<Action>();
 	void OnValidate() {
 		thingsToDoWhileEditorIsRunning.Add(() => {
 			Interactivity = interactivity;
@@ -1215,9 +1383,7 @@ public class CmdLine : MonoBehaviour {
 			_editorMesh.RecalculateBounds();
 		}
 		Vector3 s = this.WorldSpaceSettings.screenSize;
-		if(s == Vector3.zero) {
-			s = new Vector3(Screen.width, Screen.height, 1);
-		}
+		if(s == Vector3.zero) { s = new Vector3(Screen.width, Screen.height, 1); }
 		s.Scale(transform.lossyScale);
 		s *= WorldSpaceSettings.textScale;
 		Color c = ColorSet.Background;
@@ -1327,12 +1493,27 @@ public class CmdLine : MonoBehaviour {
 				Run(instruction);
 				NeedToRefreshUserPrompt = true;
 				if(!callbacks.ignoreCallbacks && callbacks.whenCommandRuns != null) callbacks.whenCommandRuns.Invoke();
+				CalculateInvisibleSubstrings();
 			}
 #if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
 		}
 #endif
 
 		if(Interactivity != InteractivityEnum.Disabled) {
+			// make sure the cursor skips over invisible areas
+			int CursorPosition = GetCaretPosition();
+			int index = WhichInvisibleSubstring(GetCaretPosition());
+			if(index >= 0) {
+				Substring sb = invisibleSubstrings[index];
+				if(CursorPosition >= sb.Middle){
+					CursorPosition = sb.index;
+					if(CursorPosition > 0) CursorPosition--;
+				} else {
+					CursorPosition = sb.Limit;
+				}
+				SetCaretPosition(CursorPosition);
+			}
+
 			if(NeedToRefreshUserPrompt && onInput == null
 #if CONNECT_TO_REAL_COMMAND_LINE_TERMINAL
 			&& bash.IsProbablyIdle()
