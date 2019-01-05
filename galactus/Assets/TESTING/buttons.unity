@@ -7091,12 +7091,19 @@ MonoBehaviour:
     Scrollbar: {r: 1, g: 1, b: 1, a: 0.5}
     UserInput: {r: 0.7529412, g: 1, b: 0.7529412, a: 1}
     UserSelection: {r: 0.5019608, g: 0.5019608, b: 1, a: 1}
-  ActiveOnStart: 0
+  ActiveOnStart: 1
+  AcceptingCommands: 1
   AllowSystemAccess: 1
   interceptDebugLog: 0
   textMeshProFont: {fileID: 11400000, guid: 13ef91a5ec71e4a9da9534de6778e6a1, type: 2}
+  selectBegin: 0
+  selectEnd: 0
   maxLines: 99
-  idealLettersPerLine: 60
+  commandLineWidth: 80
+  CursorPosition: 0
+  CursorCoordinate: {x: 0, y: 0}
+  DEBUG_output: 
+  DEBUG_INVISIBLES: 
   callbacks:
     whenThisActivates:
       m_PersistentCalls:
