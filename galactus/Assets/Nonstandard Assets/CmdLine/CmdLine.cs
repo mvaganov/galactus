@@ -47,8 +47,8 @@ public class CmdLine : MonoBehaviour {
 			log(" - - - -\n" + CommandHelpString() + "\n - - - -");
 		}, "prints this help.");
 		addCommand("clear", (args, user) => {
-			nonUserInput = "";
-			setText(nonUserInput);
+			_text = "";
+			setText(_text, true);
 		}, "clears the command-line terminal.");
 		addCommand("echo", (args, user) => {
 			println(string.Join(" ", args, 1, args.Length - 1));
@@ -500,8 +500,6 @@ public class CmdLine : MonoBehaviour {
 		}}
 	public void context_test() {
 		int row = 3, col = 10;
-		IndexAndAdjustment iadjust = GetPositionIndex(row, col);
-		Debug.Log(iadjust.index+" "+iadjust.adjustment);
 		SetCursorPosition(row, col);
 	}
 	public Vector2Int CursorCoordinate = new Vector2Int();
@@ -512,7 +510,6 @@ public class CmdLine : MonoBehaviour {
 	private int indexWhereUserInputStarts = -1;
 	private int indexWhereUserInputEnded = -1;
 	public bool IsUserInputting() { return indexWhereUserInputStarts >= 0 && indexWhereUserInputEnded >= 0; }
-	// TODO as the user types and replaced text, add that text here, so it can be recovered on delete.
 	private string userInputOverwrote = "";
 
 	private const string mainTextObjectName = "MainText";
@@ -778,7 +775,8 @@ public class CmdLine : MonoBehaviour {
 			//	}
 			//	o += "\n";
 			//}
-			if(nonUserInput.Length == 0) { log(o+Application.productName + ", v" + Application.version); } else { setText(nonUserInput); }
+			if(_text.Length == 0) { log(o+Application.productName + ", v" + Application.version); } 
+			else { setText(_text, true); }
 		}
 		if(_tmpInputField == null) { return; }
 		bool activityWhenStarted = _tmpInputField.interactable;
@@ -835,7 +833,7 @@ public class CmdLine : MonoBehaviour {
 	#endregion // user interface
 	#region input validation
 	/// <summary>keep track of command line in a non-mutable place. The input field is otherwise very mutable...</summary>
-	private string nonUserInput = ""; // TODO rename to something like 'expectedText'
+	private string _text = "";
 	private CmdLineValidator inputvalidator;
 	//[HideInInspector]
 	/// <summary>keeps track of user selection so that the text field can be fixed if selected text is removed</summary>
@@ -915,7 +913,6 @@ public class CmdLine : MonoBehaviour {
 					cmd.NotifyOfInsertedText(indexToEat, -overwritten);
 				} else {
 					cmd.userInputOverwrote += ADDED_FOR_NULL_SPACE;
-					Debug.Log("remembering '" + cmd.userInputOverwrote + "'");
 				}
 			}
 			string b;
@@ -967,6 +964,7 @@ public class CmdLine : MonoBehaviour {
 						string footr = cmd.END_USER_INPUT();
 						Substring closingTag = new Substring { index = invisTag.Limit, count = footr.Length };
 						cmd.invisibleSubstrings.Insert(invis + 1, closingTag);
+						Debug.Log("broke apart "+invisTag.Of(text) + " and " + closingTag.Of(text));
 					}
 					string o = "invisibles at this line:\n";
 					int line = Substring.WhichSubstring(cmd.lineSubstrings, index);
@@ -981,7 +979,7 @@ public class CmdLine : MonoBehaviour {
 				totalAdded += 1;
 				cursorMove++; // advance by the single letter inserted
 
-				cmd.NotifyOfInsertedText(index, totalAdded, true);
+				cmd.NotifyOfInsertedText(index, totalAdded);
 			}
 			//Debug.Log("post");
 			cmd.ValidateSubstringLists(text); // @debug
@@ -1057,7 +1055,7 @@ public class CmdLine : MonoBehaviour {
 				//		added += footr.Length;
 				//	}
 				//}
-				cmd.nonUserInput = text;
+				cmd._text = text;
 			}
 			return added;
 		}
@@ -1070,14 +1068,7 @@ public class CmdLine : MonoBehaviour {
 			}
 			pos = cmd.GetCursorBackToInput(pos);
 			if(ch != '\n' || !cmd.AcceptingCommands) {
-
-
-				// TODO if pos is not at the very end of a line, add the letter currently at this position into userInputOverwrote
-				// TODO if pos *is* at the end of a line
-					// if the extension would force a linebreak, do it, which will probably start the condition above
-					// otherwise, insert into the text, expanding the line, and pushing everything else forward
 				int p = pos;
-
 				pos += InsertLetter(ref text, ch, p, cmd.overwriteMode);
 				cmd.indexWhereUserInputEnded = pos;
 			}
@@ -1121,6 +1112,7 @@ public class CmdLine : MonoBehaviour {
 						cmd.WriteCursor = text.Length;
 					} else {
 						Debug.Log("move down to line " + (cmd.WriteCoordinate.y + 1));
+						cmd.SetCursorPosition(cmd.WriteCoordinate.y + 1, 0);
 					}
 				} while(end > 0);
 				if(start < inpt.Length) {
@@ -1147,7 +1139,7 @@ public class CmdLine : MonoBehaviour {
 		//string newAddition = Input.inputString;
 		//if(newAddition.Length > 0)
 		//Debug.Log((int)(newAddition[0]));
-		if(str.Length < nonUserInput.Length) { deletedSomething = nonUserInput.Length - str.Length; }
+		if(str.Length < _text.Length) { deletedSomething = _text.Length - str.Length; }
 
 		// don't allow output text to be modified.
 		//if(GetCaretPosition() < nonUserInput.Length) {
@@ -1158,7 +1150,7 @@ public class CmdLine : MonoBehaviour {
 			&& !(selectBegin >= indexWhereUserInputStarts && selectEnd < indexWhereUserInputEnded))) {
 				//int offset = selectBegin - selectEnd;
 				//string alreadyTyped = GetUserInput(offset);
-				setText(nonUserInput);
+				setText(_text, false);
 				//Debug.Log("draining "+alreadyTyped);
 				//MoveCaretToEnd();
 				//SetCaretPosition(indexWhereUserInputStarts);
@@ -1199,8 +1191,8 @@ public class CmdLine : MonoBehaviour {
 					NotifyOfInsertedText(indexToAddItBack, howMuchWasReAdded);
 				}
 				ValidateSubstringLists(str); // @debug
-				nonUserInput = str;
-				setText(nonUserInput);
+				//nonUserInput = str;
+				setText(str, false);
 				Debug.Log("accepting backspace?");
 			}
 		}
@@ -1357,17 +1349,82 @@ public class CmdLine : MonoBehaviour {
 		/// <returns>Substrings from orderedList that overlap this Substring</returns>
 		public List<Substring> Overlap(List<Substring> orderedList) { return Overlap(orderedList, this); }
 
-		public static void AddToOrderedListMerge(List<Substring> list, Substring s) {
-			int lastIndex = list.Count - 1;
-			if(lastIndex >= 0 && list[lastIndex].Limit == s.index) { // if it needs to go to the end
-				Substring te = list[lastIndex];
-				te.count += s.count;
-				list[lastIndex] = te;
+		private static int IndexOfPreviousNonoverlapingTag(List<Substring> list, int index){
+			if(list.Count == 0) return -1;
+			int lastIndex = WhichSubstring(list, index, NotInSubstringBehavior.previousValid);//list.Count - 1;
+			while(lastIndex < list.Count && list[lastIndex].Limit < index) {
+				lastIndex++;
+			}
+			if(lastIndex > 0 && (lastIndex == list.Count || list[lastIndex].Limit > index)) { // if we went too far, go back.
+				lastIndex--;
+			}
+			return lastIndex;
+		}
+
+		public static bool ClosesTheNextOne(List<Substring> list, Substring s, string text) {
+			if(list.Count == 0) return false;
+			//int lastIndex = WhichSubstring(list, s.index, NotInSubstringBehavior.previousValid);//list.Count - 1;
+			//while(lastIndex < list.Count && list[lastIndex].Limit < s.index) {
+			//	lastIndex++;
+			//}
+			//if(list[lastIndex].Limit > s.index) { // if we went too far, go back.
+			//	lastIndex--;
+			//}
+			int lastIndex = IndexOfPreviousNonoverlapingTag(list, s.index);
+			//if(list[lastIndex].index < s.index && list[lastIndex].Limit > s.index) { Debug.LogError("uh oh.... overlap"); }
+			// check if the previous invisible-tag ends with the opening tag that starts this new invisible-tag
+			Substring prev = list[lastIndex];
+			int begin = -1;//text.LastIndexOf("<", prev.Limit);
+			for(begin = prev.Limit - 1; begin >= 0; --begin) { if(text[begin] == '<') { break; } }
+			int end = text.IndexOf(">", begin);
+			if(begin < 0 || end < 0) {
+				if(begin < 0) Debug.Log("could not find beginning tag for '" + prev.Of(text) + "'");
+				if(end < 0) Debug.Log("could not find ending tag for '"+prev.Of(text)+"'");
+				throw new Exception("malformed invisible string");
+			} // @debug
+			begin++;
+			if(end+1 != prev.Limit) {
+				Debug.Log("begin " + begin + " " + text[begin]);
+				Debug.Log(""+(end)+" "+text[end]+"      "+prev.Limit);
+				throw new Exception("malformed invisible string... for '" + prev.Of(text) + "'");
+			} // @debug
+			int optionalEnd = text.IndexOf(" ", begin);
+			if(optionalEnd >= 0 && optionalEnd < end) { end = optionalEnd; }
+			string tagEndingPrev = text.Substring(begin, end-begin);
+			begin = s.index + 2; // skip the '</'
+			end = text.IndexOf(">", begin);
+			optionalEnd = text.IndexOf(" ", begin);
+			if(optionalEnd >= 0 && optionalEnd < end) { end = optionalEnd; }
+			string tagBeginNext = text.Substring(begin, end-begin);
+			// check if the tags are the same. if they are, a body is expected between them.
+			bool tagsAreTheSame = tagEndingPrev == tagBeginNext 
+			|| (tagBeginNext == "color" && tagEndingPrev.StartsWith("#"));
+			//if(tagsAreTheSame) {
+			//	Debug.Log("not going to merge " + tagBeginNext + " and " + tagEndingPrev);
+			//} else {
+			//	Debug.Log("merging " + tagBeginNext + " " + tagEndingPrev);
+			//}
+			return tagsAreTheSame;
+		}
+
+		public static void AddToOrderedListMerge(List<Substring> list, Substring s, bool allowMerge) {
+			//int lastIndex = WhichSubstring(list, s.index, NotInSubstringBehavior.previousValid);//list.Count - 1;
+			//while(lastIndex < list.Count && list[lastIndex].Limit < s.index) {
+			//	lastIndex++;
+			//}
+			//if(lastIndex > 0 && (lastIndex == list.Count || list[lastIndex].Limit > s.index)) { // if we went too far, go back.
+			//	lastIndex--;
+			//}
+			int lastIndex = IndexOfPreviousNonoverlapingTag(list, s.index);
+			if(allowMerge && lastIndex >= 0 && list[lastIndex].Limit == s.index) { // if it needs to go to the end
+				Substring prev = list[lastIndex];
+				prev.count += s.count;
+				list[lastIndex] = prev;
 			} else {
 				// where does it go
 				int index = list.BinarySearch(s);
 				// if it is exactly a current substring, that is probably an error...
-				if(index >= 0){
+				if(index >= 0) {
 					throw new Exception("Adding a replacement? There is already a substring ["+index+"] at "+s.index);
 				}
 				index = ~index;
@@ -1379,7 +1436,9 @@ public class CmdLine : MonoBehaviour {
 				list.Add(s);
 			}
 		}
-		public void AddToOrderedListMerge(List<Substring> list) { AddToOrderedListMerge(list, this); }
+		public void AddToOrderedListMerge(List<Substring> list, string text) {
+			AddToOrderedListMerge(list, this, ClosesTheNextOne(list, this, text));
+		}
 	}
 
 	private int FirstOneNotCapped(List<Substring> list, string srcText, string start, string end) {
@@ -1486,7 +1545,10 @@ public class CmdLine : MonoBehaviour {
 			Substring line;
 			string text = GetAllText();
 			if(row == lineSubstrings.Count) {
-				int start = lineSubstrings[lineSubstrings.Count - 1].index;
+				int start = 0;
+				if(lineSubstrings.Count > 0) {
+					start = lineSubstrings[lineSubstrings.Count - 1].index;
+				}
 				line = new Substring { index = start, count = text.Length - start };
 			} else {
 				line = lineSubstrings[row];
@@ -1546,9 +1608,10 @@ public class CmdLine : MonoBehaviour {
 	private const char ADDED_FOR_NULL_SPACE = '\b';
 	private const char FILLED_IN_NULL_SPACE = (char)(0xA0);
 	public void SetCursorPosition(int r, int c) {
-		Debug.Log("NEED TO WRITE GetCoordinateIndex");
+		Debug.Log("setpos " + r + " " + c);
 		IndexAndAdjustment indexAdjust = GetPositionIndex(r, c);
 		if(indexAdjust.adjustment != 0) {
+			Debug.Log("need to add " + indexAdjust.adjustment);
 			StringBuilder addition = new StringBuilder();
 			for(int i = 0; i < indexAdjust.adjustment; ++i) {
 				addition.Append(FILLED_IN_NULL_SPACE); // nonbreaking spaces
@@ -1558,8 +1621,8 @@ public class CmdLine : MonoBehaviour {
 			string a = text.Substring(0, indexAdjust.index);
 			string b = text.Substring(indexAdjust.index);
 			text = a + addition + b;
-			nonUserInput = text;
-			setText(nonUserInput);
+			_text = text;
+			setText(_text);
 		}
 		_indexWriteCursor = indexAdjust.index + indexAdjust.adjustment;
 		_coordinateWriteCursor = new Vector2Int { x = c, y = r };
@@ -1573,14 +1636,16 @@ public class CmdLine : MonoBehaviour {
 	public IndexAndAdjustment GetPositionIndex(Substring line, int c) {
 		IndexAndAdjustment result = new IndexAndAdjustment{ index = -1, adjustment = 0};
 		List<Substring> invisibles = Substring.Overlap(invisibleSubstrings, line);
-		// TODO verify consistency of all substring lists, including that invisbles don't overlap with each other...
 		if(invisibles.Count == 0) {
+			//Debug.Log("no invisibles. this is easy (?)  headed to char "+c);
 			if(line.count > c){
 				result.index = line.index + c;
 				result.adjustment = 0;
+				//Debug.Log("no adds needed: "+result.index + " " + result.adjustment);
 			} else {
 				result.index = line.Limit;
 				result.adjustment = c - line.count;
+				//Debug.Log("add neeed: "+result.index + " " + result.adjustment);
 			}
 		} else {
 			// skip to the first relevant invisible tag
@@ -1608,6 +1673,7 @@ public class CmdLine : MonoBehaviour {
 					columnsNeeded = 0;
 					result.index = i;
 					result.adjustment = 0;
+					Debug.Log("in range.");
 					break;
 				} else { // there is an invisible tag in the way...
 					delta = invis.index - i;
@@ -1623,10 +1689,11 @@ public class CmdLine : MonoBehaviour {
 					if(invisiter < invisibles.Count) { // if there are more invisibles to jump over, get the next one
 						invis = invisibles[invisiter];
 					} else if (invisiter == invisibles.Count) { // if no more invisibles, create one marking the end-of-line
-						invis = new Substring { index = line.Limit, count = 1 };
+						invis = new Substring { index = line.Limit, count = 0 };
 					} else { // if more columns are needed, mark the index, and the adjustment necessary
 						result.index = i;
 						result.adjustment = columnsNeeded;
+						columnsNeeded = 0;
 						break;
 					}
 				}
@@ -1673,14 +1740,14 @@ public class CmdLine : MonoBehaviour {
 	private void SetCommandLineWidth(int newWidth) {
 		commandLineWidth = newWidth;
 		UndoLinebreaks();
-		setText(nonUserInput);
+		setText(_text);
 		RecalculateFontSize();
 	}
 	private bool UndoLinebreaks() {
 		if(insertedLinebreaks.Count > 0) {
 			StringBuilder withoutLinebreaks = new StringBuilder();
 			int index = 0;
-			// TODO remove user input text
+			// TODO user input needs to obey the laws of linebreaks
 			string str = GetAllText();
 			for(int i = 0; i < insertedLinebreaks.Count; ++i) {
 				withoutLinebreaks.Append(str.Substring(index, insertedLinebreaks[i].index-index));
@@ -1689,13 +1756,12 @@ public class CmdLine : MonoBehaviour {
 			}
 			withoutLinebreaks.Append(str.Substring(index, str.Length - index));
 			insertedLinebreaks.Clear();
-			nonUserInput = withoutLinebreaks.ToString();
+			_text = withoutLinebreaks.ToString();
 			return true;
 		}
 		return false;
 	}
 
-	// TODO discover why only the first inputted character gets processed. Can I get ProcessText to trigger with EVERY character? would that fix things?
 	private void ProcessText(ref string str) {
 		//string str = GetAllText();
 		//Debug.Log("CLEARING");
@@ -1736,7 +1802,7 @@ public class CmdLine : MonoBehaviour {
 				if(token != null && token.Trim() == "noparse") {
 					if(noparseTagIndex < 0) { // ignore double-noparse tags
 						Substring s = new Substring { index = currentIndex, count = trueTokenLength };
-						Substring.AddToOrderedListMerge(invisibleSubstrings, s);
+						Substring.AddToOrderedListMerge(invisibleSubstrings, s, true);
 						//Substring noparseS = new Substring { index = currentIndex, count = str.Length - currentIndex };
 						tagSubstrings.Add(s);
 						noparseTagIndex = tagSubstrings.Count - 1;
@@ -1750,7 +1816,7 @@ public class CmdLine : MonoBehaviour {
 					}
 					Substring noparseTag = tagSubstrings[noparseTagIndex];
 					Substring s = new Substring { index = currentIndex, count = trueTokenLength };
-					Substring.AddToOrderedListMerge(invisibleSubstrings, s);
+					Substring.AddToOrderedListMerge(invisibleSubstrings, s, false); // don't merge noparse, leave room for a body
 					noparseTag.count = endIndex - noparseTag.index;
 					tagSubstrings[noparseTagIndex] = noparseTag;
 					parsedAToken = true;
@@ -1764,7 +1830,9 @@ public class CmdLine : MonoBehaviour {
 					}
 				}
 				if(noparseTagIndex < 0 && token != null) {
-					Substring.AddToOrderedListMerge(invisibleSubstrings, new Substring { index = currentIndex, count = trueTokenLength });
+					Substring s = new Substring { index = currentIndex, count = trueTokenLength };
+					Substring.AddToOrderedListMerge(invisibleSubstrings, s,
+					                                Substring.ClosesTheNextOne(invisibleSubstrings, s, str));
 					parsedAToken = true;
 				}
 				if(noparseTagIndex < 0 && token != null) {
@@ -1852,19 +1920,21 @@ public class CmdLine : MonoBehaviour {
 		lineSubstrings.Add(new Substring { index = lineStart, count = str.Length - lineStart });
 		//DebugPrintSubstrings(str);
 		//Debug.Log(visibleOnes.ToString());
-		if(str != nonUserInput) {
-			nonUserInput = str;
+		if(str != _text) {
+			_text = str;
 			SetRawText(str);
 		}
 	}
 
-
+	// TODO find where ProcessText is necessary, and where it can be skipped. this is a potentially huge CPU cost.
 	/// <param name="text">What the the output text should be (turns current user input into text output)</param>
-	public void setText(string text) {
+	public void setText(string text, bool reprocessText = true) {
 		// add linebreaks at line limits, and mark those as invisible tags
-		nonUserInput = text;
-		ProcessText(ref nonUserInput);
-		SetRawText(nonUserInput);
+		_text = text;
+		if(reprocessText) {
+			ProcessText(ref _text);
+		}
+		SetRawText(_text);
 		// if text is replaced during input, this refreshes tags around input
 		if(inputvalidator != null) {
 			inputvalidator.CheckIfUserInputTagsArePresent(text);
@@ -1999,30 +2069,95 @@ public class CmdLine : MonoBehaviour {
 	public delegate void DoAfterVisiblityChange();
 	public static void SetText(string text) { Instance.setText(text); }
 	/// <returns>The all text, including user input</returns>
-	public string GetAllText() { return (_tmpInputField) ? GetRawText() : nonUserInput; }
+	public string GetAllText() { return (_tmpInputField) ? GetRawText() : _text; }
 
 	/// <param name="text">Text to add as output, also turning current user input into text output</param>
 	public void AddText(string text, bool toEnd = false) {
-		// TODO clean up this function
-		//EndUserInputIfNeeded();
 		string str = GetAllText();
-		if(indexWherePromptWasPrintedRecently >= 0) {
-			if(GetRawText().Length >= 0) {
-				//Debug.Log(indexWherePromptWasPrintedRecently+" vs "+GetRawText().Length);
-				if(indexWherePromptWasPrintedRecently < GetRawText().Length) {
-					setText(str.Substring(0, indexWherePromptWasPrintedRecently) + text);
-				} else {
-					setText(str + text);
-				}
-			} else {
-				setText(text);
+
+		if(WriteCursor == str.Length || toEnd) {
+			if(indexWherePromptWasPrintedRecently >= 0) {
+				str = str.Substring(0, indexWherePromptWasPrintedRecently);
+				indexWherePromptWasPrintedRecently = -1;
 			}
-		} else {
 			setText(str + text);
+			WriteCursor = GetAllText().Length;
+		} else {
+			Debug.Log("NEED TO MAKE IT HAPPEN! "+WriteCursor); // TODO
+			// break apart the text to write into lines, including if the line would need to wrap a line (mark that)
+			List<string> lines = new List<string>();
+			int i = 0;
+			while(i < text.Length) {
+				string nextLine = "";
+				int eol = text.IndexOf('\n');
+				if(eol == -1) {
+					eol = text.Length;
+				}
+				nextLine = text.Substring(i, eol - i);
+				//int visibleChars = VisibleCharactersInLine(nextLine, 0, nextLine.Length);
+				int indexOfBreakingChar = VisibleCharactersInLine(nextLine, 0, nextLine.Length, CommandLineWidth);
+				if(indexOfBreakingChar >= 0) {
+					nextLine = text.Substring(i, indexOfBreakingChar) + "\n"; // TODO if the line has a newline at the end, that means it was added as a hard break. Add the hard break to the substrings list
+					i += indexOfBreakingChar - i;
+				} else {
+					int len = eol - i;
+					nextLine = text.Substring(i, len);
+					i += len;
+					if(i < text.Length) i++;// skip the newline character too
+				}
+				lines.Add(nextLine);
+			}
+			string o = "Need to add:\n";
+			for(int e = 0; e < lines.Count; ++e){
+				o += "'" + lines[e] + "'\n";
+			}
+			Debug.Log(o);
+				// find out how much text needs to be printed out in a line
+				// find out how much room there is in the line that the write cursor is in
+				// if there is enough room, do some text replacement. be careful of formatting tags! some tags may need to be pushed, some may need to be split.
+				// if there is not enough room, find out how much room is needed, then do text replacement
+				// go to the next line.
+				// setText
 		}
-		indexWherePromptWasPrintedRecently = -1;
-		WriteCursor = GetAllText().Length;
 	}
+
+	/// <summary>Visibles the characters in line.</summary>
+	/// <returns>The characters in line if maxCount is less than 0. Otherwise, the index where the maxCount visible character was printed, or -1 if there arent enough characters.</returns>
+	/// <param name="text">Text.</param>
+	/// <param name="start">Start.</param>
+	/// <param name="end">End.</param>
+	/// <param name="maxCount">Max count.</param>
+	public int VisibleCharactersInLine(string text, int start, int end, int maxCount = -1) {
+		int count = 0;
+		for(int i = start; i < end; ++i) {
+			char c = text[i];
+			switch(c) {
+			case '\0': case '\a': case '\b': case '\t': case '\n': case '\r': // @debug
+				throw new Exception("VisibleCharactersInLine should not have to deal with char "+(int)c+"."); break;
+			case '<':
+				int tend = text.IndexOf('>', i+1);
+				int tendalt = text.IndexOf(' ', i + 1);
+				if(tendalt < 0) tendalt = text.Length;
+				int tokenEnd = Math.Min(tend, tendalt);
+				string tagname = text.Substring(i + 1, (i + 1) - tokenEnd);
+				if(tagname.StartsWith("#") || tagname.StartsWith("/") || Array.IndexOf(Util.tagsTMP,tagname) >= 0) {
+					i = tend;
+				}
+				break;
+			default:
+				count++;
+				break;
+			}
+			if(maxCount >= 0 && count > maxCount) {
+				return i;
+			}
+		}
+		if(maxCount >= 0) {
+			return -1;
+		}
+		return count;
+	}
+
 	/// <param name="line">line to add as output, also turning current user input into text output</param>
 	public void println(string line) {
 		AddText(line + "\n");
@@ -2124,6 +2259,7 @@ public class CmdLine : MonoBehaviour {
 	#endregion // Enable/Disable
 	#region MonoBehaviour
 	void Start() {
+		WriteCursor = 0;
 		if(_instance == null) { _instance = this; }
 		showBottomWhenTextIsAdded = true;
 		NeedToRefreshUserPrompt = true;
@@ -2241,9 +2377,9 @@ public class CmdLine : MonoBehaviour {
 				// in case of keyboard mashing...
 				if(GetUserInputLength() > 0) {
 					string userInput = GetUserInput();
-					setText(nonUserInput); GetInputValidator().EndUserInput(true);
+					setText(_text); GetInputValidator().EndUserInput(true);
 					PrintPrompt(); GetInputValidator().AddUserInput(userInput);
-					nonUserInput = _tmpInputField.text.Substring(0, _tmpInputField.text.Length - userInput.Length);
+					_text = _tmpInputField.text.Substring(0, _tmpInputField.text.Length - userInput.Length);
 				} else { PrintPrompt(); }
 				NeedToRefreshUserPrompt = false;
 			}
