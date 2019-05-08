@@ -114,11 +114,14 @@ namespace NS {
 				if(story.state.CurrentState != this) { return; }
 				int i = story.letterIndex;
 				if(i < text.Length) {
-					float delay = story.msPerCharacter, mul;
-					char nextLetter = text[i++];
-					if(story.specificCharMultiplier.TryGetValue(nextLetter, out mul)) {
-						delay *= mul;
-					}
+					//float delay = story.msPerCharacter, mul;
+					//char nextLetter = text[i++];
+					//if(story.specificCharMultiplier.TryGetValue(nextLetter, out mul)) {
+					//	delay *= mul;
+					//}
+					int lettersProcessed = 0;
+					float delay = story.TimeCostOfChar(text, i, out lettersProcessed);
+					i += lettersProcessed;
 					NS.Chrono.setTimeoutRealtime(() => { AdvanceLetter(story); }, (long)delay);
 					if(delay != 0) {
 						story.TriggerTextNoise();
@@ -213,16 +216,29 @@ namespace NS {
 			[HideInInspector]
 			public int commandIndex, letterIndex;
 			public float msPerCharacter = 50;
-			public Dictionary<char, float> specificCharMultiplier = new Dictionary<char, float>() {
-				{',', 5}, {'.', 10}, {':', 5}, {';', 7}, {'\t', 0}, {'\'', 5}, {'\"', 5}, {'?', 15}, {'!', 15}, {'\n', 5},
+			public Dictionary<string, float> specificCharMultiplier = new Dictionary<string, float>() {
+				{",", 5}, {". ", 10}, {":", 5}, {";", 7}, {"\t", 0}, {"\'", 5}, {"\"", 5}, {"?", 15}, {"!", 15}, {"\n", 5},
 			};
+			public float TimeCostOfChar(string s, int index, out int numLetters) {
+				float delay = msPerCharacter;
+				numLetters = 1;
+				string sub = s.Substring(index);
+				foreach(var kvp in specificCharMultiplier) {
+					if(sub.StartsWith(kvp.Key)) {
+						delay *= kvp.Value;
+						numLetters = kvp.Key.Length;
+						break;
+					}
+				}
+				return delay;
+			}
 
 			private Dictionary<string, NS.StateMachine.Branch> allBranches = 
 				new Dictionary<string, NS.StateMachine.Branch>();
 
 			public void TriggerTextNoise() {
 				if(textNoise != null) {
-					Noisy.PlaySound(textNoise);
+					Noisy.PlaySound(textNoise, Vector3.zero, false, false, "_letter_", 0.15f);
 				}
 			}
 

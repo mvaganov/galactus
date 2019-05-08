@@ -4,8 +4,9 @@
 [
 	B{name:intro,list:[
 		{desc:'the first dialog'}
-		S{text:"Welcome to NonStandard Assets! Mr. V made these code assets, which he thinks should be standard in Unity.\n\nWhat would you like information about?"
+		S{text:"Welcome to NonStandard Assets! Mr. V made these code assets, which he thinks should be standard in Unity."
 		portraitArea:BottomRight portrait:MrV portraitScale:.5 bgcolor:#0ff8 keepOnScreen: true textPadding:[0,0,50,0]}
+		S{text:"What would you like information about?" portrait:MrV}
 		O{next:timer,text:'Timer: time-keeping and setTimeout functionality'}
 		O{next:omu,  text:'OMU: Object Modeling for Unity'}
 		O{next:noisy,text:'Noisy: interactive sound scripting'}
@@ -26,7 +27,8 @@
 		O{next:intro,text:'main menu'}
 	]}
 	B{name:omu,list:[
-		S{text:'OMU, or Object Modeling for Unity, is a system that uses a JSON-like script to serialize and de-serialize C# objects.'},
+		S{text:'OMU, or Object Modeling for Unity, is a system that uses a JSON-like script to serialize and de-serialize C# objects.'
+		portrait:null},
 		S{text:'OMU is most useful for deserializing data structures into a human-readable, but still highly-compact script, for saving, or transmitting over the internet'},
 		S{text:'The script that was used to generate this dialog-system is written using OMU. The format of the script is based on the C# datastructures used in the Story system'},
 		O{next:intro,text:'main menu'}

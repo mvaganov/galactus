@@ -583,7 +583,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &433071257
 RectTransform:
   m_ObjectHideFlags: 0
@@ -626,7 +626,7 @@ MonoBehaviour:
   textNoise: {fileID: 8300000, guid: 774486030b696474e8b3cf7f178123da, type: 3}
   commandIndex: 0
   letterIndex: 0
-  msPerCharacter: 50
+  msPerCharacter: 25
   textSource:
     data: {fileID: 4900000, guid: b3959a56b79e14e32b36066b931afec3, type: 3}
   startBranchName: intro
@@ -6208,7 +6208,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 20, y: 20}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &789081040
 MonoBehaviour:
@@ -6295,7 +6295,7 @@ GameObject:
   - component: {fileID: 917397950}
   - component: {fileID: 917397949}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: contingencies
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7631,13 +7631,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c831c060ab2e49dabab4758482907b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxMillisecondsPerUpdate: 100
-  queue: []
-  queueRealtime: []
   seconds: 1
   whatToActivate:
     data: {fileID: 2100000, guid: 8345d53ad09fc374d82b29255eeef5de, type: 2}
   repeat: 0
+  deactivate: 0
 --- !u!1 &2072418931
 GameObject:
   m_ObjectHideFlags: 0
