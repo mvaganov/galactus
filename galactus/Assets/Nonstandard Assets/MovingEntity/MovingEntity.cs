@@ -249,7 +249,6 @@ public class MovingEntity : MOB
     public override void MoveLogic() {
         if (IsBrakeOn ){//}&& (IsStableOnGround || gravity.application != GravityState.useGravity)) {
             ApplyBrakes (Acceleration);
-            Debug.Log("brakes A");
         }
         IsMovingIntentionally = InputMoveDirection != Vector3.zero;
         if(gravity.application == GravityState.useGravity) {
@@ -258,11 +257,12 @@ public class MovingEntity : MOB
                 //InputMoveDirection = NormalizeDirectionTo (InputMoveDirection, GroundNormal);
                 //IsMovingIntentionally = InputMoveDirection != Vector3.zero;
             }
-            //ApplyMove (Acceleration);
+            ApplyMove (Acceleration, MoveSpeed);
             //jump.FixedUpdate(this);
         } else if(!IsBrakeOn) {
-            //base.ApplyMove(Acceleration);
+            base.ApplyMove(Acceleration, MoveSpeed);
         }
+		UpdateFacing();
     }
     public delegate void delegate_UpdateFacing(Vector3 forward,Vector3 up);
     public delegate_UpdateFacing UpdateFacingDelegate = null;
@@ -282,38 +282,39 @@ public class MovingEntity : MOB
     GameObject gravityForceLine, line_f, line_r;
 #endif
 
-    //public override void UpdateFacing() {
-    //    Vector3 correctUp;      // TODO make this a member variable, and only assign here if it's zero? or just set it to ground normal?
-    //    if(!IsCollidingWithGround && !IsStableOnGround && float.IsInfinity(HeightFromGround)) {
-    //        correctUp = GetUpOrientation();
-    //    } else {
-    //        correctUp = (GroundNormal != Vector3.zero && gravity.application != GravityState.none) ? GroundNormal:transform.up;
-    //    }
-    //    // turn IF needed
-    //    if ((InputLookDirection != Vector3.zero
-    //    && InputLookDirection != transform.forward) || (correctUp != transform.up)) {
-    //        Vector3 correctRight, correctForward;
-    //        //correctRight = Vector3.Cross (correctUp, InputLookDirection);
-    //        //if (correctRight == Vector3.zero) {
-    //        //    correctRight = Vector3.Cross (correctUp, (InputLookDirection != transform.forward)?transform.forward:transform.up);
-    //        //}
-    //        //correctForward = Vector3.Cross (correctRight, correctUp).normalized;
-    //        CalculateDirections(InputLookDirection, correctUp, out correctRight, out correctForward);
-    //        TurnToFace (correctForward, correctUp);
-    //        if (UpdateFacingDelegate != null) {
-    //            Vector3 upOr = GetUpOrientation();
-    //            if (correctUp != upOr) {
-    //                correctUp = upOr;
-    //                correctRight = Vector3.Cross(correctUp, InputLookDirection);
-    //                if (correctRight == Vector3.zero) {
-    //                    correctRight = Vector3.Cross(correctUp, (InputLookDirection != transform.forward) ? transform.forward : transform.up);
-    //                }
-    //                correctForward = Vector3.Cross(correctRight, correctUp).normalized;
-    //            }
-    //            UpdateFacingDelegate(correctForward, correctUp);
-    //        }
-    //    }
-    //}
+    public override void UpdateFacing() {
+        Vector3 correctUp;      // TODO make this a member variable, and only assign here if it's zero? or just set it to ground normal?
+        if(!IsCollidingWithGround && !IsStableOnGround && float.IsInfinity(HeightFromGround)) {
+            correctUp = GetUpOrientation();
+        } else {
+            correctUp = (GroundNormal != Vector3.zero && gravity.application != GravityState.none) ? GroundNormal : transform.up;
+        }
+        // turn IF needed
+        if ((InputLookDirection != Vector3.zero
+        && InputLookDirection != transform.forward) || (correctUp != transform.up)) {
+            Vector3 correctRight, correctForward;
+            //correctRight = Vector3.Cross (correctUp, InputLookDirection);
+            //if (correctRight == Vector3.zero) {
+            //    correctRight = Vector3.Cross (correctUp, (InputLookDirection != transform.forward)?transform.forward:transform.up);
+            //}
+            //correctForward = Vector3.Cross (correctRight, correctUp).normalized;
+            CalculateDirections(InputLookDirection, correctUp, out correctRight, out correctForward);
+            TurnToFace (correctForward, correctUp);
+            if (UpdateFacingDelegate != null) {
+                Vector3 upOr = GetUpOrientation();
+                if (correctUp != upOr) {
+                    correctUp = upOr;
+                    correctRight = Vector3.Cross(correctUp, InputLookDirection);
+                    if (correctRight == Vector3.zero) {
+                        correctRight = Vector3.Cross(correctUp, (InputLookDirection != transform.forward) ? transform.forward : transform.up);
+                    }
+                    correctForward = Vector3.Cross(correctRight, correctUp).normalized;
+                }
+                UpdateFacingDelegate(correctForward, correctUp);
+            }
+        }
+    }
+
     protected override void EnforceSpeedLimit() {
         if(gravity.application == GravityState.useGravity) {
             float actualSpeed = Vector3.Dot(InputMoveDirection, rb.velocity);
