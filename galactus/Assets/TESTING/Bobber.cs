@@ -163,7 +163,7 @@ public class Bobber : MonoBehaviour {
 		if (headTiltDelta == 0)
 			return;
 		if ((currentDirection <= 0) != (headTiltDelta <= 0)) {
-			steps.Add (new Step(NS.Timer.now(), currentAngleRotated, currentForwardTilt));
+			steps.Add (new Step(NS.Chrono.Now, currentAngleRotated, currentForwardTilt));
 			if (steps.Count > warmupSteps) {
 				steps.RemoveAt (0);
 			}

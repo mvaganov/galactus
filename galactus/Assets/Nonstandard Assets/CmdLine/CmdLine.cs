@@ -2133,7 +2133,7 @@ public class CmdLine : MonoBehaviour {
 			char c = text[i];
 			switch(c) {
 			case '\0': case '\a': case '\b': case '\t': case '\n': case '\r': // @debug
-				throw new Exception("VisibleCharactersInLine should not have to deal with char "+(int)c+"."); break;
+				throw new Exception("VisibleCharactersInLine should not have to deal with char "+(int)c+".");
 			case '<':
 				int tend = text.IndexOf('>', i+1);
 				int tendalt = text.IndexOf(' ', i + 1);

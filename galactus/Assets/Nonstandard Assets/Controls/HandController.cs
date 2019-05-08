@@ -238,29 +238,30 @@ public class HandController : MonoBehaviour {
 	}
 
 	private void PopulateController(GameObject hand) {
-		Rigidbody rb = Procure<Rigidbody>(hand);
-		rb.useGravity = false; rb.isKinematic = true;
-		VRTK.VRTK_InteractTouch toucher = Procure<VRTK.VRTK_InteractTouch>(hand);
-		//	sphere collider, or collider that matches fingers+hands
-		Collider c = hand.GetComponent<Collider>();
-		if (c == null) {
-			SphereCollider sc = hand.AddComponent<SphereCollider> ();
-			sc.isTrigger = true;
-			sc.radius = 0.0375f;
-			c = sc;
-		}
-		VRTK.VRTK_InteractGrab grabber = Procure<VRTK.VRTK_InteractGrab> (hand);
-		grabber.controllerAttachPoint = rb;
-		grabber.interactTouch = toucher;
-		grabber.ControllerStartGrabInteractableObject += (sender, args)=>{
-			CollisionSwitch (args.target, true);
-		};
-		grabber.ControllerUngrabInteractableObject += (sender, args)=>{
-			CollisionSwitch (args.target, false);
-		};
-		VRTK.VRTK_InteractUse user = Procure<VRTK.VRTK_InteractUse> (hand);
-		user.interactTouch = toucher;
-		user.interactGrab = grabber;
+		// FIXME use VRTK4
+		//Rigidbody rb = Procure<Rigidbody>(hand);
+		//rb.useGravity = false; rb.isKinematic = true;
+		//VRTK.VRTK_InteractTouch toucher = Procure<VRTK.VRTK_InteractTouch>(hand);
+		////	sphere collider, or collider that matches fingers+hands
+		//Collider c = hand.GetComponent<Collider>();
+		//if (c == null) {
+		//	SphereCollider sc = hand.AddComponent<SphereCollider> ();
+		//	sc.isTrigger = true;
+		//	sc.radius = 0.0375f;
+		//	c = sc;
+		//}
+		//VRTK.VRTK_InteractGrab grabber = Procure<VRTK.VRTK_InteractGrab> (hand);
+		//grabber.controllerAttachPoint = rb;
+		//grabber.interactTouch = toucher;
+		//grabber.ControllerStartGrabInteractableObject += (sender, args)=>{
+		//	CollisionSwitch (args.target, true);
+		//};
+		//grabber.ControllerUngrabInteractableObject += (sender, args)=>{
+		//	CollisionSwitch (args.target, false);
+		//};
+		//VRTK.VRTK_InteractUse user = Procure<VRTK.VRTK_InteractUse> (hand);
+		//user.interactTouch = toucher;
+		//user.interactGrab = grabber;
 	}
 
 	Vector3 GetCameraPivotPoint() {
@@ -420,9 +421,10 @@ public class HandController : MonoBehaviour {
 	public static GameObject GetInteractableAt(Vector3 p, float r) {
 		Collider[] c = Physics.OverlapSphere (p, r);
 		for (int i = 0; i < c.Length; ++i) {
-			if (c [i].gameObject.GetComponent<VRTK.VRTK_InteractableObject> () != null) {
-				return c[i].gameObject;
-			}
+			// FIXME use VRTK4
+			//if(c [i].gameObject.GetComponent<VRTK.VRTK_InteractableObject> () != null) {
+			//	return c[i].gameObject;
+			//}
 		}
 		return null;
 	}

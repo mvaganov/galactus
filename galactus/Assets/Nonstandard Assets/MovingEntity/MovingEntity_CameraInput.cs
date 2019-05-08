@@ -74,10 +74,11 @@ public class MovingEntity_CameraInput : MOB_CameraInput {
         float input_forward = Input.GetAxis(controls.forward);
         float input_right = Input.GetAxis(controls.right);
         Vector3 MoveDirection = Vector3.zero;
-        Vector3 p = controlling.transform.position + pc.GroundNormal;
-        if (input_forward != 0 || input_right != 0) {
+        Vector3 p = controlling.transform.position;
+		if(pc != null) { p += pc.GroundNormal; }
+		if (input_forward != 0 || input_right != 0) {
             Vector3 currentRight, currentForward;
-            if (pc.gravity.application == Platformer.GravityState.useGravity) {
+            if (pc != null && pc.gravity.application == Platformer.GravityState.useGravity) {
                 GetMoveVectors (pc.GroundNormal
                     /*isStableOnGround?GroundNormal:UpDirection*/,
                     out currentForward, out currentRight);

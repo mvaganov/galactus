@@ -4,7 +4,7 @@
 			if (pauseStatus == false) { DoActivateTrigger (); }
 		}
 		void Start() {
-			NS.ActivateAnything.EquateUnityEditorPauseWithApplicationPause (OnApplicationPause);
+			NS.Chrono.EquateUnityEditorPauseWithApplicationPause (OnApplicationPause);
 		}
 	}
 }

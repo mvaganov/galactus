@@ -221,21 +221,22 @@ namespace NS {
 		private void PopulateController(GameObject hand) {
 			Rigidbody rb = Procure<Rigidbody>(hand);
 			rb.useGravity = false; rb.isKinematic = true;
-			VRTK.VRTK_InteractTouch toucher = Procure<VRTK.VRTK_InteractTouch>(hand);
-			//	sphere collider, or collider that matches fingers+hands
-			Collider c = hand.GetComponent<Collider>();
-			if (c == null) {
-				SphereCollider sc = hand.AddComponent<SphereCollider> ();
-				sc.isTrigger = true;
-				sc.radius = 0.0375f;
-				c = sc;
-			}
-			VRTK.VRTK_InteractGrab grabber = Procure<VRTK.VRTK_InteractGrab> (hand);
-			grabber.controllerAttachPoint = rb;
-			grabber.interactTouch = toucher;
-			VRTK.VRTK_InteractUse user = Procure<VRTK.VRTK_InteractUse> (hand);
-			user.interactTouch = toucher;
-			user.interactGrab = grabber;
+			// FIXME use VRTK4
+			//VRTK.VRTK_InteractTouch toucher = Procure<VRTK.VRTK_InteractTouch>(hand);
+			////	sphere collider, or collider that matches fingers+hands
+			//Collider c = hand.GetComponent<Collider>();
+			//if (c == null) {
+			//	SphereCollider sc = hand.AddComponent<SphereCollider> ();
+			//	sc.isTrigger = true;
+			//	sc.radius = 0.0375f;
+			//	c = sc;
+			//}
+			//VRTK.VRTK_InteractGrab grabber = Procure<VRTK.VRTK_InteractGrab> (hand);
+			//grabber.controllerAttachPoint = rb;
+			//grabber.interactTouch = toucher;
+			//VRTK.VRTK_InteractUse user = Procure<VRTK.VRTK_InteractUse> (hand);
+			//user.interactTouch = toucher;
+			//user.interactGrab = grabber;
 		}
 
 		Vector3 GetCameraPivotPoint() {
@@ -370,9 +371,10 @@ namespace NS {
 		public static GameObject GetInteractableAt(Vector3 p, float r) {
 			Collider[] c = Physics.OverlapSphere (p, r);
 			for (int i = 0; i < c.Length; ++i) {
-				if (c [i].gameObject.GetComponent<VRTK.VRTK_InteractableObject> () != null) {
-					return c[i].gameObject;
-				}
+				// FIXME use VRTK4
+				//if (c [i].gameObject.GetComponent<VRTK.VRTK_InteractableObject> () != null) {
+				//	return c[i].gameObject;
+				//}
 			}
 			return null;
 		}
@@ -394,59 +396,61 @@ namespace NS {
 					if (wasTrigger != useButtonHeld[currentMoveControllerIndex]) { if (useButtonHeld[currentMoveControllerIndex]) { v.DoTrigger (); } else { v.UndoTrigger (); } }
 				}
 			}
-			VRTK.VRTK_InteractGrab grabber = hand.GetComponent<VRTK.VRTK_InteractGrab> ();
-			if (grabButtonHeld[currentMoveControllerIndex]) {
-				if (grabber.GetGrabbedObject () == null) {
-					GameObject grabbed = GetInteractableAt(hand.transform.position, .125f);
-					if (grabbed != null) {
-						touched[currentMoveControllerIndex] = grabbed;
-						hand.GetComponent<VRTK.VRTK_InteractTouch> ().ForceTouch (grabbed);
-						grabber.AttemptGrab ();
-					}
-				}
-			} else {
-				if (grabber.GetGrabbedObject () != null) {
-					grabber.ForceRelease (true);
-				} else {
-					GameObject touchedJustNow = GetInteractableAt(hand.transform.position, .125f);
-					VRTK.VRTK_InteractTouch toucher = hand.GetComponent<VRTK.VRTK_InteractTouch> ();
-					if (touchedJustNow != touched[currentMoveControllerIndex]) {
-						toucher.ForceStopTouching();
-						if (touched[currentMoveControllerIndex] != null) {
-							VRTK.VRTK_InteractableObject iobj = touched[currentMoveControllerIndex].GetComponent<VRTK.VRTK_InteractableObject> ();
-							iobj.StopTouching (toucher);
-						}
-					}
-					touched[currentMoveControllerIndex] = touchedJustNow;
-					if (touchedJustNow != null) {
-						toucher.ForceTouch (touchedJustNow);
-					}
-				}
-			}
-			VRTK.VRTK_InteractUse user = hand.GetComponent<VRTK.VRTK_InteractUse> ();
-			if (useButtonHeld [currentMoveControllerIndex]) {
-				user.AttemptUse ();
-			} else {
-				user.ForceStopUsing ();
-			}
+			// FIXME use VRTK4
+			//VRTK.VRTK_InteractGrab grabber = hand.GetComponent<VRTK.VRTK_InteractGrab> ();
+			//if (grabButtonHeld[currentMoveControllerIndex]) {
+			//	if (grabber.GetGrabbedObject () == null) {
+			//		GameObject grabbed = GetInteractableAt(hand.transform.position, .125f);
+			//		if (grabbed != null) {
+			//			touched[currentMoveControllerIndex] = grabbed;
+			//			hand.GetComponent<VRTK.VRTK_InteractTouch> ().ForceTouch (grabbed);
+			//			grabber.AttemptGrab ();
+			//		}
+			//	}
+			//} else {
+			//	if (grabber.GetGrabbedObject () != null) {
+			//		grabber.ForceRelease (true);
+			//	} else {
+			//		GameObject touchedJustNow = GetInteractableAt(hand.transform.position, .125f);
+			//		VRTK.VRTK_InteractTouch toucher = hand.GetComponent<VRTK.VRTK_InteractTouch> ();
+			//		if (touchedJustNow != touched[currentMoveControllerIndex]) {
+			//			toucher.ForceStopTouching();
+			//			if (touched[currentMoveControllerIndex] != null) {
+			//				VRTK.VRTK_InteractableObject iobj = touched[currentMoveControllerIndex].GetComponent<VRTK.VRTK_InteractableObject> ();
+			//				iobj.StopTouching (toucher);
+			//			}
+			//		}
+			//		touched[currentMoveControllerIndex] = touchedJustNow;
+			//		if (touchedJustNow != null) {
+			//			toucher.ForceTouch (touchedJustNow);
+			//		}
+			//	}
+			//}
+			//VRTK.VRTK_InteractUse user = hand.GetComponent<VRTK.VRTK_InteractUse> ();
+			//if (useButtonHeld [currentMoveControllerIndex]) {
+			//	user.AttemptUse ();
+			//} else {
+			//	user.ForceStopUsing ();
+			//}
 		}
 		public void LetGoOfEverything() {
 			for (int i = 0; i < moveControllers.Length; ++i) {
 				Transform t = moveControllers [i];
 				if (t != null) {
 					GameObject hand = t.gameObject;
-					VRTK.VRTK_InteractUse user = hand.GetComponent<VRTK.VRTK_InteractUse> ();
-					if (user != null) {
-						user.ForceStopUsing ();
-					}
-					VRTK.VRTK_InteractTouch toucher = hand.GetComponent<VRTK.VRTK_InteractTouch> ();
-					if (toucher != null) {
-						if (touched != null && touched [i] != null) {
-							VRTK.VRTK_InteractableObject iobj = touched [i].GetComponent<VRTK.VRTK_InteractableObject> ();
-							iobj.StopTouching (toucher);
-						}
-						toucher.ForceStopTouching ();
-					}
+					// FIXME use VRTK4
+					//VRTK.VRTK_InteractUse user = hand.GetComponent<VRTK.VRTK_InteractUse> ();
+					//if (user != null) {
+					//	user.ForceStopUsing ();
+					//}
+					//VRTK.VRTK_InteractTouch toucher = hand.GetComponent<VRTK.VRTK_InteractTouch> ();
+					//if (toucher != null) {
+					//	if (touched != null && touched [i] != null) {
+					//		VRTK.VRTK_InteractableObject iobj = touched [i].GetComponent<VRTK.VRTK_InteractableObject> ();
+					//		iobj.StopTouching (toucher);
+					//	}
+					//	toucher.ForceStopTouching ();
+					//}
 				}
 			}
 		}
