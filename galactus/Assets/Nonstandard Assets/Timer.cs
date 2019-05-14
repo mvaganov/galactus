@@ -9,7 +9,7 @@ using System.IO;
 
 // author: mvaganov@hotmail.com
 // license: Copyfree, public domain. This is free code! Great artists, steal this code!
-// latest version at: https://pastebin.com/raw/h61nAC3E -- internally use ticks instead of ms (2019/05/07)
+// latest version at: https://pastebin.com/raw/h61nAC3E -- pause (2019/05/10)
 namespace NS {
 	/* // example code:
 	NS.Timer.setTimeout (() => {
@@ -51,7 +51,7 @@ namespace NS {
 
 		/// The singleton
 		private static Chrono s_instance = null;
-		[Tooltip("keeps track of how long each update takes. If a timer-update takes longer than this, stop executing events and do them later. less than 0 for no limit.")]
+		[Tooltip("keeps track of how long each update takes. If a timer-update takes longer than this, stop executing events and do them later. Less than 0 for no limit, 0 for one event per update.")]
 		public int maxMillisecondsPerUpdate = 100;
 		private long maxTicksPerUpdate;
 		/// queue of things to do using game time. use this for in-game events that can be paused or slowed down with time dialation.
@@ -60,11 +60,18 @@ namespace NS {
 		public List<ToDo> queueRealtime = new List<ToDo>();
 		/// While this is zero, use system time. As soon as time becomes perturbed, by pause or time scale, keep track of game-time. To reset time back to realtime, use SynchToRealtime()
 		private long alternativeTicks = 0;
+		[Tooltip("stop advancing time & executing the queue?")]
+		public bool paused = false;
+		private bool pausedLastFrame = false;
 		/// The timer counts in milliseconds, Unity measures in fractions of a second. This value reconciles fractional milliseconds.
 		private float leftOverTime = 0;
 		/// if actions are interrupted, probably by a deadline, this keeps track of what was being done
 		private List<ToDo> _currentlyDoing = new List<ToDo>();
 		private int currentlyDoneThingIndex = 0;
+		[Tooltip("do this when the timer is paused")]
+		public UnityEngine.Events.UnityEvent onPause;
+		[Tooltip("do this when the timer is unpaused")]
+		public UnityEngine.Events.UnityEvent onUnpause;
 
 		[System.Serializable]
 		public class ToDo {
@@ -194,6 +201,8 @@ namespace NS {
 		}
 
 		//void OnApplicationPause(bool paused) { if(alternativeTime == 0) { alternativeTime = now; } }
+		void Pause() { paused = true; }
+		void Unpause() { paused = false; }
 		void OnApplicationPause(bool paused) { if(alternativeTicks == 0) { alternativeTicks = nowTicks; } }
 		void OnDisable() { OnApplicationPause(true); }
 		void OnEnable() { OnApplicationPause(false); }
@@ -225,13 +234,26 @@ namespace NS {
 		void Start() { Init(); RefreshTiming(); }
 
 		void Update() {
+			// handle pause behavior
+			if(paused) {
+				if(!pausedLastFrame) {
+					alternativeTicks = nowTicks;
+					if(onPause != null) { onPause.Invoke(); }
+					pausedLastFrame = true;
+				}
+			}
+			else if(pausedLastFrame) {
+				if(onUnpause != null) { onUnpause.Invoke(); }
+				pausedLastFrame = false;
+			}
+			// pump the timer queues, both realtime (takes priority) and game-time
 			long now_t, nowForReals = NowRealTicks;
 			long deadline = nowForReals + maxTicksPerUpdate;
 			int thingsDone = 0;
 			if(queueRealtime.Count > 0) {
 				thingsDone = DoWhatIsNeededNow(queueRealtime, nowForReals, deadline);
 			}
-			if(queue.Count > 0) {
+			if(queue.Count > 0 && !paused) {
 				if(alternativeTicks == 0) {
 					now_t = nowForReals;
 					if(Time.timeScale != 1) { alternativeTicks = now_t; }

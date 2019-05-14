@@ -204,6 +204,7 @@ namespace NS {
 			grabButtonHeld = new bool[moveControllers.Length];
 			useButtonHeld = new bool[moveControllers.Length];
 			touched = new GameObject[moveControllers.Length];
+			if(touched != null) {;} // kills warning about touched not being used, TODO use touched with VRTK4
 			handRotationRelativeToCamera = new Quaternion[moveControllers.Length];
 			originalPositions = new TransformData[moveControllers.Length];
 			for (int i = 0; i < moveControllers.Length; ++i) {
