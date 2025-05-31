@@ -24,6 +24,35 @@ ModelImporter:
     100036: upper_arm_R
     100038: upper_leg_L
     100040: upper_leg_R
+    100042: Camera
+    100044: foot.L
+    100046: foot.R
+    100048: hand.L
+    100050: hand.L_end
+    100052: hand.R
+    100054: hand.R_end
+    100056: head_end
+    100058: Lamp
+    100060: leg IK.L
+    100062: leg IK.L_end
+    100064: leg IK.R
+    100066: leg IK.R_end
+    100068: lower arm.L
+    100070: lower arm.R
+    100072: lower leg.L
+    100074: lower leg.R
+    100076: pole target knee.L
+    100078: pole target knee.L_end
+    100080: pole target knee.R
+    100082: pole target knee.R_end
+    100084: Toes.L
+    100086: Toes.L_end
+    100088: Toes.R
+    100090: Toes.R_end
+    100092: upper arm.L
+    100094: upper arm.R
+    100096: upper leg.L
+    100098: upper leg.R
     400000: //RootNode
     400002: Armature
     400004: Cube
@@ -45,6 +74,36 @@ ModelImporter:
     400036: upper_arm_R
     400038: upper_leg_L
     400040: upper_leg_R
+    400042: Camera
+    400044: foot.L
+    400046: foot.R
+    400048: hand.L
+    400050: hand.L_end
+    400052: hand.R
+    400054: hand.R_end
+    400056: head_end
+    400058: Lamp
+    400060: leg IK.L
+    400062: leg IK.L_end
+    400064: leg IK.R
+    400066: leg IK.R_end
+    400068: lower arm.L
+    400070: lower arm.R
+    400072: lower leg.L
+    400074: lower leg.R
+    400076: pole target knee.L
+    400078: pole target knee.L_end
+    400080: pole target knee.R
+    400082: pole target knee.R_end
+    400084: Toes.L
+    400086: Toes.L_end
+    400088: Toes.R
+    400090: Toes.R_end
+    400092: upper arm.L
+    400094: upper arm.R
+    400096: upper leg.L
+    400098: upper leg.R
+    2000000: Camera
     2100000: Material
     2100002: left
     2100004: right
@@ -65,6 +124,7 @@ ModelImporter:
     7400022: cinematic_fall
     7400024: fetal_ball
     9500000: //RootNode
+    10800000: Lamp
     13700000: Cube
     2186277476908879412: ImportLogs
   externalObjects: {}
@@ -79,28 +139,11 @@ ModelImporter:
     resampleCurves: 1
     optimizeGameObjects: 0
     motionNodeName: <Root Transform>
-    rigImportErrors: 
+    rigImportErrors: "Avatar creation failed:\n\tTransform 'upper_leg_L' for human
+      bone 'LeftUpperLeg' not found\n"
     rigImportWarnings: 
     animationImportErrors: 
-    animationImportWarnings: "\nClip 'cinematic_fall' has import animation warnings
-      that might lower retargeting quality:\nNote: Activate translation DOF on avatar
-      to improve retargeting quality.\n\t'upper_leg_L' has scale animation that will
-      be discarded.\n\t'lower_leg_L' has scale animation that will be discarded.\n\t'foot_L'
-      has scale animation that will be discarded.\n\nClip 'crouching' has import animation
-      warnings that might lower retargeting quality:\nNote: Activate translation DOF
-      on avatar to improve retargeting quality.\n\t'lower_leg_L' has scale animation
-      that will be discarded.\n\t'foot_L' has scale animation that will be discarded.\n\t'lower_leg_R'
-      has scale animation that will be discarded.\n\t'foot_R' has scale animation
-      that will be discarded.\n\nClip 'Run' has import animation warnings that might
-      lower retargeting quality:\nNote: Activate translation DOF on avatar to improve
-      retargeting quality.\n\t'upper_leg_L' has scale animation that will be discarded.\n\t'lower_leg_L'
-      has scale animation that will be discarded.\n\t'foot_L' has scale animation
-      that will be discarded.\n\t'upper_leg_R' has scale animation that will be discarded.\n\t'lower_leg_R'
-      has scale animation that will be discarded.\n\t'foot_R' has scale animation
-      that will be discarded.\n\nClip 'Walk' has import animation warnings that might
-      lower retargeting quality:\nNote: Activate translation DOF on avatar to improve
-      retargeting quality.\n\t'foot_L' has scale animation that will be discarded.\n\t'foot_R'
-      has scale animation that will be discarded.\n"
+    animationImportWarnings: 
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
@@ -483,6 +526,7 @@ ModelImporter:
     globalScale: 1
     meshCompression: 0
     addColliders: 0
+    useSRGBMaterialColor: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
@@ -507,6 +551,9 @@ ModelImporter:
     normalImportMode: 0
     tangentImportMode: 3
     normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
   importAnimation: 1
   copyAvatar: 0
   humanDescription:
@@ -762,7 +809,6 @@ ModelImporter:
     legStretch: 0.05
     feetSpacing: 0
     rootMotionBoneName: 
-    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
     hasTranslationDoF: 0
     hasExtraRoot: 1
     skeletonHasParents: 1

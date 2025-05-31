@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace NS.StateMachine {
+	public interface IStateRunner {
+		void AdvanceStateTree();
+	}
 	public class State {
 		public string desc;
 		public virtual void Enter(IStateRunner sr) { sr.AdvanceStateTree(); }

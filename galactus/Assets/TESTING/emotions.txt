@@ -1,0 +1,38 @@
+"emotions":{
+	"basic":{
+		"trust":["admiration", "trust", "accptance"]
+		"joy":["ecstacy", "joy", "happiness"]
+		"vigilance":["courage","anticipation","vigilance"]
+		"anger":["rage","anger","annoyance"]
+		"disgust":["loathing","disgust","boredom"]
+		"sadness":["grief","sadness","pensiveness"]
+		"surprise":["amazement","surprise","distraction"]
+		"fear":["terror","fear","apprehension"]
+	}
+	"complex":{
+		"love":["trust","joy"],
+		"optimism":["joy","vigilance"],
+		"aggression":["vigilance","anger"],
+		"contempt":["anger","disgust"],
+		"remorse":["disgust","sadness"],
+		"disapproval":["sadness","surprise"],
+		"awe":["surprise","fear"],
+		"submission":["fear","trust"],
+		"hope":["trust","vigilance"],
+		"pride":["joy","anger"],
+		"cynicism":["vigilance","disgust"],
+		"envy":["anger","sadness"],
+		"unbelif":["disgust","surprise"],
+		"despair":["sadness","fear"],
+		"curiosity":["surprise","trust"],
+		"guilt":["fear","joy"],
+		"anxiety":["fear","vigilance"],
+		"dominance":["trust","anger"],
+		"morbidness":["joy","disgust"],
+		"pessimism":["vigilance","sadness"],
+		"outrage":["rage","surprise"],
+		"shame":["disgust","fear"],
+		"sentimentality":["sadness","trust"],
+		"delight":["surprise","joy"],
+	}
+}

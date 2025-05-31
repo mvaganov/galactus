@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace NS {
-	public interface IStateRunner {
-		void AdvanceStateTree();
-	}
 
 	namespace Story {
 		public class Say : NS.StateMachine.State {
@@ -23,7 +20,7 @@ namespace NS {
 			}
 			private Vars vars;
 
-			public override void Enter(IStateRunner sr) {
+			public override void Enter(NS.StateMachine.IStateRunner sr) {
 				Story story = sr as Story;
 				story.letterIndex = 0;
 				story.textOuput.text = "";
@@ -68,7 +65,7 @@ namespace NS {
 				}
 				AdvanceLetter(story);
 			}
-			public override void Execute(IStateRunner sr) {
+			public override void Execute(NS.StateMachine.IStateRunner sr) {
 				Story story = sr as Story;
 				if(Input.GetKeyDown(KeyCode.UpArrow)) {
 					screenArea = Util.Shift(screenArea, ScreenArea.Top);
@@ -94,7 +91,7 @@ namespace NS {
 					}
 				}
 			}
-			public override void Exit(IStateRunner sr) {
+			public override void Exit(NS.StateMachine.IStateRunner sr) {
 				if(!keepOnScreen) {
 					Story story = sr as Story;
 					if(story.textPanel) {
@@ -109,7 +106,7 @@ namespace NS {
 					story.letterIndex = 0;
 				}
 			}
-			void AdvanceLetter(IStateRunner sr) {
+			void AdvanceLetter(NS.StateMachine.IStateRunner sr) {
 				Story story = sr as Story;
 				if(story.state.CurrentState != this) { return; }
 				int i = story.letterIndex;
@@ -139,7 +136,7 @@ namespace NS {
 			public List<object> commands;
 			public ScreenArea screenArea = ScreenArea.Bottom;
 
-			public override void Enter(IStateRunner sr) {
+			public override void Enter(NS.StateMachine.IStateRunner sr) {
 				Story story = sr as Story;
 				MakeButton(story);
 				// if there are multiple options in a row, initialize those too!
@@ -149,7 +146,7 @@ namespace NS {
 				if(opt != null) { story.AdvanceStateTree(); }
 			}
 
-			public void FinishedWithOptions(IStateRunner sr) {
+			public void FinishedWithOptions(NS.StateMachine.IStateRunner sr) {
 				Story story = sr as Story;
 				for(int i = story.optionPanel.childCount - 1; i >= 0; i--) {
 					// TODO instead of destroying the objects, hide and cache them for reuse?
@@ -157,7 +154,7 @@ namespace NS {
 				}
 				story.optionPanel.gameObject.SetActive(false);
 			}
-			public RectTransform MakeButton(IStateRunner sr) {
+			public RectTransform MakeButton(NS.StateMachine.IStateRunner sr) {
 				Story story = sr as Story;
 				RectTransform button = Object.Instantiate(story.optionPrefab) as RectTransform;
 				TMPro.TMP_Text t = button.GetComponentInChildren<TMPro.TMP_Text>();
@@ -197,13 +194,13 @@ namespace NS {
 		public class Cmd : NS.StateMachine.State {
 			public string cmd;
 
-			public override void Enter(IStateRunner sr) {
+			public override void Enter(NS.StateMachine.IStateRunner sr) {
 				CmdLine.DoCommand(cmd);
 				sr.AdvanceStateTree();
 			}
 		}
 
-		public class Story : MonoBehaviour, IStateRunner {
+		public class Story : MonoBehaviour, NS.StateMachine.IStateRunner {
 			public RectTransform textPanel;
 			public RectTransform portraitPanel;
 			public TMPro.TMP_Text textOuput;
